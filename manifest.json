@@ -1,7 +1,7 @@
 {
-  "name": "Learning Phrase Practice",
-  "short_name": "Learning SRS",
-  "description": "An SRS app for practicing Learning phrases using AI.",
+  "name": "Lingogo",
+  "short_name": "Lingogo",
+  "description": "An SRS app for practicing language phrases using AI.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
