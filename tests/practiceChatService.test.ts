@@ -192,7 +192,7 @@ describe('Practice Chat Service', () => {
   });
 
   describe('createFallbackResponse', () => {
-    it('should create fallback with German "Entschuldigung" for German learning', () => {
+    it('should create fallback with Learning "Entschuldigung" for Learning learning', () => {
       const fallback = createFallbackResponse(
         'Test error',
         { ui: 'en', native: 'ru', learning: 'de' }
@@ -205,7 +205,7 @@ describe('Practice Chat Service', () => {
       expect(fallback.actions?.suggestions).toContain('OK');
     });
 
-    it('should create fallback with "Sorry" for non-German languages', () => {
+    it('should create fallback with "Sorry" for non-Learning languages', () => {
       const fallback = createFallbackResponse(
         'Test error',
         { ui: 'en', native: 'en', learning: 'fr' }
@@ -254,13 +254,13 @@ describe('Practice Chat Service', () => {
         messageType: 'explanation' as const,
         primaryText: 'gehen',
         translation: 'to go',
-        secondaryText: 'This is a common German verb',
+        secondaryText: 'This is a common Learning verb',
         suggestions: ['OK', 'Next']
       };
 
       const message = convertAIResponseToMessage(aiResponse);
 
-      expect(message.content.secondary?.text).toBe('This is a common German verb');
+      expect(message.content.secondary?.text).toBe('This is a common Learning verb');
     });
 
     it('should convert response with hints', () => {
@@ -316,7 +316,7 @@ describe('Practice Chat Service', () => {
       const greeting = {
         messageType: 'greeting',
         primaryText: 'Hallo! Lass uns Deutsch üben!',
-        translation: 'Hello! Let\'s practice German!',
+        translation: 'Hello! Let\'s practice Learning!',
         secondaryText: 'I will ask questions using phrases from your vocabulary',
         suggestions: ['Hallo!', 'Guten Tag!', 'Ja, gerne!']
       };
@@ -341,7 +341,7 @@ describe('Practice Chat Service', () => {
         messageType: 'correction',
         primaryText: 'Mir geht es gut',
         translation: 'I\'m good',
-        secondaryText: 'In German, use "Mir geht es gut" (dative case), not "Ich bin gut"',
+        secondaryText: 'In Learning, use "Mir geht es gut" (dative case), not "Ich bin gut"',
         suggestions: ['Mir geht es gut', 'Es geht mir gut']
       };
 
@@ -451,9 +451,9 @@ describe('Practice Chat Service', () => {
   });
 
   describe('Language Support', () => {
-    it('should create German fallback for German learning', () => {
-      const germanProfile: LanguageProfile = { ui: 'en', native: 'ru', learning: 'de' };
-      const fallback = createFallbackResponse('Error', germanProfile);
+    it('should create Learning fallback for Learning learning', () => {
+      const learningProfile: LanguageProfile = { ui: 'en', native: 'ru', learning: 'de' };
+      const fallback = createFallbackResponse('Error', learningProfile);
       expect(fallback.content.primary.text).toBe('Entschuldigung');
     });
 

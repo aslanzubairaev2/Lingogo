@@ -15,16 +15,16 @@ import { getNativeSpeechLocale } from '../services/speechService';
 interface DiscussTranslationModalProps {
     isOpen: boolean;
     onClose: () => void;
-    originalRussian: string;
-    currentGerman: string;
+    originalNative: string;
+    currentLearning: string;
     onDiscuss: (request: any) => Promise<TranslationChatResponse>;
-    onAccept: (suggestion: { russian: string; german: string }) => void;
+    onAccept: (suggestion: { native: string; learning: string }) => void;
     onOpenWordAnalysis: (phrase: Phrase, word: string) => void;
     initialMessage?: string;
 }
 
-const ChatMessageContent: React.FC<{ 
-    message: ChatMessage; 
+const ChatMessageContent: React.FC<{
+    message: ChatMessage;
     onSpeak: (text: string) => void;
     basePhrase: Omit<Phrase, 'id'>;
     onOpenWordAnalysis: (phrase: Phrase, word: string) => void;
@@ -36,7 +36,7 @@ const ChatMessageContent: React.FC<{
         onOpenWordAnalysis(proxyPhrase as Phrase, word);
     };
 
-    const renderClickableGerman = (text: string) => {
+    const renderClickableLearning = (text: string) => {
         if (!text) return null;
         return text.split(' ').map((word, i, arr) => (
             <span
@@ -52,14 +52,14 @@ const ChatMessageContent: React.FC<{
             </span>
         ));
     };
-    
+
     if (contentParts) {
         return (
             <div className="whitespace-pre-wrap leading-relaxed">
                 {contentParts.map((part, index) =>
-                    part.type === 'learning' || part.type === 'german' ? (
+                    part.type === 'learning' || part.type === 'learning' ? (
                         <span key={index} className="inline-flex items-center align-middle bg-slate-600/50 px-1.5 py-0.5 rounded-md mx-0.5">
-                            <span className="font-medium text-purple-300">{renderClickableGerman(part.text)}</span>
+                            <span className="font-medium text-purple-300">{renderClickableLearning(part.text)}</span>
                             <button onClick={() => onSpeak(part.text)} className="p-0.5 rounded-full hover:bg-white/20 ml-1.5">
                                 <SoundIcon className="w-3.5 h-3.5 text-slate-300" />
                             </button>
@@ -74,21 +74,21 @@ const ChatMessageContent: React.FC<{
     return text ? <p>{text}</p> : null;
 };
 
-const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({ isOpen, onClose, originalRussian, currentGerman, onDiscuss, onAccept, onOpenWordAnalysis, initialMessage }) => {
+const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({ isOpen, onClose, originalNative, currentLearning, onDiscuss, onAccept, onOpenWordAnalysis, initialMessage }) => {
     const { t } = useTranslation();
     const { profile } = useLanguage();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [input, setInput] = useState('');
-    const [latestSuggestion, setLatestSuggestion] = useState<{ russian: string; german: string } | null>(null);
+    const [latestSuggestion, setLatestSuggestion] = useState<{ native: string; learning: string } | null>(null);
     const [isListening, setIsListening] = useState(false);
-    
+
     const recognitionRef = useRef<SpeechRecognition | null>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const isInitialMessageSent = useRef(false);
 
     const basePhrase = {
-        text: { native: originalRussian, learning: currentGerman },
+        text: { native: originalNative, learning: currentLearning },
         category: 'general' as const,
         masteryLevel: 0, lastReviewedAt: null, nextReviewAt: Date.now(),
         knowCount: 0, knowStreak: 0, isMastered: false,
@@ -108,40 +108,40 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({ isOpe
 
         try {
             const response = await onDiscuss({
-                originalNative: originalRussian,
-                currentLearning: currentGerman,
+                originalNative: originalNative,
+                currentLearning: currentLearning,
                 history: newMessages,
                 userRequest: messageText,
             });
             setMessages(prev => [...prev, response]);
             if (response.suggestion) {
-                setLatestSuggestion({ russian: response.suggestion.native, german: response.suggestion.learning });
+                setLatestSuggestion({ native: response.suggestion.native, learning: response.suggestion.learning });
             }
         } catch (error) {
             setMessages(prev => [...prev, { role: 'model', contentParts: [{ type: 'text', text: t('modals.discussTranslation.errors.generic', { message: (error as Error).message }) }] }]);
         } finally {
             setIsLoading(false);
         }
-    }, [isLoading, messages, originalRussian, currentGerman, onDiscuss]);
-    
+    }, [isLoading, messages, originalNative, currentLearning, onDiscuss]);
+
     useEffect(() => {
         if (isOpen) {
             if (initialMessage && !isInitialMessageSent.current) {
                 isInitialMessageSent.current = true;
-                
+
                 const userMessage: ChatMessage = { role: 'user', text: initialMessage };
                 setIsLoading(true);
                 setMessages([userMessage]);
 
                 onDiscuss({
-                    originalNative: originalRussian,
-                    currentLearning: currentGerman,
+                    originalNative: originalNative,
+                    currentLearning: currentLearning,
                     history: [userMessage],
                     userRequest: initialMessage,
                 }).then(response => {
                     setMessages(prev => [...prev, response]);
                     if (response.suggestion) {
-                        setLatestSuggestion({ russian: response.suggestion.native, german: response.suggestion.learning });
+                        setLatestSuggestion({ native: response.suggestion.native, learning: response.suggestion.learning });
                     }
                 }).catch(error => {
                     setMessages(prev => [...prev, { role: 'model', contentParts: [{ type: 'text', text: t('modals.discussTranslation.errors.generic', { message: (error as Error).message }) }] }]);
@@ -156,8 +156,8 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({ isOpe
             setInput('');
             isInitialMessageSent.current = false;
         }
-    }, [isOpen, initialMessage, originalRussian, currentGerman, onDiscuss]);
-    
+    }, [isOpen, initialMessage, originalNative, currentLearning, onDiscuss]);
+
     useEffect(() => {
         const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognitionAPI) {
@@ -202,7 +202,7 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({ isOpe
             onAccept(latestSuggestion);
         }
     };
-    
+
     const handleMicClick = () => {
         if (isListening) recognitionRef.current?.stop();
         else recognitionRef.current?.start();
@@ -231,13 +231,13 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({ isOpe
                     {messages.map((msg, index) => (
                         <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                             <div className={`max-w-[85%] px-4 py-3 rounded-2xl break-words ${msg.role === 'user' ? 'bg-purple-600 text-white rounded-br-lg' : 'bg-slate-700 text-slate-200 rounded-bl-lg'}`}>
-                               <ChatMessageContent message={msg} onSpeak={onSpeak} basePhrase={basePhrase} onOpenWordAnalysis={onOpenWordAnalysis} />
+                                <ChatMessageContent message={msg} onSpeak={onSpeak} basePhrase={basePhrase} onOpenWordAnalysis={onOpenWordAnalysis} />
                             </div>
                         </div>
                     ))}
                     {isLoading && (
                         <div className="flex justify-start">
-                             <div className="max-w-[85%] px-4 py-3 rounded-2xl bg-slate-700 text-slate-200 rounded-bl-lg flex items-center">
+                            <div className="max-w-[85%] px-4 py-3 rounded-2xl bg-slate-700 text-slate-200 rounded-bl-lg flex items-center">
                                 <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse mr-2"></div>
                                 <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse mr-2 delay-150"></div>
                                 <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse delay-300"></div>
@@ -251,7 +251,7 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({ isOpe
                     {latestSuggestion && (
                         <div className="bg-slate-700/50 p-3 rounded-lg mb-3">
                             <p className="text-sm text-slate-400">{t('modals.discussTranslation.suggestion')}:</p>
-                            <p className="font-semibold text-slate-200">{latestSuggestion.russian} → {latestSuggestion.german}</p>
+                            <p className="font-semibold text-slate-200">{latestSuggestion.native} → {latestSuggestion.learning}</p>
                             <button onClick={handleAccept} className="w-full mt-2 text-sm flex items-center justify-center py-2 bg-green-600 hover:bg-green-700 rounded-md font-bold text-white">
                                 <CheckIcon className="w-4 h-4 mr-2" />
                                 {t('modals.discussTranslation.accept')}
@@ -268,7 +268,7 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({ isOpe
                             disabled={isLoading}
                         />
                         <button type="button" onClick={handleMicClick} className={`p-3 rounded-lg flex-shrink-0 ${isListening ? 'bg-red-600 animate-pulse' : 'bg-slate-600'} hover:bg-slate-500`} disabled={isLoading}>
-                             <MicrophoneIcon className="w-4 h-4 text-white" />
+                            <MicrophoneIcon className="w-4 h-4 text-white" />
                         </button>
                         <button type="submit" disabled={!input.trim() || isLoading} className="p-3 bg-purple-600 rounded-lg hover:bg-purple-700 disabled:bg-slate-600">
                             <SendIcon className="w-4 h-4 text-white" />

@@ -78,21 +78,21 @@ export interface WordAnalysis {
 }
 
 export interface PronounConjugation {
-    pronoun: string;
-    pronounNative?: string;
-    learning: string;
-    native: string;
+  pronoun: string;
+  pronounNative?: string;
+  learning: string;
+  native: string;
 }
 
 export interface Pronoun {
-    learning: string; // pronoun in learning language
-    native: string; // translation in native language
+  learning: string; // pronoun in learning language
+  native: string; // translation in native language
 }
 
 export interface TenseForms {
-    statement: PronounConjugation[];
-    question: PronounConjugation[];
-    negative: PronounConjugation[];
+  statement: PronounConjugation[];
+  question: PronounConjugation[];
+  negative: PronounConjugation[];
 }
 
 export interface VerbConjugation {
@@ -104,7 +104,7 @@ export interface VerbConjugation {
 
 export interface NounDeclension {
   noun: string;
-  // NOTE: Keys use German case labels for compatibility with current AI schema.
+  // NOTE: Keys use Learning case labels for compatibility with current AI schema.
   // UI texts are localized via i18n; data remains language-agnostic strings.
   singular: {
     nominativ: string;
@@ -142,8 +142,8 @@ export interface CaseDeclension {
 }
 
 export interface SentenceContinuation {
-  german: string;
-  russian: string;
+  learning: string;
+  native: string;
 }
 
 export interface PhraseBuilderOptions {
@@ -163,9 +163,9 @@ export interface ContentPart {
 }
 
 export interface ExamplePair {
-  // FIX: Renamed 'germanExample' to 'learningExample' for consistency.
+  // FIX: Renamed 'learningExample' to 'learningExample' for consistency.
   learningExample: string;
-  // FIX: Renamed 'russianTranslation' to 'nativeTranslation' for consistency.
+  // FIX: Renamed 'nativeTranslation' to 'nativeTranslation' for consistency.
   nativeTranslation: string;
 }
 
@@ -217,8 +217,8 @@ export interface CategoryAssistantResponse {
 export type CategoryAssistantRequestType = 'initial' | 'add_similar' | 'check_homogeneity' | 'create_dialogue' | 'user_text';
 
 export interface CategoryAssistantRequest {
-    type: CategoryAssistantRequestType;
-    text?: string;
+  type: CategoryAssistantRequestType;
+  text?: string;
 }
 
 // ============================================================================

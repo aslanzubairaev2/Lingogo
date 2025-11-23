@@ -9,7 +9,7 @@ describe('Learning Assistant Localization', () => {
     expect(translation).toBe("I don't know");
   });
 
-  it('should have dontKnow translation in German', () => {
+  it('should have dontKnow translation in Learning', () => {
     i18n.changeLanguage('de');
     const translation = i18n.t('modals.learningAssistant.dontKnow');
     expect(translation).toBe("Ich weiß nicht");
@@ -21,7 +21,7 @@ describe('Learning Assistant Localization', () => {
     expect(translation).toBe("No lo sé");
   });
 
-  it('should have dontKnow translation in Russian', () => {
+  it('should have dontKnow translation in Native', () => {
     i18n.changeLanguage('ru');
     const translation = i18n.t('modals.learningAssistant.dontKnow');
     expect(translation).toBe("Не знаю");

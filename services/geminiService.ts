@@ -35,38 +35,38 @@ const model = "gemini-2.5-flash-lite-preview-09-2025";
  * @throws Last error if all retries fail
  */
 async function retryWithExponentialBackoff<T>(
-  fn: () => Promise<T>,
-  maxRetries: number = 3,
-  initialDelayMs: number = 1000
+    fn: () => Promise<T>,
+    maxRetries: number = 3,
+    initialDelayMs: number = 1000
 ): Promise<T> {
-  let lastError: Error | null = null;
+    let lastError: Error | null = null;
 
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error as Error;
-      const isLastAttempt = attempt === maxRetries - 1;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            lastError = error as Error;
+            const isLastAttempt = attempt === maxRetries - 1;
 
-      console.warn(
-        `[retryWithExponentialBackoff] Attempt ${attempt + 1}/${maxRetries} failed:`,
-        error instanceof Error ? error.message : error
-      );
+            console.warn(
+                `[retryWithExponentialBackoff] Attempt ${attempt + 1}/${maxRetries} failed:`,
+                error instanceof Error ? error.message : error
+            );
 
-      if (isLastAttempt) {
-        console.error('[retryWithExponentialBackoff] All retries exhausted');
-        break;
-      }
+            if (isLastAttempt) {
+                console.error('[retryWithExponentialBackoff] All retries exhausted');
+                break;
+            }
 
-      // Calculate delay with exponential backoff: 1s, 2s, 4s, etc.
-      const delayMs = initialDelayMs * Math.pow(2, attempt);
-      console.log(`[retryWithExponentialBackoff] Waiting ${delayMs}ms before retry...`);
+            // Calculate delay with exponential backoff: 1s, 2s, 4s, etc.
+            const delayMs = initialDelayMs * Math.pow(2, attempt);
+            console.log(`[retryWithExponentialBackoff] Waiting ${delayMs}ms before retry...`);
 
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
     }
-  }
 
-  throw lastError || new Error('Max retries exceeded');
+    throw lastError || new Error('Max retries exceeded');
 }
 
 /**
@@ -90,96 +90,96 @@ const requiresRomanization = (languageCode: LanguageCode): boolean => {
 };
 
 const buildLocalePrompt = (languageLabel: string) => [
-  {
-    role: 'user',
-    parts: [
-      {
-        text: `You translate UI text from English to ${languageLabel}. Return valid JSON matching the input structure. Translate string values only. Preserve placeholders like {{count}} or {{name}} exactly. Keep HTML tags and Markdown untouched. Use straight quotes and ASCII ellipsis (...). Do not add explanations.`
-      }
-    ]
-  }
+    {
+        role: 'user',
+        parts: [
+            {
+                text: `You translate UI text from English to ${languageLabel}. Return valid JSON matching the input structure. Translate string values only. Preserve placeholders like {{count}} or {{name}} exactly. Keep HTML tags and Markdown untouched. Use straight quotes and ASCII ellipsis (...). Do not add explanations.`
+            }
+        ]
+    }
 ];
 
 const sanitizeJsonResponse = (raw: string) => {
-  const trimmed = raw.trim();
-  if (trimmed.startsWith('```')) {
-    const withoutFence = trimmed.replace(/^```[a-z]*\s*/i, '').replace(/```$/, '');
-    return withoutFence.trim();
-  }
-  return trimmed;
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('```')) {
+        const withoutFence = trimmed.replace(/^```[a-z]*\s*/i, '').replace(/```$/, '');
+        return withoutFence.trim();
+    }
+    return trimmed;
 };
 
 
 
 export const translateLocaleTemplate = async (template: TranslationRecord, targetLanguage: LanguageCode): Promise<TranslationRecord> => {
-  console.log(`[Gemini] Starting locale translation for ${targetLanguage}`);
+    console.log(`[Gemini] Starting locale translation for ${targetLanguage}`);
 
-  const api = initializeApi();
-  if (!api) {
-    console.error(`[Gemini] API key not configured for ${targetLanguage}`);
-    throw new Error('Gemini API key not configured.');
-  }
-
-  const templateJson = JSON.stringify(template, null, 2);
-  console.log(`[Gemini] Template size for ${targetLanguage}: ${templateJson.length} characters`);
-
-  const prompt = buildLocalePrompt(targetLanguage);
-  prompt[0].parts.push({ text: templateJson });
-
-  try {
-    console.log(`[Gemini] Sending request to Gemini API for ${targetLanguage}`);
-    const response = await api.models.generateContent({
-      model,
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        temperature: 0.2,
-      },
-    });
-
-    console.log(`[Gemini] Received response for ${targetLanguage}`);
-    const raw = (response?.text ?? '').toString();
-    console.log(`[Gemini] Raw response length for ${targetLanguage}: ${raw.length} characters`);
-
-    if (!raw || raw.trim().length === 0) {
-      console.error(`[Gemini] Empty response received for ${targetLanguage}`);
-      throw new Error('Received empty translation response.');
+    const api = initializeApi();
+    if (!api) {
+        console.error(`[Gemini] API key not configured for ${targetLanguage}`);
+        throw new Error('Gemini API key not configured.');
     }
 
-    const sanitized = sanitizeJsonResponse(raw);
-    console.log(`[Gemini] Sanitized response length for ${targetLanguage}: ${sanitized.length} characters`);
+    const templateJson = JSON.stringify(template, null, 2);
+    console.log(`[Gemini] Template size for ${targetLanguage}: ${templateJson.length} characters`);
 
-    if (!sanitized) {
-      console.error(`[Gemini] Sanitization resulted in empty string for ${targetLanguage}`);
-      throw new Error('Received empty translation response.');
+    const prompt = buildLocalePrompt(targetLanguage);
+    prompt[0].parts.push({ text: templateJson });
+
+    try {
+        console.log(`[Gemini] Sending request to Gemini API for ${targetLanguage}`);
+        const response = await api.models.generateContent({
+            model,
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                temperature: 0.2,
+            },
+        });
+
+        console.log(`[Gemini] Received response for ${targetLanguage}`);
+        const raw = (response?.text ?? '').toString();
+        console.log(`[Gemini] Raw response length for ${targetLanguage}: ${raw.length} characters`);
+
+        if (!raw || raw.trim().length === 0) {
+            console.error(`[Gemini] Empty response received for ${targetLanguage}`);
+            throw new Error('Received empty translation response.');
+        }
+
+        const sanitized = sanitizeJsonResponse(raw);
+        console.log(`[Gemini] Sanitized response length for ${targetLanguage}: ${sanitized.length} characters`);
+
+        if (!sanitized) {
+            console.error(`[Gemini] Sanitization resulted in empty string for ${targetLanguage}`);
+            throw new Error('Received empty translation response.');
+        }
+
+        console.log(`[Gemini] Parsing JSON response for ${targetLanguage}`);
+        const parsed = JSON.parse(sanitized);
+
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+            console.error(`[Gemini] Invalid JSON structure for ${targetLanguage}:`, typeof parsed, Array.isArray(parsed));
+            throw new Error('Translated locale must be a JSON object.');
+        }
+
+        console.log(`[Gemini] Successfully parsed locale for ${targetLanguage}`);
+        return parsed as TranslationRecord;
+    } catch (error) {
+        console.error(`[Gemini] Error translating locale for ${targetLanguage}:`, error);
+
+        // Add more specific error information
+        if (error instanceof Error) {
+            if (error.message.includes('JSON')) {
+                console.error(`[Gemini] JSON parsing error for ${targetLanguage}:`, error.message);
+            } else if (error.message.includes('API')) {
+                console.error(`[Gemini] API error for ${targetLanguage}:`, error.message);
+            } else {
+                console.error(`[Gemini] General error for ${targetLanguage}:`, error.message);
+            }
+        }
+
+        throw error instanceof Error ? error : new Error('Failed to translate locale via Gemini.');
     }
-
-    console.log(`[Gemini] Parsing JSON response for ${targetLanguage}`);
-    const parsed = JSON.parse(sanitized);
-
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-      console.error(`[Gemini] Invalid JSON structure for ${targetLanguage}:`, typeof parsed, Array.isArray(parsed));
-      throw new Error('Translated locale must be a JSON object.');
-    }
-
-    console.log(`[Gemini] Successfully parsed locale for ${targetLanguage}`);
-    return parsed as TranslationRecord;
-  } catch (error) {
-    console.error(`[Gemini] Error translating locale for ${targetLanguage}:`, error);
-
-    // Add more specific error information
-    if (error instanceof Error) {
-      if (error.message.includes('JSON')) {
-        console.error(`[Gemini] JSON parsing error for ${targetLanguage}:`, error.message);
-      } else if (error.message.includes('API')) {
-        console.error(`[Gemini] API error for ${targetLanguage}:`, error.message);
-      } else {
-        console.error(`[Gemini] General error for ${targetLanguage}:`, error.message);
-      }
-    }
-
-    throw error instanceof Error ? error : new Error('Failed to translate locale via Gemini.');
-  }
 };
 
 const phraseSchema = () => {
@@ -224,7 +224,7 @@ const generatePhrases: AiService['generatePhrases'] = async (prompt) => {
                 temperature: 0.7,
             },
         });
-        
+
         const jsonText = response.text.trim();
         const parsedPhrases = JSON.parse(jsonText);
 
@@ -241,15 +241,15 @@ const generatePhrases: AiService['generatePhrases'] = async (prompt) => {
         if (!isValid) {
             throw new Error("Received malformed phrase data from API.");
         }
-        
+
         return parsedPhrases.map((p: any) => ({
-            german: p[lang.learningCode],
-            russian: p[lang.nativeCode],
+            learning: p[lang.learningCode],
+            native: p[lang.nativeCode],
         }));
     } catch (error) {
         console.error("Error generating phrases with Gemini:", error);
         if (error instanceof Error && error.message.includes('JSON')) {
-             throw new Error("Failed to parse the response from the AI. The format was invalid.");
+            throw new Error("Failed to parse the response from the AI. The format was invalid.");
         }
         const errorMessage = (error as any)?.message || 'Unknown error';
         throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
@@ -270,12 +270,12 @@ const singlePhraseSchema = () => {
     };
 };
 
-const generateSinglePhrase: AiService['generateSinglePhrase'] = async (russianPhrase) => {
+const generateSinglePhrase: AiService['generateSinglePhrase'] = async (nativePhrase) => {
     const api = initializeApi();
     if (!api) throw new Error("Gemini API key not configured.");
 
     const lang = getLang();
-    const prompt = `Translate the following ${lang.native} phrase into a common, natural-sounding ${lang.learning} phrase: "${russianPhrase}". Return a single JSON object with one key: "${lang.learningCode}" for the translation.`;
+    const prompt = `Translate the following ${lang.native} phrase into a common, natural-sounding ${lang.learning} phrase: "${nativePhrase}". Return a single JSON object with one key: "${lang.learningCode}" for the translation.`;
 
     try {
         const response = await api.models.generateContent({
@@ -292,12 +292,12 @@ const generateSinglePhrase: AiService['generateSinglePhrase'] = async (russianPh
         const parsedResult = JSON.parse(jsonText);
 
         if (typeof parsedResult !== 'object' || parsedResult === null || !(lang.learningCode in parsedResult) || typeof parsedResult[lang.learningCode] !== 'string') {
-             throw new Error("Received malformed translation data from API.");
+            throw new Error("Received malformed translation data from API.");
         }
 
         const finalResponse = {
-            german: parsedResult[lang.learningCode],
-            russian: russianPhrase,
+            learning: parsedResult[lang.learningCode],
+            native: nativePhrase,
         };
 
         console.log('[practiceConversation] Final structured response:', finalResponse);
@@ -309,13 +309,13 @@ const generateSinglePhrase: AiService['generateSinglePhrase'] = async (russianPh
     }
 };
 
-const translatePhrase: AiService['translatePhrase'] = async (russianPhrase) => {
+const translatePhrase: AiService['translatePhrase'] = async (nativePhrase) => {
     const api = initializeApi();
     if (!api) throw new Error("Gemini API key not configured.");
 
     const lang = getLang();
 
-    const prompt = `Translate this ${lang.native} phrase to ${lang.learning}: "${russianPhrase}"`;
+    const prompt = `Translate this ${lang.native} phrase to ${lang.learning}: "${nativePhrase}"`;
 
     try {
         const response = await api.models.generateContent({
@@ -329,14 +329,14 @@ const translatePhrase: AiService['translatePhrase'] = async (russianPhrase) => {
         });
         const jsonText = response.text.trim();
         const parsedResult = JSON.parse(jsonText);
-        return { german: parsedResult[lang.learningCode] };
+        return { learning: parsedResult[lang.learningCode] };
     } catch (error) {
         console.error("Error translating phrase with Gemini:", error);
         throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
     }
 };
 
-const russianSinglePhraseSchema = () => {
+const nativeSinglePhraseSchema = () => {
     const lang = getLang();
     return {
         type: Type.OBJECT,
@@ -350,12 +350,12 @@ const russianSinglePhraseSchema = () => {
     };
 };
 
-const translateGermanToRussian: AiService['translateGermanToRussian'] = async (germanPhrase) => {
+const translateLearningToNative: AiService['translateLearningToNative'] = async (learningPhrase) => {
     const api = initializeApi();
     if (!api) throw new Error("Gemini API key not configured.");
     const lang = getLang();
 
-    const prompt = `Translate this ${lang.learning} phrase to ${lang.native}: "${germanPhrase}"`;
+    const prompt = `Translate this ${lang.learning} phrase to ${lang.native}: "${learningPhrase}"`;
 
     try {
         const response = await api.models.generateContent({
@@ -363,15 +363,15 @@ const translateGermanToRussian: AiService['translateGermanToRussian'] = async (g
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
-                responseSchema: russianSinglePhraseSchema(),
+                responseSchema: nativeSinglePhraseSchema(),
                 temperature: 0.2,
             },
         });
         const jsonText = response.text.trim();
         const parsedResult = JSON.parse(jsonText);
-        return { russian: parsedResult[lang.nativeCode] };
+        return { native: parsedResult[lang.nativeCode] };
     } catch (error) {
-        console.error("Error translating German phrase with Gemini:", error);
+        console.error("Error translating Learning phrase with Gemini:", error);
         throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
     }
 };
@@ -381,24 +381,24 @@ const wordTranslationSchema = () => {
     return {
         type: Type.OBJECT,
         properties: {
-            germanTranslation: { // This key remains for backward compatibility
+            learningTranslation: { // This key remains for backward compatibility
                 type: Type.STRING,
                 description: `The ${lang.learning} word(s) that correspond to the given ${lang.native} word in the context of the full phrase.`
             },
         },
-        required: ["germanTranslation"],
+        required: ["learningTranslation"],
     };
 };
 
-const getWordTranslation: AiService['getWordTranslation'] = async (russianPhrase, germanPhrase, russianWord) => {
+const getWordTranslation: AiService['getWordTranslation'] = async (nativePhrase, learningPhrase, nativeWord) => {
     const api = initializeApi();
     if (!api) throw new Error("Gemini API key not configured.");
     const lang = getLang();
 
-    const prompt = `Дана ${lang.native} фраза: "${russianPhrase}".
-Ее ${lang.learning} перевод: "${germanPhrase}".
-Каков точный перевод ${lang.native} слова "${russianWord}" в этом конкретном контексте?
-Верни ТОЛЬКО JSON-объект с одним ключом "germanTranslation".`;
+    const prompt = `Дана ${lang.native} фраза: "${nativePhrase}".
+Ее ${lang.learning} перевод: "${learningPhrase}".
+Каков точный перевод ${lang.native} слова "${nativeWord}" в этом конкретном контексте?
+Верни ТОЛЬКО JSON-объект с одним ключом "learningTranslation".`;
 
     try {
         const response = await api.models.generateContent({
@@ -412,9 +412,9 @@ const getWordTranslation: AiService['getWordTranslation'] = async (russianPhrase
         });
         const jsonText = response.text.trim();
         const parsedResult = JSON.parse(jsonText);
-        // The key "germanTranslation" is kept for backward compatibility.
+        // The key "learningTranslation" is kept for backward compatibility.
         // The value will be the learning language translation.
-        return { germanTranslation: parsedResult.germanTranslation };
+        return { learningTranslation: parsedResult.learningTranslation };
     } catch (error) {
         console.error("Error getting word translation with Gemini:", error);
         throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
@@ -452,7 +452,7 @@ const generateCardsFromTranscript: AiService['generateCardsFromTranscript'] = as
     const api = initializeApi();
     if (!api) throw new Error("Gemini API key not configured.");
     const lang = getLang();
-    
+
     const sourceLanguageName = sourceLang === lang.nativeCode ? lang.native : lang.learning;
     const targetLanguageName = sourceLang === lang.nativeCode ? lang.learning : lang.native;
 
@@ -489,7 +489,7 @@ Example Output Format:
                 temperature: 0.6,
             },
         });
-        
+
         const jsonText = response.text.trim();
         const parsed = JSON.parse(jsonText);
         return parsed.map((p: any) => ({
@@ -577,14 +577,14 @@ Return EXCLUSIVELY the JSON object matching the provided schema.`;
                 temperature: 0.5,
             },
         });
-        
+
         const jsonText = response.text.trim();
         const parsedResult = JSON.parse(jsonText);
 
         if (!parsedResult || !Array.isArray(parsedResult.cards) || typeof parsedResult.categoryName !== 'string') {
             throw new Error("API did not return the expected structure with cards and categoryName.");
         }
-        
+
         return {
             cards: parsedResult.cards.map((c: any) => ({
                 learning: c[lang.learningCode],
@@ -631,7 +631,7 @@ const generateTopicCards: AiService['generateTopicCards'] = async (topic, refine
                 temperature: 0.6,
             },
         });
-        
+
         const jsonText = response.text.trim();
         const parsedCards = JSON.parse(jsonText);
 
@@ -660,7 +660,7 @@ const topicClassificationSchema = {
         },
         categoryName: {
             type: Type.STRING,
-            description: "A short, suitable name for the category if isCategory is true. Should be in Russian. E.g., 'Дни недели', 'Цвета'. Empty string if isCategory is false."
+            description: "A short, suitable name for the category if isCategory is true. Should be in Native. E.g., 'Дни недели', 'Цвета'. Empty string if isCategory is false."
         }
     },
     required: ["isCategory", "categoryName"]
@@ -696,7 +696,7 @@ const improvePhraseSchema = () => {
     return {
         type: Type.OBJECT,
         properties: {
-            suggestedGerman: { // Backward compatibility: key remains 'suggestedGerman'
+            suggestedLearning: { // Backward compatibility: key remains 'suggestedLearning'
                 type: Type.STRING,
                 description: `The improved, more natural, or grammatically correct ${lang.learning} phrase.`,
             },
@@ -705,24 +705,24 @@ const improvePhraseSchema = () => {
                 description: `A concise explanation in ${lang.native} about why the suggestion is better, or why the original was already correct.`,
             },
         },
-        required: ["suggestedGerman", "explanation"],
+        required: ["suggestedLearning", "explanation"],
     };
 };
 
-const improvePhrase: AiService['improvePhrase'] = async (originalRussian, currentGerman) => {
+const improvePhrase: AiService['improvePhrase'] = async (originalNative, currentLearning) => {
     const api = initializeApi();
     if (!api) throw new Error("Gemini API key not configured.");
     const lang = getLang();
 
     const prompt = `Ты — эксперт по ${lang.learning} языку. Пользователь хочет выучить правильный и естественный ${lang.learning}.
-Исходная фраза на ${lang.native}: "${originalRussian}"
-Текущий перевод на ${lang.learning}: "${currentGerman}"
+Исходная фраза на ${lang.native}: "${originalNative}"
+Текущий перевод на ${lang.learning}: "${currentLearning}"
 
 Твоя задача:
 1. Проанализируй ${lang.learning} перевод на грамматическую правильность, естественность звучания и идиоматичность.
 2. Если перевод можно улучшить, предложи лучший вариант. "Лучший" означает более правильный, более употребительный или более естественный для носителя языка.
 3. Дай краткое и ясное объяснение на ${lang.native} языке, почему твой вариант лучше. Например, "В данном контексте предлог 'auf' подходит лучше, чем 'in', потому что..." или "Эта формулировка более вежливая".
-4. Если текущий перевод уже идеален, верни его же в 'suggestedGerman' и объясни, почему он является наилучшим вариантом.
+4. Если текущий перевод уже идеален, верни его же в 'suggestedLearning' и объясни, почему он является наилучшим вариантом.
 
 Верни результат в виде JSON-объекта.`;
 
@@ -736,12 +736,12 @@ const improvePhrase: AiService['improvePhrase'] = async (originalRussian, curren
                 temperature: 0.4,
             },
         });
-        
+
         const jsonText = response.text.trim();
         const parsedResult = JSON.parse(jsonText);
-        // The key "suggestedGerman" is kept for backward compatibility.
+        // The key "suggestedLearning" is kept for backward compatibility.
         return {
-            suggestedGerman: parsedResult.suggestedGerman,
+            suggestedLearning: parsedResult.suggestedLearning,
             explanation: parsedResult.explanation,
         };
     } catch (error) {
@@ -782,9 +782,9 @@ const initialResponseSchema = () => {
                             items: {
                                 type: Type.OBJECT,
                                 properties: {
-                                    type: { type: Type.STRING, enum: ['text', 'german'], description: `Should be 'text' for plain ${lang.native} text or 'german' for a ${lang.learning} word/phrase.` },
+                                    type: { type: Type.STRING, enum: ['text', 'learning'], description: `Should be 'text' for plain ${lang.native} text or 'learning' for a ${lang.learning} word/phrase.` },
                                     text: { type: Type.STRING, description: "The segment of text. Do not use Markdown here." },
-                                    translation: { type: Type.STRING, description: `${lang.native} translation of the text, ONLY if type is 'german'.` }
+                                    translation: { type: Type.STRING, description: `${lang.native} translation of the text, ONLY if type is 'learning'.` }
                                 },
                                 required: ["type", "text"]
                             }
@@ -813,7 +813,7 @@ const generateInitialExamples: AiService['generateInitialExamples'] = async (phr
 
     const prompt = `Пользователь изучает ${lang.learning} фразу: "${phrase.text.learning}" (перевод: "${phrase.text.native}").
 1. Сгенерируй 3-5 разнообразных и практичных предложений-примеров на ${lang.learning}, которые используют эту фразу. Для каждого примера предоставь ${lang.native} перевод.
-2. Проанализируй фразу и предложи 1-2 уникальных, полезных совета или альтернативы. Например, для "ich hätte gern" можно предложить "ich möchte". Сделай советы краткими и по делу. ВАЖНО: Разбей содержание каждого совета на массив 'contentParts'. Каждый элемент массива должно быть объектом с 'type' и 'text'. Если часть ответа - обычный текст, используй 'type': 'text'. Если это ${lang.learning} слово или фраза, используй 'type': 'german' и ОБЯЗАТЕЛЬНО предоставь ${lang.native} перевод в поле 'translation'.
+2. Проанализируй фразу и предложи 1-2 уникальных, полезных совета или альтернативы. Например, для "ich hätte gern" можно предложить "ich möchte". Сделай советы краткими и по делу. ВАЖНО: Разбей содержание каждого совета на массив 'contentParts'. Каждый элемент массива должно быть объектом с 'type' и 'text'. Если часть ответа - обычный текст, используй 'type': 'text'. Если это ${lang.learning} слово или фраза, используй 'type': 'learning' и ОБЯЗАТЕЛЬНО предоставь ${lang.native} перевод в поле 'translation'.
 3. Сгенерируй от 2 до 4 коротких, контекстно-зависимых вопросов для продолжения диалога на ${lang.native} языке, которые пользователь может задать.
    - Предлагай "Покажи варианты с местоимениями" только если во фразе есть глагол для спряжения.
    - Предлагай "Как это использовать в вопросе?" только если фраза не является вопросом.
@@ -830,7 +830,7 @@ const generateInitialExamples: AiService['generateInitialExamples'] = async (phr
                 temperature: 0.7,
             },
         });
-        
+
         const jsonText = response.text.trim();
         const parsedResponse = JSON.parse(jsonText);
 
@@ -896,8 +896,8 @@ const continueChat: AiService['continueChat'] = async (phrase, history, newMessa
         if (msg.contentParts) {
             fullText = msg.contentParts.map(p => p.text).join('');
         } else if (msg.text) {
-             fullText = msg.text;
-             if (msg.examples && msg.examples.length > 0) {
+            fullText = msg.text;
+            if (msg.examples && msg.examples.length > 0) {
                 const examplesText = msg.examples.map(ex => `- ${ex.learningExample} (${ex.nativeTranslation})`).join('\n');
                 fullText += '\n\nПримеры:\n' + examplesText;
             }
@@ -912,7 +912,7 @@ const continueChat: AiService['continueChat'] = async (phrase, history, newMessa
             parts: [{ text: fullText }]
         };
     });
-    
+
     const systemInstruction = `Ты AI-помощник для изучения ${lang.learning} языка. Пользователь изучает фразу "${phrase.text.learning}" (${phrase.text.native}).
 1. Отвечай на вопросы пользователя. В своем ответе ОБЯЗАТЕЛЬНО используй предоставленную JSON-схему. Разбей свой ответ на массив 'responseParts'. Каждый элемент массива должен быть объектом с ключами 'type' и 'text'. Если часть ответа - это обычный текст на ${lang.native}, используй 'type': 'text'. Если это ${lang.learning} слово или фраза, используй 'type': 'learning'. Если 'type' равен 'learning', ОБЯЗАТЕЛЬНО предоставь перевод в поле 'translation'. Не используй Markdown в JSON. Сохраняй форматирование с помощью переносов строк (\\n) в текстовых блоках.
 2. После ответа, сгенерируй от 2 до 4 новых, контекстно-зависимых вопросов для продолжения диалога в поле 'promptSuggestions'. Эти вопросы должны быть основаны на последнем сообщении пользователя и общем контексте диалога.
@@ -934,11 +934,11 @@ const continueChat: AiService['continueChat'] = async (phrase, history, newMessa
 
         const jsonText = response.text.trim();
         const parsedResponse = JSON.parse(jsonText);
-        
+
         const contentParts: ContentPart[] = parsedResponse.responseParts && parsedResponse.responseParts.length > 0
             ? parsedResponse.responseParts
             : [{ type: 'text', text: 'Получен пустой ответ от AI.' }];
-        
+
         const promptSuggestions: string[] = parsedResponse.promptSuggestions || [];
 
         return {
@@ -965,7 +965,7 @@ const practiceConversation: AiService['practiceConversation'] = async (history, 
         }));
 
         const lang = getLang();
-    const systemInstruction = `You are a friendly and patient ${lang.learning} language tutor named 'Alex'.
+        const systemInstruction = `You are a friendly and patient ${lang.learning} language tutor named 'Alex'.
 
 **CRITICAL: Your response MUST be valid JSON matching the schema below. Do NOT add any text outside the JSON.**
 
@@ -1025,91 +1025,91 @@ Your response MUST be a JSON object with this EXACT structure:
 - Do NOT add text outside JSON
 - Do NOT use markdown code blocks`;
 
-    const userMessage = { role: 'user', parts: [{ text: newMessage || '(Start the conversation)' }] };
+        const userMessage = { role: 'user', parts: [{ text: newMessage || '(Start the conversation)' }] };
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: [...formattedHistory, userMessage],
-            config: {
-                systemInstruction,
-                responseMimeType: "application/json",
-                responseSchema: chatResponseSchema,
-                temperature: 0.7,
-            },
-        });
+        try {
+            const response = await api.models.generateContent({
+                model: model,
+                contents: [...formattedHistory, userMessage],
+                config: {
+                    systemInstruction,
+                    responseMimeType: "application/json",
+                    responseSchema: chatResponseSchema,
+                    temperature: 0.7,
+                },
+            });
 
-        const jsonText = response.text.trim();
+            const jsonText = response.text.trim();
 
-        // 🔍 LOGGING for debugging
-        console.log('[practiceConversation] Raw response (first 300 chars):', jsonText.substring(0, 300));
+            // 🔍 LOGGING for debugging
+            console.log('[practiceConversation] Raw response (first 300 chars):', jsonText.substring(0, 300));
 
-        // 🛡️ CHECK that response is not empty
-        if (!jsonText) {
-            console.error('[practiceConversation] Empty response from Gemini API');
+            // 🛡️ CHECK that response is not empty
+            if (!jsonText) {
+                console.error('[practiceConversation] Empty response from Gemini API');
+                return {
+                    role: 'model',
+                    contentParts: [{
+                        type: 'text',
+                        text: 'I apologize, but I received an empty response. Please try again.'
+                    }],
+                    promptSuggestions: [],
+                };
+            }
+
+            // 🛡️ ROBUST PARSING with try-catch
+            let parsedResponse;
+            try {
+                parsedResponse = JSON.parse(jsonText);
+            } catch (parseError) {
+                console.error('[practiceConversation] JSON parse failed:', parseError);
+                console.error('[practiceConversation] Raw text:', jsonText);
+
+                // 🔄 FALLBACK: Try to extract text content
+                const fallbackResponse = {
+                    responseParts: [{
+                        type: 'text',
+                        text: jsonText.substring(0, 500) + (jsonText.length > 500 ? '...' : '') || 'I apologize, but I had trouble generating a proper response. Could you try again?'
+                    }],
+                    promptSuggestions: []
+                };
+                parsedResponse = fallbackResponse;
+            }
+
+            // 🛡️ VALIDATE structure
+            if (!parsedResponse.contentParts || !Array.isArray(parsedResponse.contentParts)) {
+                console.warn('[practiceConversation] Invalid response structure (missing contentParts), using fallback');
+                parsedResponse.contentParts = [{
+                    type: 'text',
+                    text: 'Response structure invalid. Please try again.'
+                }];
+            }
+
+            // 🛡️ ENSURE promptSuggestions is array
+            if (!parsedResponse.promptSuggestions || !Array.isArray(parsedResponse.promptSuggestions)) {
+                parsedResponse.promptSuggestions = [];
+            }
+
+            return {
+                role: 'model',
+                contentParts: parsedResponse.contentParts,
+                promptSuggestions: parsedResponse.promptSuggestions,
+            };
+
+        } catch (error) {
+            console.error("Error in practice conversation with Gemini:", error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+            // 🎯 RETURN fallback instead of throw
             return {
                 role: 'model',
                 contentParts: [{
                     type: 'text',
-                    text: 'I apologize, but I received an empty response. Please try again.'
-                }],
-                promptSuggestions: [],
-            };
-        }
-
-        // 🛡️ ROBUST PARSING with try-catch
-        let parsedResponse;
-        try {
-            parsedResponse = JSON.parse(jsonText);
-        } catch (parseError) {
-            console.error('[practiceConversation] JSON parse failed:', parseError);
-            console.error('[practiceConversation] Raw text:', jsonText);
-
-            // 🔄 FALLBACK: Try to extract text content
-            const fallbackResponse = {
-                responseParts: [{
-                    type: 'text',
-                    text: jsonText.substring(0, 500) + (jsonText.length > 500 ? '...' : '') || 'I apologize, but I had trouble generating a proper response. Could you try again?'
+                    text: `I apologize, but I encountered an error: ${errorMessage}. Please try again or refresh the page.`
                 }],
                 promptSuggestions: []
             };
-            parsedResponse = fallbackResponse;
         }
-
-        // 🛡️ VALIDATE structure
-        if (!parsedResponse.contentParts || !Array.isArray(parsedResponse.contentParts)) {
-            console.warn('[practiceConversation] Invalid response structure (missing contentParts), using fallback');
-            parsedResponse.contentParts = [{
-                type: 'text',
-                text: 'Response structure invalid. Please try again.'
-            }];
-        }
-
-        // 🛡️ ENSURE promptSuggestions is array
-        if (!parsedResponse.promptSuggestions || !Array.isArray(parsedResponse.promptSuggestions)) {
-            parsedResponse.promptSuggestions = [];
-        }
-
-        return {
-            role: 'model',
-            contentParts: parsedResponse.contentParts,
-            promptSuggestions: parsedResponse.promptSuggestions,
-        };
-
-    } catch (error) {
-        console.error("Error in practice conversation with Gemini:", error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-        // 🎯 RETURN fallback instead of throw
-        return {
-            role: 'model',
-            contentParts: [{
-                type: 'text',
-                text: `I apologize, but I encountered an error: ${errorMessage}. Please try again or refresh the page.`
-            }],
-            promptSuggestions: []
-        };
-    }
     }, 3, 1000); // 3 retries with 1-2-4 seconds delay
 };
 
@@ -1172,7 +1172,7 @@ const learningAssistantResponseSchema = () => {
 const guideToTranslation: AiService['guideToTranslation'] = async (phrase, history, userAnswer) => {
     const api = initializeApi();
     if (!api) throw new Error("Gemini API key not configured.");
-    
+
     const formattedHistory = history.map(msg => {
         const role = msg.role === 'user' ? 'user' : 'model';
         const text = msg.contentParts ? msg.contentParts.map(p => p.text).join('') : (msg.text || '');
@@ -1227,7 +1227,7 @@ const guideToTranslation: AiService['guideToTranslation'] = async (phrase, histo
     - **КЛЮЧЕВОЕ ПРАВИЛО:** Твоя задача — давать пошаговые подсказки, а не готовый ответ. Не включай полную ${lang.learning} фразу \`${phrase.text.learning}\` в свой ответ (в поле \`responseParts\`) и не предлагай "примеры использования", пока пользователь не соберет фразу полностью и правильно. Устанавливай \`isCorrect: true\` только после того, как пользователь успешно предоставил ПОЛНЫЙ и ПРАВИЛЬНЫЙ перевод.
     - Всегда отвечай на ${lang.native}.
     - Используй JSON-формат со всеми полями из схемы. Поле \`cheatSheetOptions\` является необязательным.`;
-    
+
     const userMessage = userAnswer || "(Начало сессии, дай первую подсказку)";
 
     try {
@@ -1244,7 +1244,7 @@ const guideToTranslation: AiService['guideToTranslation'] = async (phrase, histo
 
         const jsonText = response.text.trim();
         const parsedResponse = JSON.parse(jsonText);
-        
+
         return {
             role: 'model',
             contentParts: parsedResponse.responseParts || [{ type: 'text', text: 'Произошла ошибка.' }],
@@ -1297,7 +1297,7 @@ const discussTranslation: AiService['discussTranslation'] = async (request) => {
 3.  Если ты не предлагаешь конкретного изменения, НЕ включай поле \`suggestion\`.
 4.  Твой ответ ДОЛЖЕН быть ТОЛЬКО в формате JSON, строго соответствующем предоставленной схеме. Не добавляй никакого текста до или после JSON. Всегда разбивай свой текстовый ответ на массив \`contentParts\` и предлагай новые вопросы в \`promptSuggestions\`. В массиве \`contentParts\` используй 'type': 'text' для обычного текста и 'type': 'learning' для ${lang.learning} слов/фраз (с обязательным полем 'translation').
 5.  Будь краток и по делу.`;
-    
+
     const formattedHistory = request.history.map(msg => ({
         role: msg.role,
         parts: [{ text: msg.text || msg.contentParts?.map(p => p.text).join('') || '' }]
@@ -1425,7 +1425,7 @@ const generateDeepDiveAnalysis: AiService['generateDeepDiveAnalysis'] = async (p
                 temperature: 0.8,
             },
         });
-        
+
         const jsonText = response.text.trim();
         return JSON.parse(jsonText) as DeepDiveAnalysis;
 
@@ -1475,7 +1475,7 @@ const generateMovieExamples: AiService['generateMovieExamples'] = async (phrase)
                 temperature: 0.7,
             },
         });
-        
+
         const jsonText = response.text.trim();
         return JSON.parse(jsonText) as MovieExample[];
 
@@ -1782,8 +1782,8 @@ Rules:
 4.  For negation, use the standard negation pattern for ${lang.learning}.
 5.  For questions, use the standard question formation pattern for ${lang.learning}.
 
-IMPORTANT: Do NOT use German pronouns (ich, du, er/sie/es, wir, ihr, sie/Sie). Use pronouns appropriate for ${lang.learning}.
-IMPORTANT: Do NOT use German tense names (Präsens, Perfekt, Futur). Use grammatical structures appropriate for ${lang.learning}.
+IMPORTANT: Do NOT use Learning pronouns (ich, du, er/sie/es, wir, ihr, sie/Sie). Use pronouns appropriate for ${lang.learning}.
+IMPORTANT: Do NOT use Learning tense names (Präsens, Perfekt, Futur). Use grammatical structures appropriate for ${lang.learning}.
 
 Return the result as a JSON object matching the provided schema.`;
 
@@ -1797,7 +1797,7 @@ Return the result as a JSON object matching the provided schema.`;
                 temperature: 0.3,
             },
         });
-        
+
         const jsonText = response.text.trim();
         const parsed = JSON.parse(jsonText);
 
@@ -1810,19 +1810,16 @@ Return the result as a JSON object matching the provided schema.`;
             return undefined;
         };
 
-        // Mapper: include both canonical (learning/native) and legacy (german/russian) keys
+        // Mapper: include both canonical (learning/native) and legacy (learning/native) keys
         const mapConjugation = (item: any) => {
-            const learningVal = pickFirst(item, [lang.learningCode, 'de', 'german', 'learning']);
-            const nativeVal = pickFirst(item, [lang.nativeCode, 'ru', 'russian', 'native']);
+            const learningVal = pickFirst(item, [lang.learningCode, 'de', 'learning', 'learning']);
+            const nativeVal = pickFirst(item, [lang.nativeCode, 'ru', 'native', 'native']);
             return {
                 pronoun: item.pronoun,
                 pronounNative: item.pronounNative,
                 // canonical
                 learning: learningVal,
                 native: nativeVal,
-                // legacy (for backward compatibility)
-                german: learningVal,
-                russian: nativeVal,
             };
         };
 
@@ -1872,7 +1869,7 @@ Return a JSON array of objects, where each object contains three keys:
 - "pronounNative": the same pronoun translated to ${lang.native}
 - "form": the conjugated verb form in ${lang.learning} (only the verb form, no additional words)
 
-IMPORTANT: Do NOT use German pronouns (ich, du, er/sie/es, wir, ihr, sie/Sie). Use pronouns appropriate for ${lang.learning}.`;
+IMPORTANT: Do NOT use Learning pronouns (ich, du, er/sie/es, wir, ihr, sie/Sie). Use pronouns appropriate for ${lang.learning}.`;
 
     try {
         const response = await api.models.generateContent({
@@ -1884,7 +1881,7 @@ IMPORTANT: Do NOT use German pronouns (ich, du, er/sie/es, wir, ihr, sie/Sie). U
                 temperature: 0.1,
             },
         });
-        
+
         const jsonText = response.text.trim();
         return JSON.parse(jsonText);
     } catch (error) {
@@ -1919,7 +1916,7 @@ Return a JSON array of objects, where each object contains:
 - "native": the translation of that pronoun in ${lang.native}
 
 IMPORTANT: Include ALL personal pronouns commonly used in ${lang.learning}, including variations (like él/ella for Spanish, or formal/informal forms).
-IMPORTANT: Do NOT use German pronouns (ich, du, er/sie/es). Use pronouns appropriate for ${lang.learning}.`;
+IMPORTANT: Do NOT use Learning pronouns (ich, du, er/sie/es). Use pronouns appropriate for ${lang.learning}.`;
 
     try {
         const response = await api.models.generateContent({
@@ -1986,7 +1983,7 @@ const declineNoun: AiService['declineNoun'] = async (noun, article) => {
                 temperature: 0.2,
             },
         });
-        
+
         const jsonText = response.text.trim();
         return JSON.parse(jsonText) as NounDeclension;
 
@@ -2061,7 +2058,7 @@ const declineAdjective: AiService['declineAdjective'] = async (adjective) => {
                 temperature: 0.2,
             },
         });
-        
+
         const jsonText = response.text.trim();
         return JSON.parse(jsonText) as AdjectiveDeclension;
 
@@ -2093,13 +2090,13 @@ const sentenceContinuationSchema = () => {
     };
 };
 
-const generateSentenceContinuations: AiService['generateSentenceContinuations'] = async (russianPhrase) => {
+const generateSentenceContinuations: AiService['generateSentenceContinuations'] = async (nativePhrase) => {
     const api = initializeApi();
     if (!api) throw new Error("Gemini API key not configured.");
     const lang = getLang();
 
     const prompt = `Ты — AI-помощник для изучения языка, который помогает пользователю строить фразы по частям.
-Текущая фраза пользователя на ${lang.native}: "${russianPhrase}"
+Текущая фраза пользователя на ${lang.native}: "${nativePhrase}"
 
 Твоя задача — проанализировать фразу и предложить логичные продолжения.
 
@@ -2108,7 +2105,7 @@ const generateSentenceContinuations: AiService['generateSentenceContinuations'] 
     - Если фраза "Как мне добраться до вокзала", то можно добавить **обстоятельство способа действия** (как?) или **времени** (когда?).
 
 2.  **Генерация**:
-    - **learning**: Переведи текущую фразу "${russianPhrase}" на ${lang.learning} язык. Убедись, что грамматика и знаки препинания корректны.
+    - **learning**: Переведи текущую фразу "${nativePhrase}" на ${lang.learning} язык. Убедись, что грамматика и знаки препинания корректны.
     - **continuations**: Сгенерируй от 7 до 10 разнообразных и логичных вариантов продолжения для ${lang.native} фразы. Варианты должны быть релевантны для взрослого человека в реальных жизненных ситуациях (работа, семья, быт, друзья, путешествия).
         - **ВАЖНО**: Варианты должны **продолжать** мысль, а не **заменять** ее часть.
         - **ПРАВИЛЬНО**: для "Как мне добраться до вокзала", предложи способы: "на метро", "пешком", "быстрее всего".
@@ -2200,7 +2197,7 @@ const phraseBuilderOptionsSchema = {
 const generatePhraseBuilderOptions: AiService['generatePhraseBuilderOptions'] = async (phrase) => {
     const api = initializeApi();
     if (!api) throw new Error("Gemini API key not configured.");
-    
+
     // FIX: Use phrase.text.learning and phrase.text.native
     const lang = getLang();
     const prompt = `Создай набор слов для упражнения "собери фразу".
@@ -2367,9 +2364,9 @@ const categoryAssistantResponseSchema = () => {
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        type: { type: Type.STRING, enum: ['text', 'german'] },
+                        type: { type: Type.STRING, enum: ['text', 'learning'] },
                         text: { type: Type.STRING },
-                        translation: { type: Type.STRING, description: `${lang.native} translation ONLY if type is 'german'.` }
+                        translation: { type: Type.STRING, description: `${lang.native} translation ONLY if type is 'learning'.` }
                     },
                     required: ["type", "text"],
                 }
@@ -2430,7 +2427,7 @@ const getCategoryAssistantResponse: AiService['getCategoryAssistantResponse'] = 
     const api = initializeApi();
     if (!api) throw new Error("Gemini API key not configured.");
     const lang = getLang();
-    
+
     const existingPhrasesText = existingPhrases.map(p => `"${p.text.learning}"`).join(', ');
 
     const requestTextMap: Record<CategoryAssistantRequestType, string> = {
@@ -2454,7 +2451,7 @@ const getCategoryAssistantResponse: AiService['getCategoryAssistantResponse'] = 
 
 **ПРАВИЛА:**
 - **responseType**: Тип ответа ('text', 'proposed_cards', 'phrases_to_review', 'phrases_to_delete').
-- **responseParts**: Твой основной текстовый ответ, разбитый на части. Используй 'type':'german' для ${lang.learning} слов с переводом. Для диалогов используй Markdown-форматирование (например, \`**Собеседник А:** ...\`) внутри частей с 'type':'text'.
+- **responseParts**: Твой основной текстовый ответ, разбитый на части. Используй 'type':'learning' для ${lang.learning} слов с переводом. Для диалогов используй Markdown-форматирование (например, \`**Собеседник А:** ...\`) внутри частей с 'type':'text'.
 - **promptSuggestions**: ВСЕГДА предлагай 3-4 релевантных вопроса для продолжения диалога.
 - **proposedCards / phrasesToReview**: Заполняй эти поля только если тип ответа соответствующий.${romanizationRule}
 - **УДАЛЕНИЕ ФРАЗ**: Если пользователь просит удалить, убрать, очистить фразы (например, "удали половину", "оставь только времена года"), выполни следующие действия:
@@ -2462,7 +2459,7 @@ const getCategoryAssistantResponse: AiService['getCategoryAssistantResponse'] = 
   2. Установи \`responseType: 'phrases_to_delete'\`.
   3. В поле \`phrasesForDeletion\` верни массив объектов с ключами \`${lang.learningCode}\` (точный текст фразы для удаления) и \`reason\` (краткое объяснение на ${lang.native}, почему эта фраза удаляется).
   4. В \`responseParts\` напиши сопроводительное сообщение, например: "Хорошо, я предлагаю удалить следующие фразы, так как они не соответствуют вашему запросу:".`;
-    
+
     try {
         const response = await api.models.generateContent({
             model: model,
@@ -2473,7 +2470,7 @@ const getCategoryAssistantResponse: AiService['getCategoryAssistantResponse'] = 
                 temperature: 0.7,
             },
         });
-        
+
         const jsonText = response.text.trim();
         const parsedResult = JSON.parse(jsonText);
 
@@ -2501,7 +2498,7 @@ export const geminiService: AiService = {
     generatePhrases,
     generateSinglePhrase,
     translatePhrase,
-    translateGermanToRussian,
+    translateLearningToNative,
     getWordTranslation,
     improvePhrase,
     generateInitialExamples,

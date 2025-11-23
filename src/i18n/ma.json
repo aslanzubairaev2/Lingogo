@@ -570,8 +570,8 @@
     "editPhrase": {
       "title": "वाक्प्रचार संपादित करा",
       "fields": {
-        "russian": "रशियन",
-        "german": "जर्मन",
+        "native": "रशियन",
+        "learning": "जर्मन",
         "category": "श्रेणी"
       },
       "errors": {
@@ -703,36 +703,34 @@
       "title": "पुरुषवाचक सर्वनाम",
       "headers": {
         "speak": "बोला",
-        "german": "जर्मन",
-        "russian": "रशियन",
         "learning": "शिकण्याची भाषा",
         "native": "मातृभाषा"
       },
       "error": "सर्वनाम लोड करू शकले नाही",
       "pronouns": [
         {
-          "german": "ich",
-          "russian": "я"
+          "learning": "ich",
+          "native": "я"
         },
         {
-          "german": "du",
-          "russian": "ты"
+          "learning": "du",
+          "native": "ты"
         },
         {
-          "german": "er / sie / es",
-          "russian": "он / она / оно"
+          "learning": "er / sie / es",
+          "native": "он / она / оно"
         },
         {
-          "german": "wir",
-          "russian": "мы"
+          "learning": "wir",
+          "native": "мы"
         },
         {
-          "german": "ihr",
-          "russian": "вы (неформ.)"
+          "learning": "ihr",
+          "native": "вы (неформ.)"
         },
         {
-          "german": "sie / Sie",
-          "russian": "они / Вы (форм.)"
+          "learning": "sie / Sie",
+          "native": "они / Вы (форм.)"
         }
       ]
     },
@@ -920,40 +918,40 @@
       "title": "प्रश्नवाचक शब्द",
       "columns": {
         "play": "बोला",
-        "german": "जर्मन",
+        "learning": "जर्मन",
         "translation": "भाषांतर"
       },
       "items": [
         {
-          "german": "Was?",
+          "learning": "Was?",
           "translation": "काय?"
         },
         {
-          "german": "Wer?",
+          "learning": "Wer?",
           "translation": "कोण?"
         },
         {
-          "german": "Wo?",
+          "learning": "Wo?",
           "translation": "कुठे?"
         },
         {
-          "german": "Wann?",
+          "learning": "Wann?",
           "translation": "केव्हा?"
         },
         {
-          "german": "Wie?",
+          "learning": "Wie?",
           "translation": "कसे?"
         },
         {
-          "german": "Warum?",
+          "learning": "Warum?",
           "translation": "का?"
         },
         {
-          "german": "Woher?",
+          "learning": "Woher?",
           "translation": "कुठून?"
         },
         {
-          "german": "Wohin?",
+          "learning": "Wohin?",
           "translation": "कुठे?"
         }
       ]

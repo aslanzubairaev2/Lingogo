@@ -13,9 +13,9 @@ import { getLanguageLabel } from '../services/languageLabels';
 interface AddPhraseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onGenerate: (russianPhrase: string) => Promise<{ german: string; russian: string }>;
-  onTranslateGerman: (germanPhrase: string) => Promise<{ russian: string }>;
-  onPhraseCreated: (phraseData: { german: string; russian: string }) => void;
+  onGenerate: (nativePhrase: string) => Promise<{ learning: string; native: string }>;
+  onTranslateLearning: (learningPhrase: string) => Promise<{ native: string }>;
+  onPhraseCreated: (phraseData: { learning: string; native: string }) => void;
   language: LanguageCode;
   autoSubmit: boolean;
 }
@@ -24,7 +24,7 @@ const AddPhraseModal: React.FC<AddPhraseModalProps> = ({
   isOpen,
   onClose,
   onGenerate,
-  onTranslateGerman,
+  onTranslateLearning,
   onPhraseCreated,
   language,
   autoSubmit,
@@ -57,13 +57,13 @@ const AddPhraseModal: React.FC<AddPhraseModalProps> = ({
       setError(null);
 
       try {
-        let newPhraseData: { german: string; russian: string };
+        let newPhraseData: { learning: string; native: string };
         // Check if the input language is the native language
         if (language === profile.native) {
           newPhraseData = await onGenerate(trimmedText);
         } else {
-          const { russian } = await onTranslateGerman(trimmedText);
-          newPhraseData = { german: trimmedText, russian };
+          const { native } = await onTranslateLearning(trimmedText);
+          newPhraseData = { learning: trimmedText, native };
         }
         await onPhraseCreated(newPhraseData);
       } catch (err) {
@@ -72,7 +72,7 @@ const AddPhraseModal: React.FC<AddPhraseModalProps> = ({
       }
       // Parent component closes the modal, which resets `isLoading` on success.
     },
-    [isLoading, onGenerate, onPhraseCreated, language, onTranslateGerman, t, profile],
+    [isLoading, onGenerate, onPhraseCreated, language, onTranslateLearning, t, profile],
   );
 
   useEffect(() => {
@@ -190,9 +190,8 @@ const AddPhraseModal: React.FC<AddPhraseModalProps> = ({
                       type="button"
                       onClick={() => recognitionRef.current?.start()}
                       aria-label={t('modals.addPhrase.aria.microphone')}
-                      className={`w-28 h-28 rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-purple-500/50 ${
-                        isListening ? 'listening-glow' : 'bg-slate-700/50 hover:bg-slate-700'
-                      }`}
+                      className={`w-28 h-28 rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-purple-500/50 ${isListening ? 'listening-glow' : 'bg-slate-700/50 hover:bg-slate-700'
+                        }`}
                     >
                       <MicrophoneIcon className="w-12 h-12 text-white" />
                     </button>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'german-srs-cache-v4'; // Updated: Don't cache API requests
+const CACHE_NAME = 'learning-srs-cache-v4'; // Updated: Don't cache API requests
 const urlsToCache = [
   '/',
   '/index.html',

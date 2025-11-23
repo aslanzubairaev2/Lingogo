@@ -102,29 +102,29 @@ const DeepDiveModal: React.FC<DeepDiveModalProps> = ({ isOpen, onClose, phrase, 
     }
   };
 
-  const renderClickableGerman = (text: string) => {
+  const renderClickableLearning = (text: string) => {
     if (!text) return null;
     return text.split(' ').map((word, i, arr) => (
-        <span
-            key={i}
-            onClick={(e) => {
-                e.stopPropagation();
-                const cleanedWord = word.replace(/[.,!?()""":;]/g, '');
-                if (cleanedWord) handleWordClick(text, cleanedWord);
-            }}
-            onPointerDown={(e) => handleWordPointerDown(e, text, word)}
-            onPointerUp={clearWordLongPress}
-            onPointerLeave={clearWordLongPress}
-            onContextMenu={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const cleanedWord = word.replace(/[.,!?()""":;]/g, '');
-                if (cleanedWord) handleWordClick(text, cleanedWord);
-            }}
-            className="cursor-pointer hover:bg-white/20 px-1 py-0.5 rounded-md transition-colors"
-        >
-            {word}{i < arr.length - 1 ? ' ' : ''}
-        </span>
+      <span
+        key={i}
+        onClick={(e) => {
+          e.stopPropagation();
+          const cleanedWord = word.replace(/[.,!?()""":;]/g, '');
+          if (cleanedWord) handleWordClick(text, cleanedWord);
+        }}
+        onPointerDown={(e) => handleWordPointerDown(e, text, word)}
+        onPointerUp={clearWordLongPress}
+        onPointerLeave={clearWordLongPress}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const cleanedWord = word.replace(/[.,!?()""":;]/g, '');
+          if (cleanedWord) handleWordClick(text, cleanedWord);
+        }}
+        className="cursor-pointer hover:bg-white/20 px-1 py-0.5 rounded-md transition-colors"
+      >
+        {word}{i < arr.length - 1 ? ' ' : ''}
+      </span>
     ));
   };
 
@@ -149,7 +149,7 @@ const DeepDiveModal: React.FC<DeepDiveModalProps> = ({ isOpen, onClose, phrase, 
             <div className="text-lg font-semibold text-slate-100 mb-4 leading-relaxed flex flex-wrap items-center gap-x-1 gap-y-2">
               {analysis.chunks.map((chunk, index) => (
                 <div key={index} className={`px-2 py-1 rounded-md ring-1 ring-inset ${chunkColorMap[chunk.type] || chunkColorMap.Default}`}>
-                  {renderClickableGerman(chunk.text)}
+                  {renderClickableLearning(chunk.text)}
                 </div>
               ))}
             </div>
@@ -192,17 +192,17 @@ const DeepDiveModal: React.FC<DeepDiveModalProps> = ({ isOpen, onClose, phrase, 
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex justify-center items-end" onClick={onClose}>
-      <div 
+      <div
         className={`bg-slate-800 w-full max-w-2xl h-[90%] max-h-[90vh] rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-300 ease-out ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
         onClick={e => e.stopPropagation()}
       >
         <header className="flex items-center justify-between p-4 border-b border-slate-700 flex-shrink-0">
           <div className="flex items-center space-x-3">
-            <AnalysisIcon className="w-7 h-7 text-purple-400"/>
+            <AnalysisIcon className="w-7 h-7 text-purple-400" />
             <h2 className="text-lg font-bold text-slate-100">{phrase.text.learning}</h2>
           </div>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-700">
-            <CloseIcon className="w-6 h-6 text-slate-400"/>
+            <CloseIcon className="w-6 h-6 text-slate-400" />
           </button>
         </header>
         <div className="flex-grow p-2 overflow-y-auto hide-scrollbar">

@@ -98,8 +98,8 @@ import { useAutoFixPhrases } from "./hooks/useAutoFixPhrases";
 import AutoFixModal from "./components/AutoFixModal";
 
 // Legacy keys (for migration)
-const LEGACY_PHRASES_KEY = "germanPhrases";
-const LEGACY_CATEGORIES_KEY = "germanAppCategories";
+const LEGACY_PHRASES_KEY = "learningPhrases";
+const LEGACY_CATEGORIES_KEY = "learningAppCategories";
 
 // Helper function to create user-aware and language-aware storage keys
 const getStorageKey = (
@@ -954,8 +954,7 @@ const App: React.FC = () => {
             if (isRetryableError && attempt < maxRetries) {
               const jitter = Math.random() * 500;
               console.warn(
-                `API call failed (${errorType}) on attempt ${attempt} with ${type}. Retrying in ${
-                  (delay + jitter) / 1000
+                `API call failed (${errorType}) on attempt ${attempt} with ${type}. Retrying in ${(delay + jitter) / 1000
                 }s...`
               );
               await sleep(delay + jitter);
@@ -987,8 +986,7 @@ const App: React.FC = () => {
               fallbackError
             );
             throw new Error(
-              `Primary API failed: ${
-                (primaryError as Error).message
+              `Primary API failed: ${(primaryError as Error).message
               }. Fallback API also failed: ${(fallbackError as Error).message}`
             );
           }
@@ -1162,10 +1160,10 @@ const App: React.FC = () => {
         setError(null);
       try {
         // FIX: Use phrase.text.learning to match the updated Phrase type
-        const existingGermanPhrases = allPhrases
+        const existingLearningPhrases = allPhrases
           .map((p) => p.text.learning)
           .join("; ");
-        const prompt = `Сгенерируй ${count} новых, полезных в быту немецких фраз уровня A1. Не повторяй: "${existingGermanPhrases}". Верни JSON-массив объектов с ключами 'german' и 'russian'.`;
+        const prompt = `Сгенерируй ${count} новых, полезных в быту немецких фраз уровня A1. Не повторяй: "${existingLearningPhrases}". Верни JSON-массив объектов с ключами 'learning' и 'native'.`;
         const newPhrasesData = await callApiWithFallback((provider) =>
           provider.generatePhrases(prompt)
         );
@@ -1179,7 +1177,7 @@ const App: React.FC = () => {
 
         const phrasesToCreate = newPhrasesData.map((p) => ({
           // FIX: Map flat structure to nested `text` object
-          text: { learning: p.german, native: p.russian },
+          text: { learning: p.learning, native: p.native },
           category: defaultCategoryId,
         }));
 
@@ -1601,9 +1599,9 @@ const App: React.FC = () => {
   );
 
   const handleGenerateContinuations = useCallback(
-    (russianPhrase: string) =>
+    (nativePhrase: string) =>
       callApiWithFallback((provider) =>
-        provider.generateSentenceContinuations(russianPhrase)
+        provider.generateSentenceContinuations(nativePhrase)
       ),
     [callApiWithFallback]
   );
@@ -1636,33 +1634,33 @@ const App: React.FC = () => {
     [callApiWithFallback]
   );
   const handleGenerateSinglePhrase = useCallback(
-    (russianPhrase: string) =>
+    (nativePhrase: string) =>
       callApiWithFallback((provider) =>
-        provider.generateSinglePhrase(russianPhrase)
+        provider.generateSinglePhrase(nativePhrase)
       ),
     [callApiWithFallback]
   );
-  const handleTranslateGermanToRussian = useCallback(
-    (germanPhrase: string) =>
+  const handleTranslateLearningToNative = useCallback(
+    (learningPhrase: string) =>
       callApiWithFallback((provider) =>
-        provider.translateGermanToRussian(germanPhrase)
+        provider.translateLearningToNative(learningPhrase)
       ),
     [callApiWithFallback]
   );
   const handleGetWordTranslation = useCallback(
     async (
-      russianPhrase: string,
-      germanPhrase: string,
-      russianWord: string
-    ): Promise<{ germanTranslation: string }> => {
-      const cacheKey = `word_translation_${russianPhrase}_${russianWord}`;
-      const cached = cacheService.getCache<{ germanTranslation: string }>(
+      nativePhrase: string,
+      learningPhrase: string,
+      nativeWord: string
+    ): Promise<{ learningTranslation: string }> => {
+      const cacheKey = `word_translation_${nativePhrase}_${nativeWord}`;
+      const cached = cacheService.getCache<{ learningTranslation: string }>(
         cacheKey
       );
       if (cached) return cached;
 
       const result = await callApiWithFallback((provider) =>
-        provider.getWordTranslation(russianPhrase, germanPhrase, russianWord)
+        provider.getWordTranslation(nativePhrase, learningPhrase, nativeWord)
       );
       cacheService.setCache(cacheKey, result);
       return result;
@@ -1751,30 +1749,30 @@ const App: React.FC = () => {
   };
 
   const handlePhraseCreated = async (newPhraseData: {
-    german: string;
-    russian: string;
+    learning: string;
+    native: string;
   }) => {
-    const normalizedGerman = newPhraseData.german.trim().toLowerCase();
+    const normalizedLearning = newPhraseData.learning.trim().toLowerCase();
     const isDuplicate = allPhrases.some(
-      (p) => p.text.learning.trim().toLowerCase() === normalizedGerman
+      (p) => p.text.learning.trim().toLowerCase() === normalizedLearning
     );
     const isDuplicateInCategory = categoryToView
       ? allPhrases.some(
-          (p) =>
-            p.category === categoryToView.id &&
-            p.text.learning.trim().toLowerCase() === normalizedGerman
-        )
+        (p) =>
+          p.category === categoryToView.id &&
+          p.text.learning.trim().toLowerCase() === normalizedLearning
+      )
       : false;
 
     if (isDuplicateInCategory) {
       const message = t("notifications.phrases.existsInCategory", {
-        phrase: newPhraseData.german,
+        phrase: newPhraseData.learning,
       });
       showToast({ message });
       throw new Error(message);
     } else if (isDuplicate) {
       const message = t("notifications.phrases.existsInOtherCategory", {
-        phrase: newPhraseData.german,
+        phrase: newPhraseData.learning,
       });
       showToast({ message });
       throw new Error(message);
@@ -1790,7 +1788,7 @@ const App: React.FC = () => {
 
       // FIX: The Phrase type requires a nested `text` object.
       const phraseToCreate = {
-        text: { learning: newPhraseData.german, native: newPhraseData.russian },
+        text: { learning: newPhraseData.learning, native: newPhraseData.native },
         category: categoryId,
       };
       const newPhrase = await backendService.createPhrase(phraseToCreate);
@@ -1908,8 +1906,8 @@ const App: React.FC = () => {
       });
 
       proposedCards.forEach((proposed) => {
-        // FIX: Use `proposed.learning` instead of `proposed.german`
-        // Use `proposed.learning` instead of `proposed.german`
+        // FIX: Use `proposed.learning` instead of `proposed.learning`
+        // Use `proposed.learning` instead of `proposed.learning`
         const normalizedProposed = proposed.learning.trim().toLowerCase();
         const existingPhrase =
           normalizedExistingPhrases.get(normalizedProposed);
@@ -1942,8 +1940,8 @@ const App: React.FC = () => {
       const toastMessage =
         skippedCount > 0
           ? `${baseToastMessage} ${t("notifications.cards.bulkSkipped", {
-              count: skippedCount,
-            })}`
+            count: skippedCount,
+          })}`
           : baseToastMessage;
       showToast({ message: toastMessage });
 
@@ -1968,16 +1966,16 @@ const App: React.FC = () => {
   );
 
   const handleCreateCardFromWord = useCallback(
-    async (phraseData: { german: string; russian: string }) => {
+    async (phraseData: { learning: string; native: string }) => {
       const alreadyExists = allPhrases.some(
         (p) =>
           p.text.learning.trim().toLowerCase() ===
-          phraseData.german.trim().toLowerCase()
+          phraseData.learning.trim().toLowerCase()
       );
       if (alreadyExists) {
         showToast({
           message: t("notifications.phrases.exists", {
-            phrase: phraseData.german,
+            phrase: phraseData.learning,
           }),
         });
         return;
@@ -1993,7 +1991,7 @@ const App: React.FC = () => {
 
         // FIX: The Phrase type requires a nested `text` object.
         const phraseToCreate = {
-          text: { learning: phraseData.german, native: phraseData.russian },
+          text: { learning: phraseData.learning, native: phraseData.native },
           category: categoryId,
         };
         const newPhrase = await backendService.createPhrase(phraseToCreate);
@@ -2004,7 +2002,7 @@ const App: React.FC = () => {
         ]);
         showToast({
           message: t("notifications.phrases.created", {
-            phrase: phraseData.german,
+            phrase: phraseData.learning,
           }),
         });
       } catch (err) {
@@ -2019,7 +2017,7 @@ const App: React.FC = () => {
   );
 
   const handleCreateCardFromSelection = useCallback(
-    async (germanText: string): Promise<boolean> => {
+    async (learningText: string): Promise<boolean> => {
       if (!apiProvider) {
         showToast({ message: t("notifications.ai.providerUnavailable") });
         return false;
@@ -2027,18 +2025,18 @@ const App: React.FC = () => {
       const alreadyExists = allPhrases.some(
         (p) =>
           p.text.learning.trim().toLowerCase() ===
-          germanText.trim().toLowerCase()
+          learningText.trim().toLowerCase()
       );
       if (alreadyExists) {
         showToast({
-          message: t("notifications.phrases.exists", { phrase: germanText }),
+          message: t("notifications.phrases.exists", { phrase: learningText }),
         });
         return false;
       }
 
       try {
-        const { russian } = await callApiWithFallback((provider) =>
-          provider.translateGermanToRussian(germanText)
+        const { native } = await callApiWithFallback((provider) =>
+          provider.translateLearningToNative(learningText)
         );
         const generalCategory = categories.find(
           (c) => c.name.toLowerCase() === "общие"
@@ -2049,7 +2047,7 @@ const App: React.FC = () => {
 
         // FIX: The Phrase type requires a nested `text` object.
         const phraseToCreate = {
-          text: { learning: germanText, native: russian },
+          text: { learning: learningText, native: native },
           category: categoryId,
         };
         const newPhrase = await backendService.createPhrase(phraseToCreate);
@@ -2059,7 +2057,7 @@ const App: React.FC = () => {
           ...prev,
         ]);
         showToast({
-          message: t("notifications.phrases.created", { phrase: germanText }),
+          message: t("notifications.phrases.created", { phrase: learningText }),
         });
         return true;
       } catch (error) {
@@ -2096,16 +2094,16 @@ const App: React.FC = () => {
   };
 
   const handleGenerateImprovement = useCallback(
-    (originalRussian: string, currentGerman: string) =>
+    (originalNative: string, currentLearning: string) =>
       callApiWithFallback((provider) =>
-        provider.improvePhrase(originalRussian, currentGerman)
+        provider.improvePhrase(originalNative, currentLearning)
       ),
     [callApiWithFallback]
   );
 
   const handleTranslatePhrase = useCallback(
-    (russian: string) =>
-      callApiWithFallback((provider) => provider.translatePhrase(russian)),
+    (native: string) =>
+      callApiWithFallback((provider) => provider.translatePhrase(native)),
     [callApiWithFallback]
   );
 
@@ -2125,8 +2123,8 @@ const App: React.FC = () => {
 
   const handlePhraseImproved = async (
     phraseId: string,
-    newGerman: string,
-    newRussian?: string
+    newLearning: string,
+    newNative?: string
   ) => {
     const originalPhrase = allPhrases.find((p) => p.id === phraseId);
     if (!originalPhrase) return;
@@ -2134,8 +2132,8 @@ const App: React.FC = () => {
     const updatedPhrase = {
       ...originalPhrase,
       text: {
-        learning: newGerman,
-        native: newRussian ?? originalPhrase.text.native,
+        learning: newLearning,
+        native: newNative ?? originalPhrase.text.native,
       },
     };
     try {
@@ -2239,14 +2237,14 @@ const App: React.FC = () => {
   };
 
   const handleDiscussionAccept = (suggestion: {
-    russian: string;
-    german: string;
+    native: string;
+    learning: string;
   }) => {
     if (phraseToDiscuss) {
       handlePhraseImproved(
         phraseToDiscuss.id,
-        suggestion.german,
-        suggestion.russian
+        suggestion.learning,
+        suggestion.native
       );
     }
     setIsDiscussModalOpen(false);
@@ -2612,7 +2610,7 @@ const App: React.FC = () => {
       });
 
       selectedCards.forEach((proposed) => {
-        // FIX: Use `proposed.learning` instead of `proposed.german`
+        // FIX: Use `proposed.learning` instead of `proposed.learning`
         const normalizedProposed = proposed.learning.trim().toLowerCase();
         const existingPhrase =
           normalizedExistingPhrases.get(normalizedProposed);
@@ -2836,8 +2834,8 @@ const App: React.FC = () => {
       practiceCategoryFilter === "all"
         ? unmasteredPhrases
         : unmasteredPhrases.filter(
-            (p) => p.category === practiceCategoryFilter
-          );
+          (p) => p.category === practiceCategoryFilter
+        );
 
     const nextPhrase = srsService.selectNextPhrase(newPool, null); // Get a fresh card from the new pool
     changePracticePhrase(nextPhrase, "right");
@@ -3255,9 +3253,8 @@ const App: React.FC = () => {
         onOpenAccountDrawer={handleOpenAccountDrawer}
       />
       <main
-        className={`overflow-hidden w-full flex-grow flex flex-col items-center  ${
-          view === "practice" ? "justify-center" : ""
-        }`}
+        className={`overflow-hidden w-full flex-grow flex flex-col items-center  ${view === "practice" ? "justify-center" : ""
+          }`}
       >
         {renderCurrentView()}
       </main>
@@ -3280,8 +3277,8 @@ const App: React.FC = () => {
           {isGenerating
             ? "Идет генерация новых фраз..."
             : apiProvider
-            ? ``
-            : ""}
+              ? ``
+              : ""}
         </footer>
       ) : (
         ""
@@ -3303,7 +3300,7 @@ const App: React.FC = () => {
             onOpenVerbConjugation={handleOpenVerbConjugation}
             onOpenNounDeclension={handleOpenNounDeclension}
             onOpenAdjectiveDeclension={handleOpenAdjectiveDeclension}
-            onTranslateGermanToRussian={handleTranslateGermanToRussian}
+            onTranslateLearningToNative={handleTranslateLearningToNative}
             onSessionComplete={handlePracticeChatSessionComplete}
           />
         </AiErrorBoundary>
@@ -3321,7 +3318,7 @@ const App: React.FC = () => {
             onOpenVerbConjugation={handleOpenVerbConjugation}
             onOpenNounDeclension={handleOpenNounDeclension}
             onOpenAdjectiveDeclension={handleOpenAdjectiveDeclension}
-            onTranslateGermanToRussian={handleTranslateGermanToRussian}
+            onTranslateLearningToNative={handleTranslateLearningToNative}
           />
         </AiErrorBoundary>
       )}
@@ -3422,7 +3419,7 @@ const App: React.FC = () => {
           isOpen={isAddPhraseModalOpen}
           onClose={() => setIsAddPhraseModalOpen(false)}
           onGenerate={handleGenerateSinglePhrase}
-          onTranslateGerman={handleTranslateGermanToRussian}
+          onTranslateLearning={handleTranslateLearningToNative}
           onPhraseCreated={handlePhraseCreated}
           language={addPhraseConfig.language}
           autoSubmit={addPhraseConfig.autoSubmit}
@@ -3554,8 +3551,8 @@ const App: React.FC = () => {
               setIsDiscussModalOpen(false);
               setDiscussInitialMessage(undefined);
             }}
-            originalRussian={phraseToDiscuss.text.native}
-            currentGerman={phraseToDiscuss.text.learning}
+            originalNative={phraseToDiscuss.text.native}
+            currentLearning={phraseToDiscuss.text.learning}
             onDiscuss={handleDiscussTranslation}
             onAccept={handleDiscussionAccept}
             onOpenWordAnalysis={handleOpenWordAnalysis}
@@ -3684,7 +3681,7 @@ const App: React.FC = () => {
             onOpenVerbConjugation={handleOpenVerbConjugation}
             onOpenNounDeclension={handleOpenNounDeclension}
             onOpenAdjectiveDeclension={handleOpenAdjectiveDeclension}
-            onTranslateGermanToRussian={handleTranslateGermanToRussian}
+            onTranslateLearningToNative={handleTranslateLearningToNative}
             onGoToList={() => setView("list")}
             onOpenConfirmDeletePhrases={handleOpenConfirmDeletePhrases}
           />

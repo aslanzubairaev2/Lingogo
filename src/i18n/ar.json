@@ -570,8 +570,8 @@
     "editPhrase": {
       "title": "تعديل العبارة",
       "fields": {
-        "russian": "الروسية",
-        "german": "الألمانية",
+        "native": "الروسية",
+        "learning": "الألمانية",
         "category": "الفئة"
       },
       "errors": {
@@ -703,36 +703,34 @@
       "title": "الضمائر الشخصية",
       "headers": {
         "speak": "نطق",
-        "german": "الألمانية",
-        "russian": "الروسية",
         "learning": "لغة التعلم",
         "native": "اللغة الأم"
       },
       "error": "تعذر تحميل الضمائر",
       "pronouns": [
         {
-          "german": "ich",
-          "russian": "я"
+          "learning": "ich",
+          "native": "я"
         },
         {
-          "german": "du",
-          "russian": "ты"
+          "learning": "du",
+          "native": "ты"
         },
         {
-          "german": "er / sie / es",
-          "russian": "он / она / оно"
+          "learning": "er / sie / es",
+          "native": "он / она / оно"
         },
         {
-          "german": "wir",
-          "russian": "мы"
+          "learning": "wir",
+          "native": "мы"
         },
         {
-          "german": "ihr",
-          "russian": "вы (неформ.)"
+          "learning": "ihr",
+          "native": "вы (неформ.)"
         },
         {
-          "german": "sie / Sie",
-          "russian": "они / Вы (форм.)"
+          "learning": "sie / Sie",
+          "native": "они / Вы (форм.)"
         }
       ]
     },
@@ -920,40 +918,40 @@
       "title": "كلمات الاستفهام",
       "columns": {
         "play": "نطق",
-        "german": "الألمانية",
+        "learning": "الألمانية",
         "translation": "الترجمة"
       },
       "items": [
         {
-          "german": "Was?",
+          "learning": "Was?",
           "translation": "ماذا؟"
         },
         {
-          "german": "Wer?",
+          "learning": "Wer?",
           "translation": "من؟"
         },
         {
-          "german": "Wo?",
+          "learning": "Wo?",
           "translation": "أين؟"
         },
         {
-          "german": "Wann?",
+          "learning": "Wann?",
           "translation": "متى؟"
         },
         {
-          "german": "Wie?",
+          "learning": "Wie?",
           "translation": "كيف؟"
         },
         {
-          "german": "Warum?",
+          "learning": "Warum?",
           "translation": "لماذا؟"
         },
         {
-          "german": "Woher?",
+          "learning": "Woher?",
           "translation": "من أين؟"
         },
         {
-          "german": "Wohin?",
+          "learning": "Wohin?",
           "translation": "إلى أين؟"
         }
       ]

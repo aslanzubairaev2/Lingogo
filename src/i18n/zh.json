@@ -570,8 +570,8 @@
     "editPhrase": {
       "title": "编辑短语",
       "fields": {
-        "russian": "俄语",
-        "german": "德语",
+        "native": "俄语",
+        "learning": "德语",
         "category": "分类"
       },
       "errors": {
@@ -703,36 +703,34 @@
       "title": "人称代词",
       "headers": {
         "speak": "发音",
-        "german": "德语",
-        "russian": "俄语",
         "learning": "学习语言",
         "native": "母语"
       },
       "error": "无法加载代词",
       "pronouns": [
         {
-          "german": "ich",
-          "russian": "я"
+          "learning": "ich",
+          "native": "я"
         },
         {
-          "german": "du",
-          "russian": "ты"
+          "learning": "du",
+          "native": "ты"
         },
         {
-          "german": "er / sie / es",
-          "russian": "он / она / оно"
+          "learning": "er / sie / es",
+          "native": "он / она / оно"
         },
         {
-          "german": "wir",
-          "russian": "мы"
+          "learning": "wir",
+          "native": "мы"
         },
         {
-          "german": "ihr",
-          "russian": "вы (非正式)"
+          "learning": "ihr",
+          "native": "вы (非正式)"
         },
         {
-          "german": "sie / Sie",
-          "russian": "они / Вы (正式)"
+          "learning": "sie / Sie",
+          "native": "они / Вы (正式)"
         }
       ]
     },
@@ -920,40 +918,40 @@
       "title": "疑问词",
       "columns": {
         "play": "发音",
-        "german": "德语",
+        "learning": "德语",
         "translation": "翻译"
       },
       "items": [
         {
-          "german": "Was?",
+          "learning": "Was?",
           "translation": "什么？"
         },
         {
-          "german": "Wer?",
+          "learning": "Wer?",
           "translation": "谁？"
         },
         {
-          "german": "Wo?",
+          "learning": "Wo?",
           "translation": "哪里？"
         },
         {
-          "german": "Wann?",
+          "learning": "Wann?",
           "translation": "何时？"
         },
         {
-          "german": "Wie?",
+          "learning": "Wie?",
           "translation": "如何？"
         },
         {
-          "german": "Warum?",
+          "learning": "Warum?",
           "translation": "为什么？"
         },
         {
-          "german": "Woher?",
+          "learning": "Woher?",
           "translation": "从哪里来？"
         },
         {
-          "german": "Wohin?",
+          "learning": "Wohin?",
           "translation": "到哪里去？"
         }
       ]

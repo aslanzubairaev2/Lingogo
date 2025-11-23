@@ -28,63 +28,63 @@ interface LearningAssistantModalProps {
   onOpenAdjectiveDeclension: (adjective: string) => void;
 }
 
-const ChatMessageContent: React.FC<{ 
-    message: ChatMessage; 
-    onSpeak: (text: string) => void;
-    basePhrase?: Phrase;
-    onOpenWordAnalysis?: (phrase: Phrase, word: string) => void;
+const ChatMessageContent: React.FC<{
+  message: ChatMessage;
+  onSpeak: (text: string) => void;
+  basePhrase?: Phrase;
+  onOpenWordAnalysis?: (phrase: Phrase, word: string) => void;
 }> = ({ message, onSpeak, basePhrase, onOpenWordAnalysis }) => {
-    const { contentParts } = message;
+  const { contentParts } = message;
 
-    // FIX: Updated to accept russianText and construct a valid proxy Phrase.
-    const handleWordClick = (contextText: string, word: string, russianText: string) => {
-        if (!onOpenWordAnalysis || !basePhrase) return;
-        const proxyPhrase: Phrase = { ...basePhrase, id: `${basePhrase.id}_proxy_${contextText.slice(0, 5)}`, text: { learning: contextText, native: russianText } };
-        onOpenWordAnalysis(proxyPhrase, word);
-    };
+  // FIX: Updated to accept nativeText and construct a valid proxy Phrase.
+  const handleWordClick = (contextText: string, word: string, nativeText: string) => {
+    if (!onOpenWordAnalysis || !basePhrase) return;
+    const proxyPhrase: Phrase = { ...basePhrase, id: `${basePhrase.id}_proxy_${contextText.slice(0, 5)}`, text: { learning: contextText, native: nativeText } };
+    onOpenWordAnalysis(proxyPhrase, word);
+  };
 
-    // FIX: Updated to pass the translation to handleWordClick.
-    const renderClickableGerman = (part: ContentPart) => {
-        if (!part.text) return null;
-        return part.text.split(' ').map((word, i, arr) => (
-            <span
-                key={i}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    const cleanedWord = word.replace(/[.,!?()"“”:;]/g, '');
-                    if (cleanedWord) handleWordClick(part.text, cleanedWord, part.translation || '');
-                }}
-                className="cursor-pointer hover:bg-white/20 px-1 py-0.5 rounded-md transition-colors"
-            >
-                {word}{i < arr.length - 1 ? ' ' : ''}
+  // FIX: Updated to pass the translation to handleWordClick.
+  const renderClickableLearning = (part: ContentPart) => {
+    if (!part.text) return null;
+    return part.text.split(' ').map((word, i, arr) => (
+      <span
+        key={i}
+        onClick={(e) => {
+          e.stopPropagation();
+          const cleanedWord = word.replace(/[.,!?()"“”:;]/g, '');
+          if (cleanedWord) handleWordClick(part.text, cleanedWord, part.translation || '');
+        }}
+        className="cursor-pointer hover:bg-white/20 px-1 py-0.5 rounded-md transition-colors"
+      >
+        {word}{i < arr.length - 1 ? ' ' : ''}
+      </span>
+    ));
+  };
+
+  if (contentParts) {
+    return (
+      <div className="whitespace-pre-wrap leading-relaxed">
+        {contentParts.map((part, index) =>
+          part.type === 'learning' ? (
+            <span key={index} className="inline-flex items-center align-middle bg-slate-600/50 px-1.5 py-0.5 rounded-md mx-0.5">
+              <span className="font-medium text-purple-300">{renderClickableLearning(part)}</span>
+              <button
+                onClick={() => onSpeak(part.text)}
+                className="p-0.5 rounded-full hover:bg-white/20 flex-shrink-0 ml-1.5"
+                aria-label={`Speak: ${part.text}`}
+              >
+                <SoundIcon className="w-3.5 h-3.5 text-slate-300" />
+              </button>
             </span>
-        ));
-    };
-    
-    if (contentParts) {
-        return (
-            <div className="whitespace-pre-wrap leading-relaxed">
-                {contentParts.map((part, index) =>
-                    part.type === 'learning' ? (
-                        <span key={index} className="inline-flex items-center align-middle bg-slate-600/50 px-1.5 py-0.5 rounded-md mx-0.5">
-                            <span className="font-medium text-purple-300">{renderClickableGerman(part)}</span>
-                            <button
-                                onClick={() => onSpeak(part.text)}
-                                className="p-0.5 rounded-full hover:bg-white/20 flex-shrink-0 ml-1.5"
-                                aria-label={`Speak: ${part.text}`}
-                            >
-                                <SoundIcon className="w-3.5 h-3.5 text-slate-300" />
-                            </button>
-                        </span>
-                    ) : (
-                        <span key={index}>{part.text}</span>
-                    )
-                )}
-            </div>
-        );
-    }
-    
-    return message.text ? <p>{message.text}</p> : null;
+          ) : (
+            <span key={index}>{part.text}</span>
+          )
+        )}
+      </div>
+    );
+  }
+
+  return message.text ? <p>{message.text}</p> : null;
 };
 
 const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen, onClose, phrase, onGuide, onSuccess, onOpenVerbConjugation, onOpenNounDeclension, onOpenPronounsModal, onOpenWFragenModal, cache, setCache, onOpenWordAnalysis, onOpenAdjectiveDeclension }) => {
@@ -104,12 +104,12 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
+
   const updateMessages = useCallback((updater: (prev: ChatMessage[]) => ChatMessage[]) => {
     setMessages(prevMessages => {
-        const newMessages = updater(prevMessages);
-        setCache(prevCache => ({ ...prevCache, [phrase.id]: newMessages }));
-        return newMessages;
+      const newMessages = updater(prevMessages);
+      setCache(prevCache => ({ ...prevCache, [phrase.id]: newMessages }));
+      return newMessages;
     });
   }, [setCache, phrase.id]);
 
@@ -124,7 +124,7 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
       window.speechSynthesis.speak(utterance);
     }
   }, [profile.learning]);
-  
+
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -135,16 +135,16 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
       setIsSuccess(false);
       setWordOptions([]);
       setCheatSheetOptions([]);
-      
+
       if (cachedMessages) {
         setMessages(cachedMessages);
         const lastMessage = cachedMessages[cachedMessages.length - 1];
         if (lastMessage?.role === 'model') {
-            setWordOptions(lastMessage.wordOptions || []);
-            setCheatSheetOptions(lastMessage.cheatSheetOptions || []);
-            if (lastMessage.isCorrect) {
-              setIsSuccess(true);
-            }
+          setWordOptions(lastMessage.wordOptions || []);
+          setCheatSheetOptions(lastMessage.cheatSheetOptions || []);
+          if (lastMessage.isCorrect) {
+            setIsSuccess(true);
+          }
         }
         setIsLoading(false);
       } else {
@@ -157,7 +157,7 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
             setCheatSheetOptions(initialMessage.cheatSheetOptions || []);
           })
           .catch(err => {
-            const errorMsg: ChatMessage = { role: 'model', contentParts: [{type: 'text', text: t('modals.learningAssistant.errors.generic', { message: (err as Error).message })}] };
+            const errorMsg: ChatMessage = { role: 'model', contentParts: [{ type: 'text', text: t('modals.learningAssistant.errors.generic', { message: (err as Error).message }) }] };
             updateMessages(() => [errorMsg]);
           })
           .finally(() => {
@@ -166,64 +166,64 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
       }
     }
   }, [isOpen, phrase, onGuide, cache, updateMessages]);
-  
+
   useEffect(() => {
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
-        const setupRecognizer = (langCode: LanguageCode) => {
-            const recognition = new SpeechRecognitionAPI();
-            recognition.lang = SPEECH_LOCALE_MAP[langCode] || 'en-US';
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.onstart = () => setIsListening(true);
-            recognition.onend = () => setIsListening(false);
-            recognition.onerror = (event: any) => {
-                if (event.error !== 'aborted' && event.error !== 'no-speech') {
-                  console.error(`Speech recognition error (${langCode}):`, event.error);
-                }
-                setIsListening(false);
-            };
-            recognition.onresult = (event: any) => {
-                const transcript = event.results[0]?.[0]?.transcript;
-                if (transcript && transcript.trim()) {
-                    setInput(prev => (prev ? prev + ' ' : '') + transcript);
-                }
-            };
-            return recognition;
-        }
-        nativeRecognitionRef.current = setupRecognizer(profile.native);
-        learningRecognitionRef.current = setupRecognizer(profile.learning);
+      const setupRecognizer = (langCode: LanguageCode) => {
+        const recognition = new SpeechRecognitionAPI();
+        recognition.lang = SPEECH_LOCALE_MAP[langCode] || 'en-US';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.onstart = () => setIsListening(true);
+        recognition.onend = () => setIsListening(false);
+        recognition.onerror = (event: any) => {
+          if (event.error !== 'aborted' && event.error !== 'no-speech') {
+            console.error(`Speech recognition error (${langCode}):`, event.error);
+          }
+          setIsListening(false);
+        };
+        recognition.onresult = (event: any) => {
+          const transcript = event.results[0]?.[0]?.transcript;
+          if (transcript && transcript.trim()) {
+            setInput(prev => (prev ? prev + ' ' : '') + transcript);
+          }
+        };
+        return recognition;
+      }
+      nativeRecognitionRef.current = setupRecognizer(profile.native);
+      learningRecognitionRef.current = setupRecognizer(profile.learning);
     }
   }, [profile.native, profile.learning]);
 
   const handleLangChange = (lang: LanguageCode) => {
-      if (isListening) return;
-      setRecognitionLang(lang);
+    if (isListening) return;
+    setRecognitionLang(lang);
   };
 
   const handleMicClick = () => {
-      const recognizer = recognitionLang === profile.native ? nativeRecognitionRef.current : learningRecognitionRef.current;
-      if (!recognizer) return;
+    const recognizer = recognitionLang === profile.native ? nativeRecognitionRef.current : learningRecognitionRef.current;
+    if (!recognizer) return;
 
-      if (isListening) {
-          recognizer.stop();
-      } else {
-          try {
-              (recognitionLang === profile.native ? learningRecognitionRef.current : nativeRecognitionRef.current)?.stop();
-              recognizer.start();
-          } catch (e) {
-              console.error("Could not start recognition:", e);
-              setIsListening(false);
-          }
+    if (isListening) {
+      recognizer.stop();
+    } else {
+      try {
+        (recognitionLang === profile.native ? learningRecognitionRef.current : nativeRecognitionRef.current)?.stop();
+        recognizer.start();
+      } catch (e) {
+        console.error("Could not start recognition:", e);
+        setIsListening(false);
       }
+    }
   };
-  
+
   useEffect(scrollToBottom, [messages]);
-  
+
   useEffect(() => {
     if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [input]);
 
@@ -243,27 +243,27 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
     setIsLoading(true);
 
     try {
-        const modelResponse = await onGuide(phrase, [...messages, userMessage], messageText);
-        updateMessages(prev => [...prev, modelResponse]);
-        setWordOptions(modelResponse.wordOptions || []);
-        setCheatSheetOptions(modelResponse.cheatSheetOptions || []);
-        if (modelResponse.isCorrect) {
-          setIsSuccess(true);
-          onSuccess(phrase);
-          setTimeout(() => onClose(true), 2500);
-        }
+      const modelResponse = await onGuide(phrase, [...messages, userMessage], messageText);
+      updateMessages(prev => [...prev, modelResponse]);
+      setWordOptions(modelResponse.wordOptions || []);
+      setCheatSheetOptions(modelResponse.cheatSheetOptions || []);
+      if (modelResponse.isCorrect) {
+        setIsSuccess(true);
+        onSuccess(phrase);
+        setTimeout(() => onClose(true), 2500);
+      }
     } catch (error) {
-        const errorMsg: ChatMessage = { role: 'model', contentParts: [{type: 'text', text: t('modals.learningAssistant.errors.generic', { message: (error as Error).message })}] };
-        updateMessages(prev => [...prev, errorMsg]);
+      const errorMsg: ChatMessage = { role: 'model', contentParts: [{ type: 'text', text: t('modals.learningAssistant.errors.generic', { message: (error as Error).message }) }] };
+      updateMessages(prev => [...prev, errorMsg]);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   }, [isLoading, isSuccess, messages, phrase, onGuide, onSuccess, onClose, updateMessages, recognitionLang, isListening]);
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
   };
-  
+
   const handleCheatSheetClick = (option: CheatSheetOption) => {
     switch (option.type) {
       case 'verbConjugation':
@@ -287,7 +287,7 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
           } else {
             console.error("Invalid data for noun declension:", option.data);
           }
-        } catch (e) { 
+        } catch (e) {
           console.error("Failed to parse noun data for cheat sheet", e);
         }
         break;
@@ -303,10 +303,10 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
   };
 
   const handleWordOptionClick = (word: string) => {
-      // For quick replies, send the message directly instead of inserting into input
-      handleSendMessage(word);
+    // For quick replies, send the message directly instead of inserting into input
+    handleSendMessage(word);
   }
-  
+
   // Replace hardcoded "Не знаю" with localized version
   const getLocalizedWordOptions = useCallback((options: string[]) => {
     if (options.length > 0 && options[0] === "Не знаю") {
@@ -315,24 +315,24 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
     }
     return options;
   }, [t]);
-  
+
   const localizedWordOptions = getLocalizedWordOptions(wordOptions);
-  
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/60 z-[60] flex justify-center items-end" onClick={() => onClose()}>
-      <div 
+      <div
         className={`bg-slate-800 w-full max-w-2xl h-[90%] max-h-[90vh] rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-300 ease-out ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
         onClick={e => e.stopPropagation()}
       >
         <header className="flex items-center justify-between p-4 border-b border-slate-700 flex-shrink-0">
           <div className="flex items-center space-x-3">
-            <BookOpenIcon className="w-6 h-6 text-purple-400"/>
+            <BookOpenIcon className="w-6 h-6 text-purple-400" />
             <h2 className="text-lg font-bold text-slate-100">{phrase.text.native}</h2>
           </div>
           <button onClick={() => onClose()} className="p-2 rounded-full hover:bg-slate-700">
-            <CloseIcon className="w-6 h-6 text-slate-400"/>
+            <CloseIcon className="w-6 h-6 text-slate-400" />
           </button>
         </header>
 
@@ -341,71 +341,71 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
             {messages.map((msg, index) => (
               <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] px-4 py-3 rounded-2xl break-words ${msg.role === 'user' ? 'bg-purple-600 text-white rounded-br-lg' : 'bg-slate-700 text-slate-200 rounded-bl-lg'}`}>
-                   <ChatMessageContent message={msg} onSpeak={onSpeak} basePhrase={phrase} onOpenWordAnalysis={onOpenWordAnalysis} />
+                  <ChatMessageContent message={msg} onSpeak={onSpeak} basePhrase={phrase} onOpenWordAnalysis={onOpenWordAnalysis} />
                 </div>
               </div>
             ))}
             {isLoading && (
-                <div className="flex justify-start">
-                    <div className="max-w-[85%] px-4 py-3 rounded-2xl bg-slate-700 text-slate-200 rounded-bl-lg flex items-center">
-                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse mr-2"></div>
-                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse mr-2 delay-150"></div>
-                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse delay-300"></div>
-                    </div>
+              <div className="flex justify-start">
+                <div className="max-w-[85%] px-4 py-3 rounded-2xl bg-slate-700 text-slate-200 rounded-bl-lg flex items-center">
+                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse mr-2"></div>
+                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse mr-2 delay-150"></div>
+                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse delay-300"></div>
                 </div>
+              </div>
             )}
           </div>
           <div ref={chatEndRef} />
         </div>
 
         <div className="p-4 border-t border-slate-700 flex-shrink-0 bg-slate-800/80 backdrop-blur-sm">
-            {isSuccess ? (
-                 <div className="flex items-center justify-center h-28 bg-green-900/50 rounded-lg animate-fade-in">
-                    <CheckIcon className="w-8 h-8 text-green-400 mr-3" />
-                    <span className="text-xl font-bold text-green-300">{t('modals.learningAssistant.success')}</span>
-                </div>
-            ) : (
+          {isSuccess ? (
+            <div className="flex items-center justify-center h-28 bg-green-900/50 rounded-lg animate-fade-in">
+              <CheckIcon className="w-8 h-8 text-green-400 mr-3" />
+              <span className="text-xl font-bold text-green-300">{t('modals.learningAssistant.success')}</span>
+            </div>
+          ) : (
             <>
-                {localizedWordOptions.length > 0 && (
-                  <div className="flex flex-wrap justify-center gap-2 mb-3">
-                    {localizedWordOptions.map(opt => (
-                        <button key={opt} onClick={() => handleWordOptionClick(opt)} className="px-3 py-1.5 bg-slate-700/80 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-full transition-colors">
-                            {opt}
-                        </button>
-                    ))}
-                  </div>
-                )}
-                {cheatSheetOptions.length > 0 && (
-                    <div className="flex flex-wrap justify-center gap-2 mb-3">
-                        {cheatSheetOptions.map(opt => (
-                            <button key={opt.label} onClick={() => handleCheatSheetClick(opt)} className="px-3 py-1.5 bg-slate-600/50 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-full transition-colors">
-                                {opt.label}
-                            </button>
-                        ))}
-                    </div>
-                )}
-                {/* Wrap the input and buttons in a form for proper submission handling */}
-                <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(input); }} className="flex items-end space-x-2">
-                  <textarea
-                    ref={textareaRef} value={input} onChange={e => setInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(input); } }}
-                    placeholder={isListening ? t('modals.chat.placeholders.listening') : t('modals.learningAssistant.placeholder')}
-                    className="flex-grow bg-slate-700 rounded-lg p-3 text-slate-200 resize-none max-h-32 min-h-12 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    rows={1} disabled={isLoading}
-                  />
-                  <div className="flex items-center self-stretch bg-slate-600 rounded-lg">
-                    <button type="button" onClick={() => handleLangChange(profile.learning)} className={`h-full px-2 rounded-l-lg transition-colors ${recognitionLang === profile.learning ? 'bg-purple-600/50' : 'hover:bg-slate-500'}`}><span className="text-xs font-bold text-white">{getLanguageLabel(profile.learning)}</span></button>
-                    <button type="button" onClick={() => handleLangChange(profile.native)} className={`h-full px-2 transition-colors ${recognitionLang === profile.native ? 'bg-purple-600/50' : 'hover:bg-slate-500'}`}><span className="text-xs font-bold text-white">{getLanguageLabel(profile.native)}</span></button>
-                    <button type="button" onClick={handleMicClick} disabled={isLoading} className={`h-full px-2 rounded-r-lg transition-colors ${isListening ? 'bg-red-600' : 'hover:bg-slate-500'}`}>
-                        <MicrophoneIcon className="w-6 h-6 text-white" />
+              {localizedWordOptions.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-2 mb-3">
+                  {localizedWordOptions.map(opt => (
+                    <button key={opt} onClick={() => handleWordOptionClick(opt)} className="px-3 py-1.5 bg-slate-700/80 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-full transition-colors">
+                      {opt}
                     </button>
-                  </div>
-                  <button type="submit" disabled={!input.trim() || isLoading} className="self-stretch p-3 bg-purple-600 rounded-lg hover:bg-purple-700 disabled:bg-slate-600 flex-shrink-0">
-                    <SendIcon className="w-6 h-6 text-white"/>
+                  ))}
+                </div>
+              )}
+              {cheatSheetOptions.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-2 mb-3">
+                  {cheatSheetOptions.map(opt => (
+                    <button key={opt.label} onClick={() => handleCheatSheetClick(opt)} className="px-3 py-1.5 bg-slate-600/50 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-full transition-colors">
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {/* Wrap the input and buttons in a form for proper submission handling */}
+              <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(input); }} className="flex items-end space-x-2">
+                <textarea
+                  ref={textareaRef} value={input} onChange={e => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(input); } }}
+                  placeholder={isListening ? t('modals.chat.placeholders.listening') : t('modals.learningAssistant.placeholder')}
+                  className="flex-grow bg-slate-700 rounded-lg p-3 text-slate-200 resize-none max-h-32 min-h-12 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  rows={1} disabled={isLoading}
+                />
+                <div className="flex items-center self-stretch bg-slate-600 rounded-lg">
+                  <button type="button" onClick={() => handleLangChange(profile.learning)} className={`h-full px-2 rounded-l-lg transition-colors ${recognitionLang === profile.learning ? 'bg-purple-600/50' : 'hover:bg-slate-500'}`}><span className="text-xs font-bold text-white">{getLanguageLabel(profile.learning)}</span></button>
+                  <button type="button" onClick={() => handleLangChange(profile.native)} className={`h-full px-2 transition-colors ${recognitionLang === profile.native ? 'bg-purple-600/50' : 'hover:bg-slate-500'}`}><span className="text-xs font-bold text-white">{getLanguageLabel(profile.native)}</span></button>
+                  <button type="button" onClick={handleMicClick} disabled={isLoading} className={`h-full px-2 rounded-r-lg transition-colors ${isListening ? 'bg-red-600' : 'hover:bg-slate-500'}`}>
+                    <MicrophoneIcon className="w-6 h-6 text-white" />
                   </button>
-                </form>
+                </div>
+                <button type="submit" disabled={!input.trim() || isLoading} className="self-stretch p-3 bg-purple-600 rounded-lg hover:bg-purple-700 disabled:bg-slate-600 flex-shrink-0">
+                  <SendIcon className="w-6 h-6 text-white" />
+                </button>
+              </form>
             </>
-            )}
+          )}
         </div>
       </div>
     </div>

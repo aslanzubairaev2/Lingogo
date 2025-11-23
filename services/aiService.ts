@@ -2,12 +2,12 @@ import { Phrase, ChatMessage, DeepDiveAnalysis, MovieExample, WordAnalysis, Verb
 
 export interface AiService {
   // FIX: Updated the return type to accurately reflect the shape of the data returned by the API call.
-  generatePhrases(prompt: string): Promise<{ german: string, russian: string }[]>;
-  generateSinglePhrase(russianPhrase: string): Promise<{ german: string; russian: string; }>;
-  translatePhrase(russianPhrase: string): Promise<{ german: string }>;
-  translateGermanToRussian(germanPhrase: string): Promise<{ russian: string }>;
-  getWordTranslation(russianPhrase: string, germanPhrase: string, russianWord: string): Promise<{ germanTranslation: string }>;
-  improvePhrase(originalRussian: string, currentGerman: string): Promise<{ suggestedGerman: string; explanation: string }>;
+  generatePhrases(prompt: string): Promise<{ learning: string, native: string }[]>;
+  generateSinglePhrase(nativePhrase: string): Promise<{ learning: string; native: string; }>;
+  translatePhrase(nativePhrase: string): Promise<{ learning: string }>;
+  translateLearningToNative(learningPhrase: string): Promise<{ native: string }>;
+  getWordTranslation(nativePhrase: string, learningPhrase: string, nativeWord: string): Promise<{ learningTranslation: string }>;
+  improvePhrase(originalNative: string, currentLearning: string): Promise<{ suggestedLearning: string; explanation: string }>;
   generateInitialExamples(phrase: Phrase): Promise<ChatMessage>;
   continueChat(phrase: Phrase, history: ChatMessage[], newMessage: string): Promise<ChatMessage>;
   practiceConversation(history: ChatMessage[], newMessage: string, allPhrases: Phrase[]): Promise<ChatMessage>;
@@ -21,7 +21,7 @@ export interface AiService {
   generatePronouns(): Promise<Pronoun[]>;
   declineNoun(noun: string, article: string): Promise<NounDeclension>;
   declineAdjective(adjective: string): Promise<AdjectiveDeclension>;
-  generateSentenceContinuations(russianPhrase: string): Promise<SentenceContinuation>;
+  generateSentenceContinuations(nativePhrase: string): Promise<SentenceContinuation>;
   findDuplicatePhrases(phrases: Phrase[]): Promise<{ duplicateGroups: string[][] }>;
   generatePhraseBuilderOptions(phrase: Phrase): Promise<PhraseBuilderOptions>;
   evaluatePhraseAttempt(phrase: Phrase, userAttempt: string): Promise<PhraseEvaluation>;

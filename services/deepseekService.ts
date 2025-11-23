@@ -22,9 +22,9 @@ const callDeepSeekApi = async (messages: any[], schema: object) => {
     if (lastUserMessageIndex !== -1) {
         messages[lastUserMessageIndex].content += `\n\nALWAYS respond with a valid JSON object matching this schema:\n${JSON.stringify(schema, null, 2)}`;
     } else {
-        messages.push({ role: 'user', content: `Respond in JSON matching this schema:\n${JSON.stringify(schema, null, 2)}`})
+        messages.push({ role: 'user', content: `Respond in JSON matching this schema:\n${JSON.stringify(schema, null, 2)}` })
     }
-    
+
     const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
@@ -55,7 +55,7 @@ const notImplemented = () => Promise.reject(new Error("Not implemented for DeepS
 const generatePhrases: AiService['generatePhrases'] = notImplemented;
 const generateSinglePhrase: AiService['generateSinglePhrase'] = notImplemented;
 const translatePhrase: AiService['translatePhrase'] = notImplemented;
-const translateGermanToRussian: AiService['translateGermanToRussian'] = notImplemented;
+const translateLearningToNative: AiService['translateLearningToNative'] = notImplemented;
 const getWordTranslation: AiService['getWordTranslation'] = notImplemented;
 const improvePhrase: AiService['improvePhrase'] = notImplemented;
 const generateInitialExamples: AiService['generateInitialExamples'] = notImplemented;
@@ -108,7 +108,7 @@ export const deepseekService: AiService = {
     generatePhrases,
     generateSinglePhrase,
     translatePhrase,
-    translateGermanToRussian,
+    translateLearningToNative,
     getWordTranslation,
     improvePhrase,
     generateInitialExamples,

@@ -26,7 +26,7 @@ const PhraseListItem: React.FC<PhraseListItemProps> = React.memo(({ phrase, onEd
     const { t } = useTranslation();
     const [isCategoryPopoverOpen, setIsCategoryPopoverOpen] = useState(false);
     const popoverRef = useRef<HTMLDivElement>(null);
-    
+
     const handleEditClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         onEdit(phrase);
@@ -36,7 +36,7 @@ const PhraseListItem: React.FC<PhraseListItemProps> = React.memo(({ phrase, onEd
         e.stopPropagation();
         onDelete(phrase.id);
     };
-    
+
     const handlePracticeClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         onStartPractice(phrase);
@@ -57,7 +57,7 @@ const PhraseListItem: React.FC<PhraseListItemProps> = React.memo(({ phrase, onEd
         }
     };
 
-    const renderClickableGerman = (text: string) => {
+    const renderClickableLearning = (text: string) => {
         if (!onOpenWordAnalysis || !text) return <span>{text}</span>;
         return text.split(' ').map((word, i, arr) => (
             <span
@@ -91,7 +91,7 @@ const PhraseListItem: React.FC<PhraseListItemProps> = React.memo(({ phrase, onEd
     const info = categoryInfo || { id: 'general', name: t('categories.names.general'), color: 'bg-slate-500', isFoundational: false };
 
     return (
-        <li 
+        <li
             id={`phrase-item-${phrase.id}`}
             className={`relative bg-slate-400/10 backdrop-blur-xl border border-white/20 px-2 pt-0 rounded-lg flex items-start space-x-4 cursor-pointer hover:bg-slate-400/20 transition-all duration-300 ${getRingClass()} ${isCategoryPopoverOpen ? 'z-30' : 'z-10'}`}
             onClick={() => onPreview(phrase)}
@@ -105,7 +105,7 @@ const PhraseListItem: React.FC<PhraseListItemProps> = React.memo(({ phrase, onEd
                 <div className="flex items-center justify-between mb-1">
                     <p className="font-semibold text-slate-100">{phrase.text.native}</p>
                 </div>
-                <p className="text-sm text-slate-400">{renderClickableGerman(phrase.text.learning)}</p>
+                <p className="text-sm text-slate-400">{renderClickableLearning(phrase.text.learning)}</p>
                 <div className="mt-2 mb-1">
                     <ProgressBar current={phrase.masteryLevel} max={srsService.MAX_MASTERY_LEVEL} />
                 </div>
@@ -116,8 +116,8 @@ const PhraseListItem: React.FC<PhraseListItemProps> = React.memo(({ phrase, onEd
 
                 <div className="flex-shrink-0 flex items-center space-x-1">
                     <div className="relative group">
-                        <button 
-                            onClick={handlePracticeClick} 
+                        <button
+                            onClick={handlePracticeClick}
                             className="p-2 text-slate-400 hover:text-green-400 transition-colors"
                             aria-label={t('phraseList.item.actions.practice')}
                         >
@@ -128,8 +128,8 @@ const PhraseListItem: React.FC<PhraseListItemProps> = React.memo(({ phrase, onEd
                         </div>
                     </div>
                     <div className="relative group">
-                        <button 
-                            onClick={handleEditClick} 
+                        <button
+                            onClick={handleEditClick}
                             className="p-2 text-slate-400 hover:text-blue-400 transition-colors"
                             aria-label={t('phraseList.item.actions.edit')}
                         >
@@ -140,8 +140,8 @@ const PhraseListItem: React.FC<PhraseListItemProps> = React.memo(({ phrase, onEd
                         </div>
                     </div>
                     <div className="relative group">
-                        <button 
-                            onClick={handleDeleteClick} 
+                        <button
+                            onClick={handleDeleteClick}
                             className="p-2 text-slate-400 hover:text-red-400 transition-colors"
                             aria-label={t('phraseList.item.actions.delete')}
                         >
@@ -184,7 +184,7 @@ const PhraseListItem: React.FC<PhraseListItemProps> = React.memo(({ phrase, onEd
                 </div>
 
             </div>
-            
+
         </li>
     );
 });

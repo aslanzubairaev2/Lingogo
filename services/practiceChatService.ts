@@ -528,7 +528,7 @@ export function createInitialGreeting(
       hi: 'Привет! Давай практиковать хинди!',
     },
     en: {
-      de: 'Hello! Let\'s practice German!',
+      de: 'Hello! Let\'s practice Learning!',
       en: 'Hello! Let\'s practice English!',
       fr: 'Hello! Let\'s practice French!',
       es: 'Hello! Let\'s practice Spanish!',

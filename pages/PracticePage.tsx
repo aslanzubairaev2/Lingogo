@@ -21,64 +21,64 @@ const SWIPE_THRESHOLD = 50; // pixels
 
 type AnimationDirection = 'left' | 'right';
 interface AnimationState {
-  key: string;
-  direction: AnimationDirection;
+    key: string;
+    direction: AnimationDirection;
 }
 
 interface PracticePageProps {
-  currentPhrase: Phrase | null;
-  isAnswerRevealed: boolean;
-  onSetIsAnswerRevealed: React.Dispatch<React.SetStateAction<boolean>>;
-  isCardEvaluated: boolean;
-  animationState: AnimationState;
-  isExiting: boolean;
-  unmasteredCount: number;
-  currentPoolCount: number;
-  fetchNewPhrases: (count?: number) => Promise<void>;
-  isLoading: boolean;
-  error: string | null;
-  isGenerating: boolean;
-  apiProviderAvailable: boolean;
-  onUpdateMastery: (action: 'know' | 'forgot' | 'dont_know') => Promise<boolean>;
-  onUpdateMasteryWithoutUI: (phrase: Phrase, action: 'know' | 'forgot' | 'dont_know') => void;
-  onContinue: () => void;
-  onSwipeRight: () => void;
-  onOpenChat: (phrase: Phrase) => void;
-  onOpenDeepDive: (phrase: Phrase) => void;
-  onOpenMovieExamples: (phrase: Phrase) => void;
-  onOpenWordAnalysis: (phrase: Phrase, word: string) => void;
-  onGetWordTranslation: (russianPhrase: string, germanPhrase: string, russianWord: string) => Promise<{ germanTranslation: string }>;
-  onOpenVerbConjugation: (infinitive: string) => void;
-  onOpenNounDeclension: (noun: string, article: string) => void;
-  onOpenAdjectiveDeclension: (adjective: string) => void;
-  onOpenSentenceChain: (phrase: Phrase) => void;
-  onOpenImprovePhrase: (phrase: Phrase) => void;
-  onOpenLearningAssistant: (phrase: Phrase) => void;
-  onOpenVoiceWorkspace: (phrase: Phrase) => void;
-  onDeletePhrase: (phraseId: string) => void;
-  onGoToList: (phrase: Phrase) => void;
-  onOpenDiscussTranslation: (phrase: Phrase) => void;
-  settings: { 
-    soundEffects: boolean;
-    autoSpeak: boolean;
-    enabledCategories: Record<PhraseCategory, boolean>;
-  };
-  masteryButtonUsage: { know: number; forgot: number; dont_know: number };
-  allPhrases: Phrase[];
-  onCreateCard: (phraseData: { german: string; russian: string; }) => void;
-  onAnalyzeWord: (phrase: Phrase, word: string) => Promise<WordAnalysis | null>;
-  isWordAnalysisLoading: boolean;
-  cardActionUsage: { [key: string]: number };
-  onLogCardActionUsage: (button: string) => void;
-  cardHistoryLength: number;
-  practiceCategoryFilter: 'all' | PhraseCategory;
-  setPracticeCategoryFilter: (filter: 'all' | PhraseCategory) => void;
-  onMarkPhraseAsSeen: (phraseId: string) => void;
-  categories: Category[];
-  onAddCategory: () => void;
-  onOpenCategoryManager: () => void;
-  unmasteredCountsByCategory: Record<string, number>;
-  onOpenSmartImport: () => void;
+    currentPhrase: Phrase | null;
+    isAnswerRevealed: boolean;
+    onSetIsAnswerRevealed: React.Dispatch<React.SetStateAction<boolean>>;
+    isCardEvaluated: boolean;
+    animationState: AnimationState;
+    isExiting: boolean;
+    unmasteredCount: number;
+    currentPoolCount: number;
+    fetchNewPhrases: (count?: number) => Promise<void>;
+    isLoading: boolean;
+    error: string | null;
+    isGenerating: boolean;
+    apiProviderAvailable: boolean;
+    onUpdateMastery: (action: 'know' | 'forgot' | 'dont_know') => Promise<boolean>;
+    onUpdateMasteryWithoutUI: (phrase: Phrase, action: 'know' | 'forgot' | 'dont_know') => void;
+    onContinue: () => void;
+    onSwipeRight: () => void;
+    onOpenChat: (phrase: Phrase) => void;
+    onOpenDeepDive: (phrase: Phrase) => void;
+    onOpenMovieExamples: (phrase: Phrase) => void;
+    onOpenWordAnalysis: (phrase: Phrase, word: string) => void;
+    onGetWordTranslation: (nativePhrase: string, learningPhrase: string, nativeWord: string) => Promise<{ learningTranslation: string }>;
+    onOpenVerbConjugation: (infinitive: string) => void;
+    onOpenNounDeclension: (noun: string, article: string) => void;
+    onOpenAdjectiveDeclension: (adjective: string) => void;
+    onOpenSentenceChain: (phrase: Phrase) => void;
+    onOpenImprovePhrase: (phrase: Phrase) => void;
+    onOpenLearningAssistant: (phrase: Phrase) => void;
+    onOpenVoiceWorkspace: (phrase: Phrase) => void;
+    onDeletePhrase: (phraseId: string) => void;
+    onGoToList: (phrase: Phrase) => void;
+    onOpenDiscussTranslation: (phrase: Phrase) => void;
+    settings: {
+        soundEffects: boolean;
+        autoSpeak: boolean;
+        enabledCategories: Record<PhraseCategory, boolean>;
+    };
+    masteryButtonUsage: { know: number; forgot: number; dont_know: number };
+    allPhrases: Phrase[];
+    onCreateCard: (phraseData: { learning: string; native: string; }) => void;
+    onAnalyzeWord: (phrase: Phrase, word: string) => Promise<WordAnalysis | null>;
+    isWordAnalysisLoading: boolean;
+    cardActionUsage: { [key: string]: number };
+    onLogCardActionUsage: (button: string) => void;
+    cardHistoryLength: number;
+    practiceCategoryFilter: 'all' | PhraseCategory;
+    setPracticeCategoryFilter: (filter: 'all' | PhraseCategory) => void;
+    onMarkPhraseAsSeen: (phraseId: string) => void;
+    categories: Category[];
+    onAddCategory: () => void;
+    onOpenCategoryManager: () => void;
+    unmasteredCountsByCategory: Record<string, number>;
+    onOpenSmartImport: () => void;
 }
 
 const CategoryFilter: React.FC<{
@@ -100,7 +100,7 @@ const CategoryFilter: React.FC<{
     const categoryName = currentFilter === 'all'
         ? t('practice.states.allCategories')
         : getCategoryNameById(currentFilter);
-    
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -110,7 +110,7 @@ const CategoryFilter: React.FC<{
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-    
+
     const handleSelect = (filter: 'all' | PhraseCategory) => {
         onFilterChange(filter);
         setIsOpen(false);
@@ -125,7 +125,7 @@ const CategoryFilter: React.FC<{
         onManageCategories();
         setIsOpen(false);
     };
-    
+
     const visibleCategories = categories.filter(cat => enabledCategories[cat.id]);
 
     return (
@@ -158,7 +158,7 @@ const CategoryFilter: React.FC<{
                         ))}
                     </ul>
                     <div className="p-1 border-t border-slate-600 flex-shrink-0 grid grid-cols-2 gap-1">
-                         <button onClick={handleAddCategory} className="flex items-center justify-center gap-2 px-2 py-2 text-slate-300 hover:bg-slate-600 rounded-md transition-colors text-sm font-semibold">
+                        <button onClick={handleAddCategory} className="flex items-center justify-center gap-2 px-2 py-2 text-slate-300 hover:bg-slate-600 rounded-md transition-colors text-sm font-semibold">
                             <PlusIcon className="w-4 h-4" />
                             <span>{t('practice.states.add')}</span>
                         </button>
@@ -175,267 +175,267 @@ const CategoryFilter: React.FC<{
 
 
 const SPEECH_LOCALE_MAP: Record<string, string> = {
-  'en': 'en-US',
-  'de': 'de-DE',
-  'ru': 'ru-RU',
-  'fr': 'fr-FR',
-  'es': 'es-ES',
-  'it': 'it-IT',
-  'pt': 'pt-PT',
-  'pl': 'pl-PL',
-  'zh': 'zh-CN',
-  'ja': 'ja-JP',
-  'ar': 'ar-SA',
-  'hi': 'hi-IN',
+    'en': 'en-US',
+    'de': 'de-DE',
+    'ru': 'ru-RU',
+    'fr': 'fr-FR',
+    'es': 'es-ES',
+    'it': 'it-IT',
+    'pt': 'pt-PT',
+    'pl': 'pl-PL',
+    'zh': 'zh-CN',
+    'ja': 'ja-JP',
+    'ar': 'ar-SA',
+    'hi': 'hi-IN',
 };
 
 const PracticePage: React.FC<PracticePageProps> = (props) => {
-  const {
-    currentPhrase, isAnswerRevealed, onSetIsAnswerRevealed, isCardEvaluated, animationState, isExiting, unmasteredCount, currentPoolCount,
-    fetchNewPhrases, isLoading, error, isGenerating, apiProviderAvailable,
-    onUpdateMastery, onUpdateMasteryWithoutUI, onContinue, onSwipeRight,
-    onOpenChat, onOpenDeepDive, onOpenMovieExamples, onOpenWordAnalysis, onGetWordTranslation,
-    onOpenVerbConjugation, onOpenNounDeclension, onOpenAdjectiveDeclension,
-    onOpenSentenceChain, onOpenImprovePhrase, onOpenLearningAssistant,
-    onOpenVoiceWorkspace, onDeletePhrase, onGoToList, onOpenDiscussTranslation,
-    settings, masteryButtonUsage, allPhrases, onCreateCard, onAnalyzeWord,
-    isWordAnalysisLoading, cardActionUsage, onLogCardActionUsage,
-    cardHistoryLength, practiceCategoryFilter, setPracticeCategoryFilter, onMarkPhraseAsSeen,
-    categories, onAddCategory, onOpenCategoryManager, unmasteredCountsByCategory, onOpenSmartImport
-  } = props;
-  const { t } = useTranslation();
-  const { profile } = useLanguage();
+    const {
+        currentPhrase, isAnswerRevealed, onSetIsAnswerRevealed, isCardEvaluated, animationState, isExiting, unmasteredCount, currentPoolCount,
+        fetchNewPhrases, isLoading, error, isGenerating, apiProviderAvailable,
+        onUpdateMastery, onUpdateMasteryWithoutUI, onContinue, onSwipeRight,
+        onOpenChat, onOpenDeepDive, onOpenMovieExamples, onOpenWordAnalysis, onGetWordTranslation,
+        onOpenVerbConjugation, onOpenNounDeclension, onOpenAdjectiveDeclension,
+        onOpenSentenceChain, onOpenImprovePhrase, onOpenLearningAssistant,
+        onOpenVoiceWorkspace, onDeletePhrase, onGoToList, onOpenDiscussTranslation,
+        settings, masteryButtonUsage, allPhrases, onCreateCard, onAnalyzeWord,
+        isWordAnalysisLoading, cardActionUsage, onLogCardActionUsage,
+        cardHistoryLength, practiceCategoryFilter, setPracticeCategoryFilter, onMarkPhraseAsSeen,
+        categories, onAddCategory, onOpenCategoryManager, unmasteredCountsByCategory, onOpenSmartImport
+    } = props;
+    const { t } = useTranslation();
+    const { profile } = useLanguage();
 
 
-  const [contextMenuTarget, setContextMenuTarget] = useState<{ phrase: Phrase; word?: string } | null>(null);
-  const [flashState, setFlashState] = useState<'green' | null>(null);
-  const touchStartRef = useRef<number | null>(null);
-  const touchMoveRef = useRef<number | null>(null);
+    const [contextMenuTarget, setContextMenuTarget] = useState<{ phrase: Phrase; word?: string } | null>(null);
+    const [flashState, setFlashState] = useState<'green' | null>(null);
+    const touchStartRef = useRef<number | null>(null);
+    const touchMoveRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (currentPhrase && currentPhrase.isNew) {
-      onMarkPhraseAsSeen(currentPhrase.id);
-    }
-  }, [currentPhrase, onMarkPhraseAsSeen]);
-
-  const speak = useCallback((text: string, lang: 'de-DE' | 'ru-RU') => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      // Использовать реальный язык из профиля вместо переданного параметра
-      const learningLang = profile.learning || 'de';
-      utterance.lang = SPEECH_LOCALE_MAP[learningLang] || 'de-DE';
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
-  }, [profile.learning]);
-  
-  const handleTouchStart = (e: React.TouchEvent) => { touchMoveRef.current = null; touchStartRef.current = e.targetTouches[0].clientX; };
-  const handleTouchMove = (e: React.TouchEvent) => { touchMoveRef.current = e.targetTouches[0].clientX; };
-  const handleTouchEnd = () => {
-    if (touchStartRef.current !== null && touchMoveRef.current !== null) {
-      const deltaX = touchMoveRef.current - touchStartRef.current;
-      if (deltaX < -SWIPE_THRESHOLD) onContinue();
-      else if (deltaX > SWIPE_THRESHOLD) onSwipeRight();
-    }
-    touchStartRef.current = null; touchMoveRef.current = null;
-  };
-
-  const handleKnowClick = useCallback(async () => {
-    if (isExiting || !currentPhrase) return;
-    
-    setFlashState('green');
-    const leechModalShown = await onUpdateMastery('know');
-    
-    // Если было показано модальное окно "пиявки", оно само управляет переходом.
-    // В противном случае, переходим к следующей карточке через задержку.
-    if (!leechModalShown) {
-        setTimeout(() => {
-            onContinue();
-        }, 1500);
-    }
-  }, [isExiting, currentPhrase, onUpdateMastery, onContinue]);
-
-  const renderContent = () => {
-    if (isLoading) return <PhraseCardSkeleton />;
-    if (error) return <div className="text-center bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-lg max-w-md mx-auto"><p className="font-semibold">{t('practice.states.errorOccurred')}</p><p className="text-sm">{error}</p></div>;
-    
-    if (!currentPhrase) {
-      if (unmasteredCount === 0 && practiceCategoryFilter === 'all') {
-        return (
-            <div className="text-center text-slate-400 p-4">
-                <h2 className="text-2xl font-bold text-white mb-4">{t('practice.states.congratulations')}</h2>
-                <p>{t('practice.states.learnedAllSelected')}</p>
-                <button onClick={onOpenSmartImport} disabled={!apiProviderAvailable} className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-md text-white font-bold transition-colors disabled:opacity-50">{t('fab.smartImport')}</button>
-            </div>
-        );
-      }
-      if (currentPoolCount === 0) {
-        const category = categories.find(c => c.id === practiceCategoryFilter);
-        const categoryName = category?.name || 'этой';
-
-        if (category?.isFoundational) {
-            return (
-                <div className="text-center text-slate-400 p-4">
-                    <h2 className="text-2xl font-bold text-white mb-4">{t('practice.states.excellent')}</h2>
-                    <p>{t('practice.states.foundationCompleted', { categoryName })}</p>
-                    <p className="mt-2 text-sm">{t('practice.states.noMoreCards')}</p>
-                    <button onClick={() => setPracticeCategoryFilter('all')} className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-md text-white font-bold transition-colors">
-                        {t('practice.states.practiceOtherCategories')}
-                    </button>
-                </div>
-            );
+    useEffect(() => {
+        if (currentPhrase && currentPhrase.isNew) {
+            onMarkPhraseAsSeen(currentPhrase.id);
         }
-        
-        return (
-            <div className="text-center text-slate-400 p-4">
-                <h2 className="text-2xl font-bold text-white mb-4">{t('practice.states.empty')}</h2>
-                <p>{t('practice.states.noUnlearnedInCategory', { categoryName })}</p>
-                <button onClick={() => setPracticeCategoryFilter('all')} className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-md text-white font-bold transition-colors">
-                    {t('practice.states.practiceAllCategories')}
-                </button>
-            </div>
-        );
-      } else {
-        // This case means there are cards in the pool, but none are due for review right now.
-        return (
-            <div className="text-center text-slate-400 p-4">
-                <h2 className="text-2xl font-bold text-white mb-4">{t('practice.states.allForToday')}</h2>
-                <p>{t('practice.states.completedAllAvailable')}</p>
-                <p className="mt-2 text-sm">{t('practice.states.comeBackLater')}</p>
-                <button onClick={() => setPracticeCategoryFilter('all')} className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-md text-white font-bold transition-colors">
-                    {t('practice.states.practiceOtherCategories')}
-                </button>
-            </div>
-        );
-      }
-    }
+    }, [currentPhrase, onMarkPhraseAsSeen]);
 
-    const animationClass = isExiting 
-      ? (animationState.direction === 'right' ? 'card-exit-left' : 'card-exit-right')
-      : (animationState.direction === 'right' ? 'card-enter-right' : 'card-enter-left');
+    const speak = useCallback((text: string, lang: 'de-DE' | 'ru-RU') => {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            // Использовать реальный язык из профиля вместо переданного параметра
+            const learningLang = profile.learning || 'de';
+            utterance.lang = SPEECH_LOCALE_MAP[learningLang] || 'de-DE';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+    }, [profile.learning]);
 
-    return (
-        <div className="relative w-full max-w-2xl flex items-center justify-center">
-             {currentPhrase && (
-                <>
-                    <button
-                        onClick={onSwipeRight}
-                        disabled={cardHistoryLength === 0}
-                        className="hidden md:flex absolute top-1/2- left-0 -translate-y-1/2 w-12 h-12 bg-slate-800/50 hover:bg-slate-700/80 rounded-full items-center justify-center transition-colors text-slate-300 hover:text-white z-10 disabled:opacity-30 disabled:cursor-not-allowed"
-                        aria-label="Предыдущая карта"
-                    >
-                        <ArrowLeftIcon className="w-6 h-6" />
-                    </button>
-                    <button
-                        onClick={onContinue}
-                        disabled={unmasteredCount <= 1}
-                        className="hidden md:flex absolute top-1/2- right-0 -translate-y-1/2 w-12 h-12 bg-slate-800/50 hover:bg-slate-700/80 rounded-full items-center justify-center transition-colors text-slate-300 hover:text-white z-10 disabled:opacity-30 disabled:cursor-not-allowed"
-                        aria-label="Следующая карта"
-                    >
-                        <ArrowRightIcon className="w-6 h-6" />
-                    </button>
-                </>
-            )}
-            <div className="flex flex-col items-center w-full px-2">
-                <div
-                  id="practice-card-container"
-                  className="w-full max-w-md h-64 relative"
-                  onTouchStart={handleTouchStart}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={handleTouchEnd}
-                >
-                    <div key={animationState.key} className={`absolute inset-0 ${animationClass}`}>
-                        <PhraseCard 
-                          phrase={currentPhrase} 
-                          onSpeak={speak} 
-                          isFlipped={isAnswerRevealed}
-                          onFlip={() => onSetIsAnswerRevealed(true)}
-                          onOpenChat={onOpenChat} 
-                          onOpenDeepDive={onOpenDeepDive}
-                          onOpenMovieExamples={onOpenMovieExamples}
-                          onWordClick={onOpenWordAnalysis}
-                          onGetWordTranslation={onGetWordTranslation}
-                          onOpenSentenceChain={onOpenSentenceChain}
-                          onOpenImprovePhrase={onOpenImprovePhrase}
-                          onOpenContextMenu={setContextMenuTarget}
-                          onOpenVoicePractice={onOpenVoiceWorkspace}
-                          onOpenLearningAssistant={onOpenLearningAssistant}
-                          isWordAnalysisLoading={isWordAnalysisLoading}
-                          cardActionUsage={cardActionUsage}
-                          onLogCardActionUsage={onLogCardActionUsage}
-                          flash={flashState}
-                          onFlashEnd={() => setFlashState(null)}
-                        />
+    const handleTouchStart = (e: React.TouchEvent) => { touchMoveRef.current = null; touchStartRef.current = e.targetTouches[0].clientX; };
+    const handleTouchMove = (e: React.TouchEvent) => { touchMoveRef.current = e.targetTouches[0].clientX; };
+    const handleTouchEnd = () => {
+        if (touchStartRef.current !== null && touchMoveRef.current !== null) {
+            const deltaX = touchMoveRef.current - touchStartRef.current;
+            if (deltaX < -SWIPE_THRESHOLD) onContinue();
+            else if (deltaX > SWIPE_THRESHOLD) onSwipeRight();
+        }
+        touchStartRef.current = null; touchMoveRef.current = null;
+    };
+
+    const handleKnowClick = useCallback(async () => {
+        if (isExiting || !currentPhrase) return;
+
+        setFlashState('green');
+        const leechModalShown = await onUpdateMastery('know');
+
+        // Если было показано модальное окно "пиявки", оно само управляет переходом.
+        // В противном случае, переходим к следующей карточке через задержку.
+        if (!leechModalShown) {
+            setTimeout(() => {
+                onContinue();
+            }, 1500);
+        }
+    }, [isExiting, currentPhrase, onUpdateMastery, onContinue]);
+
+    const renderContent = () => {
+        if (isLoading) return <PhraseCardSkeleton />;
+        if (error) return <div className="text-center bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-lg max-w-md mx-auto"><p className="font-semibold">{t('practice.states.errorOccurred')}</p><p className="text-sm">{error}</p></div>;
+
+        if (!currentPhrase) {
+            if (unmasteredCount === 0 && practiceCategoryFilter === 'all') {
+                return (
+                    <div className="text-center text-slate-400 p-4">
+                        <h2 className="text-2xl font-bold text-white mb-4">{t('practice.states.congratulations')}</h2>
+                        <p>{t('practice.states.learnedAllSelected')}</p>
+                        <button onClick={onOpenSmartImport} disabled={!apiProviderAvailable} className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-md text-white font-bold transition-colors disabled:opacity-50">{t('fab.smartImport')}</button>
                     </div>
-                </div>
+                );
+            }
+            if (currentPoolCount === 0) {
+                const category = categories.find(c => c.id === practiceCategoryFilter);
+                const categoryName = category?.name || 'этой';
 
-                <div className="flex justify-center items-center mt-3 h-12 max-w-md w-full">
-                    {!isAnswerRevealed && currentPhrase && (
-                        <div className="flex items-center justify-center space-x-4 animate-fade-in w-full">
+                if (category?.isFoundational) {
+                    return (
+                        <div className="text-center text-slate-400 p-4">
+                            <h2 className="text-2xl font-bold text-white mb-4">{t('practice.states.excellent')}</h2>
+                            <p>{t('practice.states.foundationCompleted', { categoryName })}</p>
+                            <p className="mt-2 text-sm">{t('practice.states.noMoreCards')}</p>
+                            <button onClick={() => setPracticeCategoryFilter('all')} className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-md text-white font-bold transition-colors">
+                                {t('practice.states.practiceOtherCategories')}
+                            </button>
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className="text-center text-slate-400 p-4">
+                        <h2 className="text-2xl font-bold text-white mb-4">{t('practice.states.empty')}</h2>
+                        <p>{t('practice.states.noUnlearnedInCategory', { categoryName })}</p>
+                        <button onClick={() => setPracticeCategoryFilter('all')} className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-md text-white font-bold transition-colors">
+                            {t('practice.states.practiceAllCategories')}
+                        </button>
+                    </div>
+                );
+            } else {
+                // This case means there are cards in the pool, but none are due for review right now.
+                return (
+                    <div className="text-center text-slate-400 p-4">
+                        <h2 className="text-2xl font-bold text-white mb-4">{t('practice.states.allForToday')}</h2>
+                        <p>{t('practice.states.completedAllAvailable')}</p>
+                        <p className="mt-2 text-sm">{t('practice.states.comeBackLater')}</p>
+                        <button onClick={() => setPracticeCategoryFilter('all')} className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-md text-white font-bold transition-colors">
+                            {t('practice.states.practiceOtherCategories')}
+                        </button>
+                    </div>
+                );
+            }
+        }
+
+        const animationClass = isExiting
+            ? (animationState.direction === 'right' ? 'card-exit-left' : 'card-exit-right')
+            : (animationState.direction === 'right' ? 'card-enter-right' : 'card-enter-left');
+
+        return (
+            <div className="relative w-full max-w-2xl flex items-center justify-center">
+                {currentPhrase && (
+                    <>
+                        <button
+                            onClick={onSwipeRight}
+                            disabled={cardHistoryLength === 0}
+                            className="hidden md:flex absolute top-1/2- left-0 -translate-y-1/2 w-12 h-12 bg-slate-800/50 hover:bg-slate-700/80 rounded-full items-center justify-center transition-colors text-slate-300 hover:text-white z-10 disabled:opacity-30 disabled:cursor-not-allowed"
+                            aria-label="Предыдущая карта"
+                        >
+                            <ArrowLeftIcon className="w-6 h-6" />
+                        </button>
+                        <button
+                            onClick={onContinue}
+                            disabled={unmasteredCount <= 1}
+                            className="hidden md:flex absolute top-1/2- right-0 -translate-y-1/2 w-12 h-12 bg-slate-800/50 hover:bg-slate-700/80 rounded-full items-center justify-center transition-colors text-slate-300 hover:text-white z-10 disabled:opacity-30 disabled:cursor-not-allowed"
+                            aria-label="Следующая карта"
+                        >
+                            <ArrowRightIcon className="w-6 h-6" />
+                        </button>
+                    </>
+                )}
+                <div className="flex flex-col items-center w-full px-2">
+                    <div
+                        id="practice-card-container"
+                        className="w-full max-w-md h-64 relative"
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                    >
+                        <div key={animationState.key} className={`absolute inset-0 ${animationClass}`}>
+                            <PhraseCard
+                                phrase={currentPhrase}
+                                onSpeak={speak}
+                                isFlipped={isAnswerRevealed}
+                                onFlip={() => onSetIsAnswerRevealed(true)}
+                                onOpenChat={onOpenChat}
+                                onOpenDeepDive={onOpenDeepDive}
+                                onOpenMovieExamples={onOpenMovieExamples}
+                                onWordClick={onOpenWordAnalysis}
+                                onGetWordTranslation={onGetWordTranslation}
+                                onOpenSentenceChain={onOpenSentenceChain}
+                                onOpenImprovePhrase={onOpenImprovePhrase}
+                                onOpenContextMenu={setContextMenuTarget}
+                                onOpenVoicePractice={onOpenVoiceWorkspace}
+                                onOpenLearningAssistant={onOpenLearningAssistant}
+                                isWordAnalysisLoading={isWordAnalysisLoading}
+                                cardActionUsage={cardActionUsage}
+                                onLogCardActionUsage={onLogCardActionUsage}
+                                flash={flashState}
+                                onFlashEnd={() => setFlashState(null)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-center items-center mt-3 h-12 max-w-md w-full">
+                        {!isAnswerRevealed && currentPhrase && (
+                            <div className="flex items-center justify-center space-x-4 animate-fade-in w-full">
+                                <button
+                                    onClick={onContinue}
+                                    disabled={isExiting}
+                                    className="flex-grow p-2 rounded-3xl font-light text-sm text-slate-300 shadow-md transition-colors bg-slate-800 hover:bg-slate-500"
+                                >
+                                    {t('practice.actions.skip')}
+                                </button>
+                                <button
+                                    onClick={handleKnowClick}
+                                    disabled={isExiting}
+                                    className="flex-grow p-2 rounded-3xl font-light text-sm text-white shadow-md transition-colors bg-green-600 hover:bg-green-700"
+                                >
+                                    {t('practice.actions.know')}
+                                </button>
+                            </div>
+                        )}
+                        {/* This button appears ONLY when the card is manually flipped to check the answer */}
+                        {isAnswerRevealed && !isCardEvaluated && (
                             <button
                                 onClick={onContinue}
                                 disabled={isExiting}
-                                className="flex-grow p-2 rounded-3xl font-light text-sm text-slate-300 shadow-md transition-colors bg-slate-800 hover:bg-slate-500"
+                                className="p-2 rounded-lg font-semibold text-white shadow-md transition-all duration-300 bg-purple-600 hover:bg-purple-700 animate-fade-in"
                             >
-                                {t('practice.actions.skip')}
+                                {t('practice.states.continue')}
                             </button>
-                            <button
-                                onClick={handleKnowClick}
-                                disabled={isExiting}
-                                className="flex-grow p-2 rounded-3xl font-light text-sm text-white shadow-md transition-colors bg-green-600 hover:bg-green-700"
-                            >
-                                {t('practice.actions.know')}
-                            </button>
-                        </div>
-                    )}
-                    {/* This button appears ONLY when the card is manually flipped to check the answer */}
-                    {isAnswerRevealed && !isCardEvaluated && (
-                        <button
-                            onClick={onContinue}
-                            disabled={isExiting}
-                            className="p-2 rounded-lg font-semibold text-white shadow-md transition-all duration-300 bg-purple-600 hover:bg-purple-700 animate-fade-in"
-                        >
-                            {t('practice.states.continue')}
-                        </button>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
-    );
-  }
+        );
+    }
 
-  return (
-    <>
-      <CategoryFilter
-        currentFilter={practiceCategoryFilter}
-        onFilterChange={setPracticeCategoryFilter}
-        enabledCategories={settings.enabledCategories}
-        currentPhraseCategory={currentPhrase?.category || null}
-        categories={categories}
-        onAddCategory={onAddCategory}
-        onManageCategories={onOpenCategoryManager}
-        counts={unmasteredCountsByCategory}
-        totalUnmastered={unmasteredCount}
-      />
-      {renderContent()}
-      {contextMenuTarget && (
-        <PracticePageContextMenu
-          target={contextMenuTarget}
-          onClose={() => setContextMenuTarget(null)}
-          onDelete={onDeletePhrase}
-          onGoToList={onGoToList}
-          onDiscuss={onOpenDiscussTranslation}
-          onCreateCard={onCreateCard}
-          onAnalyzeWord={onAnalyzeWord}
-          onOpenWordAnalysis={onOpenWordAnalysis}
-          onOpenVerbConjugation={onOpenVerbConjugation}
-          onOpenNounDeclension={onOpenNounDeclension}
-          onOpenAdjectiveDeclension={onOpenAdjectiveDeclension}
-        />
-      )}
-    </>
-  );
+    return (
+        <>
+            <CategoryFilter
+                currentFilter={practiceCategoryFilter}
+                onFilterChange={setPracticeCategoryFilter}
+                enabledCategories={settings.enabledCategories}
+                currentPhraseCategory={currentPhrase?.category || null}
+                categories={categories}
+                onAddCategory={onAddCategory}
+                onManageCategories={onOpenCategoryManager}
+                counts={unmasteredCountsByCategory}
+                totalUnmastered={unmasteredCount}
+            />
+            {renderContent()}
+            {contextMenuTarget && (
+                <PracticePageContextMenu
+                    target={contextMenuTarget}
+                    onClose={() => setContextMenuTarget(null)}
+                    onDelete={onDeletePhrase}
+                    onGoToList={onGoToList}
+                    onDiscuss={onOpenDiscussTranslation}
+                    onCreateCard={onCreateCard}
+                    onAnalyzeWord={onAnalyzeWord}
+                    onOpenWordAnalysis={onOpenWordAnalysis}
+                    onOpenVerbConjugation={onOpenVerbConjugation}
+                    onOpenNounDeclension={onOpenNounDeclension}
+                    onOpenAdjectiveDeclension={onOpenAdjectiveDeclension}
+                />
+            )}
+        </>
+    );
 };
 
 export default PracticePage;

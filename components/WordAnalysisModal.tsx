@@ -19,7 +19,7 @@ interface WordAnalysisModalProps {
   onOpenAdjectiveDeclension: (adjective: string) => void;
   onOpenWordAnalysis: (phrase: Phrase, word: string) => void;
   allPhrases: Phrase[];
-  onCreateCard: (phraseData: { german: string; russian: string }) => void;
+  onCreateCard: (phraseData: { learning: string; native: string }) => void;
 }
 
 const WordAnalysisSkeleton: React.FC = () => (
@@ -66,7 +66,7 @@ const WordAnalysisModal: React.FC<WordAnalysisModalProps> = ({
     }
   }, [isOpen]);
 
-  const getCanonicalGerman = useCallback((): string | null => {
+  const getCanonicalLearning = useCallback((): string | null => {
     if (!analysis) return null;
     if (analysis.verbDetails?.infinitive) {
       return analysis.verbDetails.infinitive;
@@ -78,22 +78,22 @@ const WordAnalysisModal: React.FC<WordAnalysisModalProps> = ({
   }, [analysis]);
 
   const cardExists = useMemo(() => {
-    const canonicalGerman = getCanonicalGerman();
-    if (!canonicalGerman) return false;
+    const canonicalLearning = getCanonicalLearning();
+    if (!canonicalLearning) return false;
     return allPhrases.some(
       (p) =>
         p.text.learning.trim().toLowerCase() ===
-        canonicalGerman.trim().toLowerCase()
+        canonicalLearning.trim().toLowerCase()
     );
-  }, [allPhrases, getCanonicalGerman]);
+  }, [allPhrases, getCanonicalLearning]);
 
   const handleCreateCard = () => {
-    const canonicalGerman = getCanonicalGerman();
-    if (!analysis || !canonicalGerman) return;
+    const canonicalLearning = getCanonicalLearning();
+    if (!analysis || !canonicalLearning) return;
 
     onCreateCard({
-      german: canonicalGerman,
-      russian: analysis.nativeTranslation,
+      learning: canonicalLearning,
+      native: analysis.nativeTranslation,
     });
     setIsCardCreated(true);
   };
@@ -103,17 +103,17 @@ const WordAnalysisModal: React.FC<WordAnalysisModalProps> = ({
   const handleWordClick = (
     contextText: string,
     clickedWord: string,
-    russianText: string
+    nativeText: string
   ) => {
     const proxyPhrase: Phrase = {
       ...phrase,
       id: `proxy_${phrase.id}_analysis`,
-      text: { learning: contextText, native: russianText },
+      text: { learning: contextText, native: nativeText },
     };
     onOpenWordAnalysis(proxyPhrase, clickedWord);
   };
 
-  const renderClickableGerman = (text: string, russian: string) => {
+  const renderClickableLearning = (text: string, native: string) => {
     if (!text) return null;
     return text.split(" ").map((word, i, arr) => (
       <span
@@ -121,7 +121,7 @@ const WordAnalysisModal: React.FC<WordAnalysisModalProps> = ({
         onClick={(e) => {
           e.stopPropagation();
           const cleanedWord = word.replace(/[.,!?()"“”:;]/g, "");
-          if (cleanedWord) handleWordClick(text, cleanedWord, russian);
+          if (cleanedWord) handleWordClick(text, cleanedWord, native);
         }}
         className="cursor-pointer hover:bg-white/20 px-1 py-0.5 rounded-md transition-colors"
       >
@@ -184,70 +184,70 @@ const WordAnalysisModal: React.FC<WordAnalysisModalProps> = ({
           {(analysis.nounDetails ||
             analysis.verbDetails ||
             analysis.baseForm) && (
-            <div className="bg-slate-700/50 px-2 py-1 rounded-lg space-y-3">
-              <h4 className="font-semibold text-slate-300 border-b border-slate-600 pb-2 mb-3">
-                {t("modals.wordAnalysis.labels.grammarReference")}
-              </h4>
-              {analysis.baseForm && (
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400">
-                    {t("modals.wordAnalysis.labels.baseForm")}:
-                  </span>{" "}
-                  <strong className="text-slate-100">
-                    {analysis.baseForm}
-                  </strong>
-                </div>
-              )}
-              {analysis.nounDetails && (
-                <>
+              <div className="bg-slate-700/50 px-2 py-1 rounded-lg space-y-3">
+                <h4 className="font-semibold text-slate-300 border-b border-slate-600 pb-2 mb-3">
+                  {t("modals.wordAnalysis.labels.grammarReference")}
+                </h4>
+                {analysis.baseForm && (
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400">
-                      {t("modals.wordAnalysis.labels.article")}:
-                    </span>{" "}
-                    <strong className="text-slate-100 font-mono bg-slate-600 px-2 py-0.5 rounded">
-                      {analysis.nounDetails.article}
-                    </strong>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">
-                      {t("modals.wordAnalysis.labels.plural")}:
+                      {t("modals.wordAnalysis.labels.baseForm")}:
                     </span>{" "}
                     <strong className="text-slate-100">
-                      {analysis.nounDetails.plural}
+                      {analysis.baseForm}
                     </strong>
                   </div>
-                </>
-              )}
-              {analysis.verbDetails && (
-                <>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">
-                      {t("modals.wordAnalysis.labels.infinitive")}:
-                    </span>{" "}
-                    <strong className="text-slate-100">
-                      {analysis.verbDetails.infinitive}
-                    </strong>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">
-                      {t("modals.wordAnalysis.labels.tense")}:
-                    </span>{" "}
-                    <strong className="text-slate-100">
-                      {analysis.verbDetails.tense}
-                    </strong>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">
-                      {t("modals.wordAnalysis.labels.person")}:
-                    </span>{" "}
-                    <strong className="text-slate-100">
-                      {analysis.verbDetails.person}
-                    </strong>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+                )}
+                {analysis.nounDetails && (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">
+                        {t("modals.wordAnalysis.labels.article")}:
+                      </span>{" "}
+                      <strong className="text-slate-100 font-mono bg-slate-600 px-2 py-0.5 rounded">
+                        {analysis.nounDetails.article}
+                      </strong>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">
+                        {t("modals.wordAnalysis.labels.plural")}:
+                      </span>{" "}
+                      <strong className="text-slate-100">
+                        {analysis.nounDetails.plural}
+                      </strong>
+                    </div>
+                  </>
+                )}
+                {analysis.verbDetails && (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">
+                        {t("modals.wordAnalysis.labels.infinitive")}:
+                      </span>{" "}
+                      <strong className="text-slate-100">
+                        {analysis.verbDetails.infinitive}
+                      </strong>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">
+                        {t("modals.wordAnalysis.labels.tense")}:
+                      </span>{" "}
+                      <strong className="text-slate-100">
+                        {analysis.verbDetails.tense}
+                      </strong>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">
+                        {t("modals.wordAnalysis.labels.person")}:
+                      </span>{" "}
+                      <strong className="text-slate-100">
+                        {analysis.verbDetails.person}
+                      </strong>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
           {/* Example */}
           <div className="bg-slate-700/50 px-2 py-1 rounded-lg">
@@ -259,7 +259,7 @@ const WordAnalysisModal: React.FC<WordAnalysisModalProps> = ({
               <div className="flex-1">
                 <p className="text-slate-200 text-m leading-relaxed">
                   "
-                  {renderClickableGerman(
+                  {renderClickableLearning(
                     analysis.exampleSentence,
                     analysis.exampleSentenceNative
                   )}
@@ -329,9 +329,8 @@ const WordAnalysisModal: React.FC<WordAnalysisModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`bg-slate-800 w-full max-w-lg h-[90%] max-h-[90vh] rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
-          isOpen ? "translate-y-0" : "translate-y-full"
-        }`}
+        className={`bg-slate-800 w-full max-w-lg h-[90%] max-h-[90vh] rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-300 ease-out ${isOpen ? "translate-y-0" : "translate-y-full"
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between px-3 py-1 border-b border-slate-700 flex-shrink-0">

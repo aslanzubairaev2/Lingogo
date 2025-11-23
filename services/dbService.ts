@@ -9,7 +9,7 @@ interface AppDB extends DBSchema {
   };
 }
 
-const DB_NAME = 'GermanSRSLibraryDB';
+const DB_NAME = 'LearningSRSLibraryDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'books';
 
@@ -44,14 +44,14 @@ export const getAllBooks = async (): Promise<Book[]> => {
 };
 
 export const getBook = async (id: number): Promise<Book | undefined> => {
-    const db = await initDB();
-    return db.get(STORE_NAME, id);
+  const db = await initDB();
+  return db.get(STORE_NAME, id);
 };
 
 export const updateBookLocation = async (id: number, lastLocation: string): Promise<void> => {
-    const db = await initDB();
-    const book = await db.get(STORE_NAME, id);
-    if (book) {
-        await db.put(STORE_NAME, { ...book, lastLocation });
-    }
+  const db = await initDB();
+  const book = await db.get(STORE_NAME, id);
+  if (book) {
+    await db.put(STORE_NAME, { ...book, lastLocation });
+  }
 };

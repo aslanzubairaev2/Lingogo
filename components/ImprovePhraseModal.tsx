@@ -7,7 +7,7 @@ import MessageQuestionIcon from './icons/MessageQuestionIcon';
 import { useTranslation } from '../src/hooks/useTranslation';
 
 interface Suggestion {
-  suggestedGerman: string;
+  suggestedLearning: string;
   explanation: string;
 }
 
@@ -15,22 +15,22 @@ interface ImprovePhraseModalProps {
   isOpen: boolean;
   onClose: () => void;
   phrase: Phrase;
-  onGenerateImprovement: (originalRussian: string, currentGerman: string) => Promise<Suggestion>;
-  onPhraseImproved: (phraseId: string, newGerman: string) => void;
+  onGenerateImprovement: (originalNative: string, currentLearning: string) => Promise<Suggestion>;
+  onPhraseImproved: (phraseId: string, newLearning: string) => void;
   onOpenDiscussion: (phrase: Phrase) => void;
 }
 
 const ImprovePhraseSkeleton: React.FC = () => (
-    <div className="w-full flex flex-col items-center justify-center space-y-5 animate-pulse">
-        <div className="w-full text-center space-y-2">
-            <div className="h-4 bg-slate-600 rounded w-1/2 mx-auto"></div>
-            <div className="h-8 bg-slate-600 rounded w-3/4 mx-auto"></div>
-        </div>
-        <div className="w-full flex flex-col space-y-3">
-            <div className="h-12 bg-purple-600/50 rounded-lg"></div>
-            <div className="h-10 bg-slate-600/50 rounded-lg"></div>
-        </div>
+  <div className="w-full flex flex-col items-center justify-center space-y-5 animate-pulse">
+    <div className="w-full text-center space-y-2">
+      <div className="h-4 bg-slate-600 rounded w-1/2 mx-auto"></div>
+      <div className="h-8 bg-slate-600 rounded w-3/4 mx-auto"></div>
     </div>
+    <div className="w-full flex flex-col space-y-3">
+      <div className="h-12 bg-purple-600/50 rounded-lg"></div>
+      <div className="h-10 bg-slate-600/50 rounded-lg"></div>
+    </div>
+  </div>
 );
 
 
@@ -39,7 +39,7 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({ isOpen, onClose
   const [currentSuggestion, setCurrentSuggestion] = useState<Suggestion | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentGerman, setCurrentGerman] = useState(phrase.text.learning);
+  const [currentLearning, setCurrentLearning] = useState(phrase.text.learning);
 
   useEffect(() => {
     if (isOpen) {
@@ -47,17 +47,17 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({ isOpen, onClose
       setCurrentSuggestion(null);
       setIsLoading(false);
       setError(null);
-      setCurrentGerman(phrase.text.learning);
+      setCurrentLearning(phrase.text.learning);
     }
   }, [isOpen, phrase]);
 
-  const handleGenerate = useCallback(async (germanToImprove: string) => {
+  const handleGenerate = useCallback(async (learningToImprove: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await onGenerateImprovement(phrase.text.native, germanToImprove);
+      const result = await onGenerateImprovement(phrase.text.native, learningToImprove);
       setCurrentSuggestion(result);
-      setCurrentGerman(result.suggestedGerman); // Update current German for iterative improvement
+      setCurrentLearning(result.suggestedLearning); // Update current Learning for iterative improvement
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось получить улучшение.');
     } finally {
@@ -67,37 +67,37 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({ isOpen, onClose
 
   const handleUse = () => {
     if (currentSuggestion) {
-      onPhraseImproved(phrase.id, currentSuggestion.suggestedGerman);
+      onPhraseImproved(phrase.id, currentSuggestion.suggestedLearning);
       onClose();
     }
   };
 
   const handleImprove = () => {
     if (currentSuggestion) {
-      handleGenerate(currentSuggestion.suggestedGerman);
+      handleGenerate(currentSuggestion.suggestedLearning);
     }
   };
-  
+
   const renderInitialState = () => (
     <>
       <div className="w-full text-center">
         <p className="text-sm text-slate-400 mb-1">{phrase.text.native}</p>
-        <p className="text-2xl font-bold text-slate-100">{currentGerman}</p>
+        <p className="text-2xl font-bold text-slate-100">{currentLearning}</p>
       </div>
       <div className="w-full flex flex-col space-y-3">
-          <button
-            onClick={() => handleGenerate(currentGerman)}
-            className="flex items-center justify-center w-full px-6 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 transition-colors font-semibold text-white shadow-md"
-          >
-            {t('modals.improvePhrase.actions.suggest')}
-          </button>
-           <button
-            onClick={() => onOpenDiscussion(phrase)}
-            className="flex items-center justify-center w-full px-6 py-2 rounded-lg bg-slate-600 hover:bg-slate-700 transition-colors font-semibold text-white text-sm"
-          >
-            <MessageQuestionIcon className="w-4 h-4 mr-2" />
-            {t('modals.improvePhrase.actions.discuss')}
-          </button>
+        <button
+          onClick={() => handleGenerate(currentLearning)}
+          className="flex items-center justify-center w-full px-6 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 transition-colors font-semibold text-white shadow-md"
+        >
+          {t('modals.improvePhrase.actions.suggest')}
+        </button>
+        <button
+          onClick={() => onOpenDiscussion(phrase)}
+          className="flex items-center justify-center w-full px-6 py-2 rounded-lg bg-slate-600 hover:bg-slate-700 transition-colors font-semibold text-white text-sm"
+        >
+          <MessageQuestionIcon className="w-4 h-4 mr-2" />
+          {t('modals.improvePhrase.actions.discuss')}
+        </button>
       </div>
     </>
   );
@@ -105,7 +105,7 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({ isOpen, onClose
   const renderSuggestionState = () => (
     <>
       <div className="w-full text-center bg-slate-700 p-4 rounded-lg">
-        <p className="text-2xl font-bold text-white">{currentSuggestion?.suggestedGerman}</p>
+        <p className="text-2xl font-bold text-white">{currentSuggestion?.suggestedLearning}</p>
       </div>
       <div className="w-full text-left text-sm text-slate-300 p-4 rounded-lg bg-slate-900/50 border-l-2 border-purple-400">
         <p className="font-semibold mb-1 text-white">{t('modals.improvePhrase.reasoning')}</p>
@@ -147,7 +147,7 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({ isOpen, onClose
         onClick={e => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-3 right-3 p-2 rounded-full hover:bg-slate-700/80 disabled:opacity-50" disabled={isLoading}>
-          <CloseIcon className="w-5 h-5 text-slate-400"/>
+          <CloseIcon className="w-5 h-5 text-slate-400" />
         </button>
 
         {isLoading ? (

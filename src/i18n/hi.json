@@ -570,8 +570,8 @@
     "editPhrase": {
       "title": "वाक्यांश संपादित करें",
       "fields": {
-        "russian": "रूसी",
-        "german": "जर्मन",
+        "native": "रूसी",
+        "learning": "जर्मन",
         "category": "श्रेणी"
       },
       "errors": {
@@ -703,36 +703,34 @@
       "title": "पुरुषवाचक सर्वनाम",
       "headers": {
         "speak": "बोलें",
-        "german": "जर्मन",
-        "russian": "रूसी",
         "learning": "सीखी जाने वाली भाषा",
         "native": "मूल भाषा"
       },
       "error": "सर्वनाम लोड नहीं हो सके",
       "pronouns": [
         {
-          "german": "ich",
-          "russian": "я"
+          "learning": "ich",
+          "native": "я"
         },
         {
-          "german": "du",
-          "russian": "ты"
+          "learning": "du",
+          "native": "ты"
         },
         {
-          "german": "er / sie / es",
-          "russian": "он / она / оно"
+          "learning": "er / sie / es",
+          "native": "он / она / оно"
         },
         {
-          "german": "wir",
-          "russian": "мы"
+          "learning": "wir",
+          "native": "мы"
         },
         {
-          "german": "ihr",
-          "russian": "вы (неформ.)"
+          "learning": "ihr",
+          "native": "вы (неформ.)"
         },
         {
-          "german": "sie / Sie",
-          "russian": "они / Вы (форм.)"
+          "learning": "sie / Sie",
+          "native": "они / Вы (форм.)"
         }
       ]
     },
@@ -920,40 +918,40 @@
       "title": "प्रश्नवाचक शब्द",
       "columns": {
         "play": "बोलें",
-        "german": "जर्मन",
+        "learning": "जर्मन",
         "translation": "अनुवाद"
       },
       "items": [
         {
-          "german": "Was?",
+          "learning": "Was?",
           "translation": "क्या?"
         },
         {
-          "german": "Wer?",
+          "learning": "Wer?",
           "translation": "कौन?"
         },
         {
-          "german": "Wo?",
+          "learning": "Wo?",
           "translation": "कहाँ?"
         },
         {
-          "german": "Wann?",
+          "learning": "Wann?",
           "translation": "कब?"
         },
         {
-          "german": "Wie?",
+          "learning": "Wie?",
           "translation": "कैसे?"
         },
         {
-          "german": "Warum?",
+          "learning": "Warum?",
           "translation": "क्यों?"
         },
         {
-          "german": "Woher?",
+          "learning": "Woher?",
           "translation": "कहाँ से?"
         },
         {
-          "german": "Wohin?",
+          "learning": "Wohin?",
           "translation": "कहाँ तक?"
         }
       ]

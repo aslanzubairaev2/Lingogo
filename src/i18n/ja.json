@@ -570,8 +570,8 @@
     "editPhrase": {
       "title": "フレーズを編集",
       "fields": {
-        "russian": "ロシア語",
-        "german": "ドイツ語",
+        "native": "ロシア語",
+        "learning": "ドイツ語",
         "category": "カテゴリ"
       },
       "errors": {
@@ -703,36 +703,34 @@
       "title": "人称代名詞",
       "headers": {
         "speak": "発音",
-        "german": "ドイツ語",
-        "russian": "ロシア語",
         "learning": "学習言語",
         "native": "母国語"
       },
       "error": "代名詞を読み込めませんでした",
       "pronouns": [
         {
-          "german": "ich",
-          "russian": "я"
+          "learning": "ich",
+          "native": "я"
         },
         {
-          "german": "du",
-          "russian": "ты"
+          "learning": "du",
+          "native": "ты"
         },
         {
-          "german": "er / sie / es",
-          "russian": "он / она / оно"
+          "learning": "er / sie / es",
+          "native": "он / она / оно"
         },
         {
-          "german": "wir",
-          "russian": "мы"
+          "learning": "wir",
+          "native": "мы"
         },
         {
-          "german": "ihr",
-          "russian": "вы (非公式)"
+          "learning": "ihr",
+          "native": "вы (非公式)"
         },
         {
-          "german": "sie / Sie",
-          "russian": "они / Вы (公式)"
+          "learning": "sie / Sie",
+          "native": "они / Вы (公式)"
         }
       ]
     },
@@ -920,40 +918,40 @@
       "title": "疑問詞",
       "columns": {
         "play": "発音",
-        "german": "ドイツ語",
+        "learning": "ドイツ語",
         "translation": "翻訳"
       },
       "items": [
         {
-          "german": "Was?",
+          "learning": "Was?",
           "translation": "何？"
         },
         {
-          "german": "Wer?",
+          "learning": "Wer?",
           "translation": "誰？"
         },
         {
-          "german": "Wo?",
+          "learning": "Wo?",
           "translation": "どこ？"
         },
         {
-          "german": "Wann?",
+          "learning": "Wann?",
           "translation": "いつ？"
         },
         {
-          "german": "Wie?",
+          "learning": "Wie?",
           "translation": "どのように？"
         },
         {
-          "german": "Warum?",
+          "learning": "Warum?",
           "translation": "なぜ？"
         },
         {
-          "german": "Woher?",
+          "learning": "Woher?",
           "translation": "どこから？"
         },
         {
-          "german": "Wohin?",
+          "learning": "Wohin?",
           "translation": "どこへ？"
         }
       ]

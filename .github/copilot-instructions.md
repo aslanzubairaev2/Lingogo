@@ -1,10 +1,10 @@
-# Copilot / AI agent instructions for German-Phrase-Practice
+# Copilot / AI agent instructions for Learning-Phrase-Practice
 
 These concise instructions help AI coding agents be productive in this repository. Focus on observable patterns and files the project actually uses.
 
 1) Big picture (what this repo is)
 - Single-page React + Vite frontend (TypeScript/TSX) in the repo root. Key entry points: `index.tsx`, `App.tsx`.
-- Optional/back-end folder: `German-Phrase-Practice-Back` contains an Express-like REST API and Supabase client (`supabaseClient.js`) used for server-side data.
+- Optional/back-end folder: `Learning-Phrase-Practice-Back` contains an Express-like REST API and Supabase client (`supabaseClient.js`) used for server-side data.
 - AI integrations are encapsulated as provider implementations in `services/` (notably `services/geminiService.ts` and `services/deepseekService.ts`). The app picks a provider via `services/apiProvider.ts`.
 
 2) How the app wires AI and why
@@ -20,7 +20,7 @@ These concise instructions help AI coding agents be productive in this repositor
 - Localization test helper: `scripts/test-ai-generation.js` is intended to be loaded in the browser console to exercise `translateLocaleTemplate` at runtime.
 
 4) Environment / secrets
-- Frontend expects AI credentials via environment variables (e.g. `GEMINI_API_KEY` as mentioned in `README.md`). The backend uses `SUPABASE_URL` and `SUPABASE_ANON_KEY` (see `German-Phrase-Practice-Back/supabaseClient.js` and the back README).
+- Frontend expects AI credentials via environment variables (e.g. `GEMINI_API_KEY` as mentioned in `README.md`). The backend uses `SUPABASE_URL` and `SUPABASE_ANON_KEY` (see `Learning-Phrase-Practice-Back/supabaseClient.js` and the back README).
 - Do not hardcode keys. Use `.env.local` for local frontend env values and `.env` or deployment secrets for backend.
 
 5) Project-specific conventions and patterns
@@ -30,13 +30,13 @@ These concise instructions help AI coding agents be productive in this repositor
 - Weak locales: `validate-i18n.mjs` marks some locales as "weak" (e.g., `de.json`, `fr.json`) and does not fail on empty translations for them. Be mindful when adding new locales.
 
 6) Integration points and important files to review
-- `App.tsx` — high-level app wiring, provider selection, localStorage caching keys (e.g., `germanPhrases`, `germanAppSettings`). Good starting file to understand UI flows.
+- `App.tsx` — high-level app wiring, provider selection, localStorage caching keys (e.g., `learningPhrases`, `learningAppSettings`). Good starting file to understand UI flows.
 - `services/geminiService.ts` — large, canonical example of how AI calls are packaged (translate, generate, evaluate, deep-dive, chat continuations, etc.). Use this as a template for other providers.
 - `services/apiProvider.ts` — shows provider registration and priority. Edit here to add or reorder providers.
 - `scripts/validate-i18n.mjs` — i18n validation logic and placeholder rules.
 - `scripts/test-ai-generation.js` — runtime script to test translate/generation functions from the browser console.
 - `src/i18n/en.json` and other locale files — canonical translation keys and placeholder examples.
-- `German-Phrase-Practice-Back/supabaseClient.js` — backend Supabase initialization and required env vars.
+- `Learning-Phrase-Practice-Back/supabaseClient.js` — backend Supabase initialization and required env vars.
 
 7) Debugging tips and quick checks
 - If AI features are unavailable, check provider health checks in `services/*Service.ts` and the `getProviderPriorityList()` order in `services/apiProvider.ts`.

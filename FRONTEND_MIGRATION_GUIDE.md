@@ -147,7 +147,7 @@ export const AuthProvider = ({ children }) => {
 ```javascript
 // src/lib/api.js
 const LOCAL_API_URL = 'http://localhost:3001/api'
-const PRODUCTION_API_URL = 'https://german-phrase-practice-back.vercel.app/api'
+const PRODUCTION_API_URL = 'https://learning-phrase-practice-back.vercel.app/api'
 
 export const API_BASE_URL = import.meta.env.PROD
   ? PRODUCTION_API_URL

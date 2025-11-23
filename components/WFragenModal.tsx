@@ -12,19 +12,19 @@ interface WFragenModalProps {
 }
 
 type WFrageItem = {
-  german: string;
+  learning: string;
   translation: string;
 };
 
 const FALLBACK_ITEMS: WFrageItem[] = [
-  { german: 'Was?', translation: 'What?' },
-  { german: 'Wer?', translation: 'Who?' },
-  { german: 'Wo?', translation: 'Where?' },
-  { german: 'Wann?', translation: 'When?' },
-  { german: 'Wie?', translation: 'How?' },
-  { german: 'Warum?', translation: 'Why?' },
-  { german: 'Woher?', translation: 'Where from?' },
-  { german: 'Wohin?', translation: 'Where to?' },
+  { learning: 'Was?', translation: 'What?' },
+  { learning: 'Wer?', translation: 'Who?' },
+  { learning: 'Wo?', translation: 'Where?' },
+  { learning: 'Wann?', translation: 'When?' },
+  { learning: 'Wie?', translation: 'How?' },
+  { learning: 'Warum?', translation: 'Why?' },
+  { learning: 'Woher?', translation: 'Where from?' },
+  { learning: 'Wohin?', translation: 'Where to?' },
 ];
 
 const WFragenModal: React.FC<WFragenModalProps> = ({ isOpen, onClose, onOpenWordAnalysis }) => {
@@ -34,7 +34,7 @@ const WFragenModal: React.FC<WFragenModalProps> = ({ isOpen, onClose, onOpenWord
     const raw = t('modals.wFragen.items', { returnObjects: true }) as unknown;
     if (Array.isArray(raw)) {
       const parsed = raw.filter((item): item is WFrageItem =>
-        item && typeof item.german === 'string' && typeof item.translation === 'string'
+        item && typeof item.learning === 'string' && typeof item.translation === 'string'
       );
       return parsed.length ? parsed : FALLBACK_ITEMS;
     }
@@ -59,7 +59,7 @@ const WFragenModal: React.FC<WFragenModalProps> = ({ isOpen, onClose, onOpenWord
     onOpenWordAnalysis(proxyPhrase as Phrase, word);
   };
 
-  const renderClickableGerman = (text: string, native: string) => {
+  const renderClickableLearning = (text: string, native: string) => {
     if (!text) return null;
     return text.split(' ').map((word, i, arr) => (
       <span
@@ -79,7 +79,7 @@ const WFragenModal: React.FC<WFragenModalProps> = ({ isOpen, onClose, onOpenWord
 
   const heading = t('modals.wFragen.title');
   const playLabel = t('modals.wFragen.columns.play');
-  const germanHeading = t('modals.wFragen.columns.german');
+  const learningHeading = t('modals.wFragen.columns.learning');
   const translationHeading = t('modals.wFragen.columns.translation');
 
   return (
@@ -105,18 +105,18 @@ const WFragenModal: React.FC<WFragenModalProps> = ({ isOpen, onClose, onOpenWord
                   <th className="p-3 w-1/6">
                     <span className="sr-only">{playLabel || 'Play'}</span>
                   </th>
-                  <th className="p-3 text-sm font-semibold text-slate-400">{germanHeading || 'German'}</th>
+                  <th className="p-3 text-sm font-semibold text-slate-400">{learningHeading || 'Learning'}</th>
                   <th className="p-3 text-sm font-semibold text-slate-400">{translationHeading || 'Translation'}</th>
                 </tr>
               </thead>
               <tbody>
                 {wFragenItems.map((item) => (
-                  <tr key={item.german} className="border-b border-slate-700 last:border-b-0">
+                  <tr key={item.learning} className="border-b border-slate-700 last:border-b-0">
                     <td className="p-3">
-                      <AudioPlayer textToSpeak={item.german} />
+                      <AudioPlayer textToSpeak={item.learning} />
                     </td>
                     <td className="p-3 text-slate-100 font-semibold text-lg">
-                      {renderClickableGerman(item.german, item.translation)}
+                      {renderClickableLearning(item.learning, item.translation)}
                     </td>
                     <td className="p-3 text-slate-300 text-lg">{item.translation}</td>
                   </tr>

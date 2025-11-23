@@ -26,7 +26,7 @@ const PracticeResultModal: React.FC<PracticeResultModalProps> = ({ isOpen, onClo
     }
   };
 
-  const renderClickableGerman = (text: string) => {
+  const renderClickableLearning = (text: string) => {
     if (!onOpenWordAnalysis || !text) return text;
     return text.split(' ').map((word, i, arr) => (
       <span
@@ -62,7 +62,7 @@ const PracticeResultModal: React.FC<PracticeResultModalProps> = ({ isOpen, onClo
               </div>
             </div>
             <h2 className="text-2xl font-bold text-slate-100">{t('modals.practiceResult.correct')}</h2>
-            <p className="text-xl text-slate-200 mt-4">{renderClickableGerman(phrase.text.learning)}</p>
+            <p className="text-xl text-slate-200 mt-4">{renderClickableLearning(phrase.text.learning)}</p>
           </>
         ) : (
           <>
@@ -79,7 +79,7 @@ const PracticeResultModal: React.FC<PracticeResultModalProps> = ({ isOpen, onClo
               <p className="text-xs text-slate-400 text-left">{t('modals.practiceResult.correctAnswer')}</p>
               <div className="flex items-center justify-center gap-x-2 mt-1">
                 <AudioPlayer textToSpeak={evaluation?.correctedPhrase || phrase.text.learning} />
-                <p className="text-slate-100 font-medium text-lg">{renderClickableGerman(evaluation?.correctedPhrase || phrase.text.learning)}</p>
+                <p className="text-slate-100 font-medium text-lg">{renderClickableLearning(evaluation?.correctedPhrase || phrase.text.learning)}</p>
               </div>
             </div>
             <button onClick={onClose} className="w-full px-6 py-3 rounded-md bg-purple-600 hover:bg-purple-700 text-white font-semibold transition-colors">

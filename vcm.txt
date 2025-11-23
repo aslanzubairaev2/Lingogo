@@ -134,7 +134,7 @@ const VerbConjugationModal: React.FC<VerbConjugationModalProps> = ({ isOpen, onC
     onOpenWordAnalysis(proxyPhrase as Phrase, word);
   };
   
-  const renderClickableGerman = (text: string) => {
+  const renderClickableLearning = (text: string) => {
       if (!text) return null;
       return text.split(' ').map((word, i, arr) => (
           <span
@@ -159,7 +159,7 @@ const VerbConjugationModal: React.FC<VerbConjugationModalProps> = ({ isOpen, onC
           {simpleData!.map((conj) => (
             <div key={conj.pronoun} className="grid grid-cols-[80px_1fr_auto] items-center gap-x-3 text-sm">
                 <span className="font-mono text-purple-300 text-right">{conj.pronoun}</span>
-                <p className="text-slate-100 font-medium truncate">{renderClickableGerman(conj.form)}</p>
+                <p className="text-slate-100 font-medium truncate">{renderClickableLearning(conj.form)}</p>
                 <AudioPlayer textToSpeak={conj.form} />
             </div>
           ))}
@@ -212,13 +212,13 @@ const VerbConjugationModal: React.FC<VerbConjugationModalProps> = ({ isOpen, onC
         </div>
         <div className="p-4 space-y-3">
           {cellData?.map((conj: PronounConjugation) => {
-            const learningText = (conj as any).learning ?? (conj as any).german ?? '';
-            const nativeText = (conj as any).native ?? (conj as any).russian ?? '';
+            const learningText = (conj as any).learning ?? (conj as any).learning ?? '';
+            const nativeText = (conj as any).native ?? (conj as any).native ?? '';
             return (
               <div key={conj.pronoun} className="grid grid-cols-[80px_1fr_auto] items-center gap-x-3 text-sm">
                 <span className="font-mono text-purple-300 text-right">{conj.pronoun}</span>
                 <div className="min-w-0">
-                  <p className="text-slate-100 font-medium truncate">{renderClickableGerman(learningText)}</p>
+                  <p className="text-slate-100 font-medium truncate">{renderClickableLearning(learningText)}</p>
                   <p className="text-xs text-slate-400 italic truncate">«{nativeText || ''}»</p>
                 </div>
                 <AudioPlayer textToSpeak={learningText} />

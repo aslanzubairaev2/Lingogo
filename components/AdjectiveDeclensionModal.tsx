@@ -106,7 +106,7 @@ const AdjectiveDeclensionModal: React.FC<AdjectiveDeclensionModalProps> = ({
     return text;
   };
 
-  const renderClickableGerman = (text: string) => {
+  const renderClickableLearning = (text: string) => {
     if (!text) return null;
     return text.split(' ').map((word, index, array) => (
       <span
@@ -159,16 +159,16 @@ const AdjectiveDeclensionModal: React.FC<AdjectiveDeclensionModalProps> = ({
                   {t(`modals.adjectiveDeclension.cases.${caseKey}`)}
                 </td>
                 <td className="p-2 text-sm text-slate-100">
-                  {renderClickableGerman(tableData.masculine[caseKey])}
+                  {renderClickableLearning(tableData.masculine[caseKey])}
                 </td>
                 <td className="p-2 text-sm text-slate-100">
-                  {renderClickableGerman(tableData.feminine[caseKey])}
+                  {renderClickableLearning(tableData.feminine[caseKey])}
                 </td>
                 <td className="p-2 text-sm text-slate-100">
-                  {renderClickableGerman(tableData.neuter[caseKey])}
+                  {renderClickableLearning(tableData.neuter[caseKey])}
                 </td>
                 <td className="p-2 text-sm text-slate-100">
-                  {renderClickableGerman(tableData.plural[caseKey])}
+                  {renderClickableLearning(tableData.plural[caseKey])}
                 </td>
               </tr>
             ))}
@@ -216,7 +216,7 @@ const AdjectiveDeclensionModal: React.FC<AdjectiveDeclensionModalProps> = ({
               <div className="flex items-center justify-center gap-x-2">
                 <AudioPlayer textToSpeak={data.comparison.positive} />
                 <strong className="text-slate-100 text-lg">
-                  {renderClickableGerman(data.comparison.positive)}
+                  {renderClickableLearning(data.comparison.positive)}
                 </strong>
               </div>
             </div>
@@ -227,7 +227,7 @@ const AdjectiveDeclensionModal: React.FC<AdjectiveDeclensionModalProps> = ({
               <div className="flex items-center justify-center gap-x-2">
                 <AudioPlayer textToSpeak={data.comparison.comparative} />
                 <strong className="text-slate-100 text-lg">
-                  {renderClickableGerman(data.comparison.comparative)}
+                  {renderClickableLearning(data.comparison.comparative)}
                 </strong>
               </div>
             </div>
@@ -238,7 +238,7 @@ const AdjectiveDeclensionModal: React.FC<AdjectiveDeclensionModalProps> = ({
               <div className="flex items-center justify-center gap-x-2">
                 <AudioPlayer textToSpeak={data.comparison.superlative} />
                 <strong className="text-slate-100 text-lg">
-                  {renderClickableGerman(data.comparison.superlative)}
+                  {renderClickableLearning(data.comparison.superlative)}
                 </strong>
               </div>
             </div>

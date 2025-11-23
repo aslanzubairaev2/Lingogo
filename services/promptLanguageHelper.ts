@@ -3,7 +3,7 @@ import { getLanguageName } from './languageNames';
 
 /**
  * Helper class for building language-aware prompts
- * Replaces hardcoded "Russian" and "German" with dynamic language names
+ * Replaces hardcoded "Native" and "Learning" with dynamic language names
  */
 export class PromptLanguageHelper {
   public readonly nativeName: string;
@@ -45,7 +45,7 @@ export class PromptLanguageHelper {
   }
 
   /**
-   * Get translation direction description (e.g., "from Russian to German")
+   * Get translation direction description (e.g., "from Native to Learning")
    */
   public getTranslationDirection(): string {
     return `from ${this.nativeName} to ${this.learningName}`;

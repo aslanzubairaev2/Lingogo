@@ -6,28 +6,28 @@ const API_BASE_URL = getApiBaseUrl();
 
 // --- Color Conversion Maps ---
 const tailwindToHexMap: Record<string, string> = {
-  'bg-slate-500': '#64748b',
-  'bg-red-500': '#ef4444',
-  'bg-orange-500': '#f97316',
-  'bg-amber-500': '#f59e0b',
-  'bg-yellow-500': '#eab308',
-  'bg-lime-500': '#84cc16',
-  'bg-green-500': '#22c55e',
-  'bg-emerald-500': '#10b981',
-  'bg-teal-500': '#14b8a6',
-  'bg-cyan-500': '#06b6d4',
-  'bg-sky-500': '#0ea5e9',
-  'bg-blue-500': '#3b82f6',
-  'bg-indigo-500': '#6366f1',
-  'bg-violet-500': '#8b5cf6',
-  'bg-purple-500': '#a855f7',
-  'bg-fuchsia-500': '#d946ef',
-  'bg-pink-500': '#ec4899',
-  'bg-rose-500': '#f43f5e',
+    'bg-slate-500': '#64748b',
+    'bg-red-500': '#ef4444',
+    'bg-orange-500': '#f97316',
+    'bg-amber-500': '#f59e0b',
+    'bg-yellow-500': '#eab308',
+    'bg-lime-500': '#84cc16',
+    'bg-green-500': '#22c55e',
+    'bg-emerald-500': '#10b981',
+    'bg-teal-500': '#14b8a6',
+    'bg-cyan-500': '#06b6d4',
+    'bg-sky-500': '#0ea5e9',
+    'bg-blue-500': '#3b82f6',
+    'bg-indigo-500': '#6366f1',
+    'bg-violet-500': '#8b5cf6',
+    'bg-purple-500': '#a855f7',
+    'bg-fuchsia-500': '#d946ef',
+    'bg-pink-500': '#ec4899',
+    'bg-rose-500': '#f43f5e',
 };
 
 const hexToTailwindMap: Record<string, string> = Object.fromEntries(
-  Object.entries(tailwindToHexMap).map(([key, value]) => [value, key])
+    Object.entries(tailwindToHexMap).map(([key, value]) => [value, key])
 );
 
 
@@ -186,10 +186,10 @@ export const createPhrase = async (phraseData: Omit<Phrase, 'id' | 'masteryLevel
 
 export const updatePhrase = async (phrase: Phrase): Promise<Phrase> => {
     // Map frontend's nested object structure to the flat properties expected by the backend.
-    // Support legacy fields (russian/german) for backward compatibility
+    // Support legacy fields (native/learning) for backward compatibility
     const beData = {
-        native_text: phrase.text?.native || (phrase as any).russian,
-        learning_text: phrase.text?.learning || (phrase as any).german,
+        native_text: phrase.text?.native || (phrase as any).native,
+        learning_text: phrase.text?.learning || (phrase as any).learning,
         category_id: parseInt(phrase.category, 10),
         transcription: phrase.romanization?.learning,
         context: phrase.context?.native,
@@ -212,7 +212,7 @@ export const updatePhrase = async (phrase: Phrase): Promise<Phrase> => {
         body: JSON.stringify(beData)
     });
     const updated = await handleResponse(response);
-    
+
     return fePhrase({ ...phrase, ...updated });
 };
 

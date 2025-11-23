@@ -194,11 +194,10 @@ const VerbConjugationModal: React.FC<VerbConjugationModalProps> = ({ isOpen, onC
             <button
               key={form.key}
               onClick={() => setActiveTabs(prev => ({ ...prev, [tenseKey]: form.key }))}
-              className={`px-3 sm:px-4 py-2 text-sm font-semibold transition-colors focus:outline-none -mb-px ${
-                activeTab === form.key
-                  ? 'border-b-2 border-purple-400 text-purple-300'
-                  : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'
-              }`}
+              className={`px-3 sm:px-4 py-2 text-sm font-semibold transition-colors focus:outline-none -mb-px ${activeTab === form.key
+                ? 'border-b-2 border-purple-400 text-purple-300'
+                : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'
+                }`}
             >
               {form.name}
             </button>
@@ -207,8 +206,8 @@ const VerbConjugationModal: React.FC<VerbConjugationModalProps> = ({ isOpen, onC
 
         <div className="p-4 space-y-3">
           {cellData?.map((conj: PronounConjugation) => {
-            const learningText = ((conj as any).learning ?? (conj as any).german ?? '').trim();
-            const nativeText = ((conj as any).native ?? (conj as any).russian ?? '').trim();
+            const learningText = ((conj as any).learning ?? (conj as any).learning ?? '').trim();
+            const nativeText = ((conj as any).native ?? (conj as any).native ?? '').trim();
             const hasLearning = learningText.length > 0;
             const hasNative = nativeText.length > 0;
             return (

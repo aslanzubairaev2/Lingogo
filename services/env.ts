@@ -16,19 +16,19 @@ export const getSupabaseAnonKey = (): string | null => {
 };
 
 export const getGeminiApiKey = (): string | null => {
-    const key = import.meta.env.VITE_API_KEY as string | undefined;
-    if (isPlaceholder(key)) {
-        return null;
-    }
-    return key!.trim();
+  const key = import.meta.env.VITE_API_KEY as string | undefined;
+  if (isPlaceholder(key)) {
+    return null;
+  }
+  return key!.trim();
 };
 
 export const getDeepseekApiKey = (): string | null => {
-    const key = import.meta.env.VITE_DEEPSEEK_API_KEY as string | undefined;
-    if (isPlaceholder(key)) {
-        return null;
-    }
-    return key!.trim();
+  const key = import.meta.env.VITE_DEEPSEEK_API_KEY as string | undefined;
+  if (isPlaceholder(key)) {
+    return null;
+  }
+  return key!.trim();
 };
 
 const resolveApiBaseUrl = (): string | null => {

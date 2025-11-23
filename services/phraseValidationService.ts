@@ -57,8 +57,8 @@ export function validatePhrase(phrase: Phrase, learningLanguage: LanguageCode): 
     const issues: string[] = [];
     let needsRegeneration = false;
 
-    // Support both old (german/russian) and new (text.learning/text.native) structures
-    const learningText = phrase.text?.learning || (phrase as any).german || '';
+    // Support both old (learning/native) and new (text.learning/text.native) structures
+    const learningText = phrase.text?.learning || (phrase as any).learning || '';
     const hasRomanization = !!phrase.romanization?.learning;
     const languageNeedsRomanization = requiresRomanization(learningLanguage);
     const textUsesNonLatin = usesNonLatinScript(learningText);

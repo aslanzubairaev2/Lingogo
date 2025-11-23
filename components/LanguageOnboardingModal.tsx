@@ -10,8 +10,8 @@ interface LanguageOnboardingModalProps {
 
 const LANGUAGE_OPTIONS: { code: LanguageCode; name: string; nativeName: string }[] = [
   { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'ru', name: 'Russian', nativeName: 'Русский' },
-  { code: 'de', name: 'German', nativeName: 'Deutsch' },
+  { code: 'ru', name: 'Native', nativeName: 'Русский' },
+  { code: 'de', name: 'Learning', nativeName: 'Deutsch' },
   { code: 'fr', name: 'French', nativeName: 'Français' },
   { code: 'es', name: 'Spanish', nativeName: 'Español' },
   { code: 'it', name: 'Italian', nativeName: 'Italiano' },
@@ -90,11 +90,10 @@ const LanguageOnboardingModal: React.FC<LanguageOnboardingModalProps> = ({
                 <button
                   key={lang.code}
                   onClick={() => setLearningLanguage(lang.code)}
-                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                    learningLanguage === lang.code
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${learningLanguage === lang.code
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
                 >
                   <div className="font-semibold">{lang.nativeName}</div>
                   <div className="text-sm opacity-75">{lang.name}</div>

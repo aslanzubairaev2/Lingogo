@@ -1,7 +1,7 @@
 {
-  "name": "German Phrase Practice",
-  "short_name": "German SRS",
-  "description": "An SRS app for practicing German phrases using AI.",
+  "name": "Learning Phrase Practice",
+  "short_name": "Learning SRS",
+  "description": "An SRS app for practicing Learning phrases using AI.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

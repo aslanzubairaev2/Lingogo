@@ -183,10 +183,10 @@ const testLocalizationProcess = async () => {
     log(`Current ${TEST_LANG}.json is valid: ${isValid}`);
 
     if (!isValid) {
-      log('❌ Current Russian locale is invalid - would cause fallback in app');
+      log('❌ Current Native locale is invalid - would cause fallback in app');
       log('This explains why you see the English fallback message');
     } else {
-      log('✅ Current Russian locale is valid - should work without fallback');
+      log('✅ Current Native locale is valid - should work without fallback');
     }
 
   } catch (error) {

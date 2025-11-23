@@ -20,7 +20,7 @@ export const isPhraseMastered = (phrase: Phrase, categories: Category[]): boolea
   if (category?.isFoundational) {
     return phrase.knowStreak >= 10;
   }
-  
+
   // General phrases are only mastered when they reach the max SRS level.
   return phrase.masteryLevel >= MAX_MASTERY_LEVEL;
 };
@@ -33,21 +33,21 @@ const pronounList = ["ich", "du", "er", "sie", "es", "wir", "ihr", "sie", "mich"
  * Used for migrating phrases from older versions stored in localStorage.
  */
 export const assignInitialCategory = (phrase: Omit<Phrase, 'category' | 'id'>): PhraseCategory => {
-    // FIX: Updated to use the new `text.learning` property.
-    const german = phrase.text.learning.toLowerCase().replace(/[?]/g, '').trim();
-    if (wFragenList.includes(german)) return 'w-fragen';
-    // Check against formal 'Sie' separately to avoid conflict with 'sie' (she/they)
-    // FIX: Updated to use the new `text.learning` property.
-    if (phrase.text.learning.trim() === 'Sie') return 'pronouns';
-    if (pronounList.includes(german)) return 'pronouns';
-    return 'general';
+  // FIX: Updated to use the new `text.learning` property.
+  const learning = phrase.text.learning.toLowerCase().replace(/[?]/g, '').trim();
+  if (wFragenList.includes(learning)) return 'w-fragen';
+  // Check against formal 'Sie' separately to avoid conflict with 'sie' (she/they)
+  // FIX: Updated to use the new `text.learning` property.
+  if (phrase.text.learning.trim() === 'Sie') return 'pronouns';
+  if (pronounList.includes(learning)) return 'pronouns';
+  return 'general';
 };
 
 
 // Helper to categorize phrases for UI or simple logic
 export const getPhraseCategory = (phrase: Phrase): string | null => {
-    if (!phrase) return null;
-    return phrase.category;
+  if (!phrase) return null;
+  return phrase.category;
 };
 
 
@@ -56,7 +56,7 @@ export const selectNextPhrase = (phrases: Phrase[], currentPhraseId: string | nu
   if (!phrases || phrases.length === 0) {
     return null;
   }
-  
+
   // If there's only one phrase in the pool, return it if it's not the current one.
   if (phrases.length === 1 && phrases[0].id !== currentPhraseId) {
     return phrases[0];
@@ -67,7 +67,7 @@ export const selectNextPhrase = (phrases: Phrase[], currentPhraseId: string | nu
     if (phrases[0].lastReviewedAt !== null && phrases[0].nextReviewAt <= now) {
       return phrases[0];
     }
-     if (phrases[0].lastReviewedAt === null) {
+    if (phrases[0].lastReviewedAt === null) {
       return phrases[0];
     }
     return null;
@@ -75,11 +75,11 @@ export const selectNextPhrase = (phrases: Phrase[], currentPhraseId: string | nu
 
   const poolWithoutCurrent = phrases.filter(p => p.id !== currentPhraseId);
   if (poolWithoutCurrent.length === 0) {
-      return null;
+    return null;
   }
 
   const now = Date.now();
-  
+
   // Priority 1: Phrases due for review (must have been reviewed before)
   const dueForReview = poolWithoutCurrent.filter(p => p.lastReviewedAt !== null && p.nextReviewAt <= now);
   if (dueForReview.length > 0) {
@@ -102,7 +102,7 @@ export const selectNextPhrase = (phrases: Phrase[], currentPhraseId: string | nu
 type UserAction = 'know' | 'forgot' | 'dont_know';
 
 export const isLeech = (phrase: Phrase): boolean => {
-    return phrase.lapses >= LEECH_THRESHOLD;
+  return phrase.lapses >= LEECH_THRESHOLD;
 }
 
 export const updatePhraseMastery = (phrase: Phrase, action: UserAction, categories: Category[]): Phrase => {
@@ -156,7 +156,7 @@ export const updatePhraseMastery = (phrase: Phrase, action: UserAction, categori
   };
 
   return {
-      ...updatedPhrasePartial,
-      isMastered: isPhraseMastered(updatedPhrasePartial, categories)
+    ...updatedPhrasePartial,
+    isMastered: isPhraseMastered(updatedPhrasePartial, categories)
   };
 };

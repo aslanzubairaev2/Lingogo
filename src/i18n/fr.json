@@ -570,8 +570,8 @@
     "editPhrase": {
       "title": "Modifier la phrase",
       "fields": {
-        "russian": "Russe",
-        "german": "Allemand",
+        "native": "Russe",
+        "learning": "Allemand",
         "category": "Catégorie"
       },
       "errors": {
@@ -703,36 +703,34 @@
       "title": "Pronoms personnels",
       "headers": {
         "speak": "Prononcer",
-        "german": "Allemand",
-        "russian": "Russe",
         "learning": "Langue d'apprentissage",
         "native": "Langue maternelle"
       },
       "error": "Impossible de charger les pronoms",
       "pronouns": [
         {
-          "german": "ich",
-          "russian": "я"
+          "learning": "ich",
+          "native": "я"
         },
         {
-          "german": "du",
-          "russian": "ты"
+          "learning": "du",
+          "native": "ты"
         },
         {
-          "german": "er / sie / es",
-          "russian": "он / она / оно"
+          "learning": "er / sie / es",
+          "native": "он / она / оно"
         },
         {
-          "german": "wir",
-          "russian": "мы"
+          "learning": "wir",
+          "native": "мы"
         },
         {
-          "german": "ihr",
-          "russian": "вы (неформ.)"
+          "learning": "ihr",
+          "native": "вы (неформ.)"
         },
         {
-          "german": "sie / Sie",
-          "russian": "они / Вы (форм.)"
+          "learning": "sie / Sie",
+          "native": "они / Вы (форм.)"
         }
       ]
     },
@@ -920,40 +918,40 @@
       "title": "Mots interrogatifs",
       "columns": {
         "play": "Prononcer",
-        "german": "Allemand",
+        "learning": "Allemand",
         "translation": "Traduction"
       },
       "items": [
         {
-          "german": "Was?",
+          "learning": "Was?",
           "translation": "Quoi ?"
         },
         {
-          "german": "Wer?",
+          "learning": "Wer?",
           "translation": "Qui ?"
         },
         {
-          "german": "Wo?",
+          "learning": "Wo?",
           "translation": "Où ?"
         },
         {
-          "german": "Wann?",
+          "learning": "Wann?",
           "translation": "Quand ?"
         },
         {
-          "german": "Wie?",
+          "learning": "Wie?",
           "translation": "Comment ?"
         },
         {
-          "german": "Warum?",
+          "learning": "Warum?",
           "translation": "Pourquoi ?"
         },
         {
-          "german": "Woher?",
+          "learning": "Woher?",
           "translation": "D'où ?"
         },
         {
-          "german": "Wohin?",
+          "learning": "Wohin?",
           "translation": "Vers où ?"
         }
       ]

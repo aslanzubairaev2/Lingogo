@@ -1,6 +1,6 @@
 # Design Guidelines
 
-This document outlines the design principles and guidelines for the German Phrase Practice application to ensure a consistent and user-friendly interface.
+This document outlines the design principles and guidelines for the Learning Phrase Practice application to ensure a consistent and user-friendly interface.
 
 ## General Principles
 

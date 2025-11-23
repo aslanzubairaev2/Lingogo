@@ -14,7 +14,7 @@ interface SentenceChainModalProps {
   isOpen: boolean;
   onClose: () => void;
   phrase: Phrase;
-  onGenerateContinuations: (russianPhrase: string) => Promise<SentenceContinuation>;
+  onGenerateContinuations: (nativePhrase: string) => Promise<SentenceContinuation>;
   onWordClick: (phrase: Phrase, word: string) => void;
 }
 
@@ -33,7 +33,7 @@ const SkeletonLoader: React.FC = () => {
 const SentenceChainModal: React.FC<SentenceChainModalProps> = ({ isOpen, onClose, phrase, onGenerateContinuations, onWordClick }) => {
   const { t } = useTranslation();
   const [history, setHistory] = useState<string[]>([]);
-  const [currentGerman, setCurrentGerman] = useState('');
+  const [currentLearning, setCurrentLearning] = useState('');
   const [continuations, setContinuations] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,8 +43,8 @@ const SentenceChainModal: React.FC<SentenceChainModalProps> = ({ isOpen, onClose
   const cacheRef = useRef<Map<string, SentenceContinuation>>(new Map());
   const apiCacheKey = useMemo(() => `sentence_chain_api_cache_${phrase.id}`, [phrase.id]);
   const historyCacheKey = useMemo(() => `sentence_chain_history_${phrase.id}`, [phrase.id]);
-  
-  const getFullRussianPhrase = useCallback((currentHistory: string[]): string => {
+
+  const getFullNativePhrase = useCallback((currentHistory: string[]): string => {
     let fullPhrase = phrase.text.native;
     for (const part of currentHistory) {
       if (part.match(/^[.,:;!?]/)) {
@@ -56,10 +56,10 @@ const SentenceChainModal: React.FC<SentenceChainModalProps> = ({ isOpen, onClose
     return fullPhrase;
   }, [phrase.text.native]);
 
-  const fetchContinuations = useCallback(async (russianPhrase: string) => {
-    if (cacheRef.current.has(russianPhrase)) {
-      const cachedData = cacheRef.current.get(russianPhrase)!;
-      setCurrentGerman(cachedData.learning);
+  const fetchContinuations = useCallback(async (nativePhrase: string) => {
+    if (cacheRef.current.has(nativePhrase)) {
+      const cachedData = cacheRef.current.get(nativePhrase)!;
+      setCurrentLearning(cachedData.learning);
       setContinuations(cachedData.continuations);
       setIsLoading(false);
       setError(null);
@@ -70,10 +70,10 @@ const SentenceChainModal: React.FC<SentenceChainModalProps> = ({ isOpen, onClose
     setError(null);
     setContinuations([]);
     try {
-      const result = await onGenerateContinuations(russianPhrase);
-      cacheRef.current.set(russianPhrase, result);
+      const result = await onGenerateContinuations(nativePhrase);
+      cacheRef.current.set(nativePhrase, result);
       // FIX: Use `result.learning` to match the `SentenceContinuation` type.
-      setCurrentGerman(result.learning);
+      setCurrentLearning(result.learning);
       setContinuations(result.continuations);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -87,7 +87,7 @@ const SentenceChainModal: React.FC<SentenceChainModalProps> = ({ isOpen, onClose
     if (isOpen) {
       const storedApiCache = cacheService.getCache<[string, SentenceContinuation][]>(apiCacheKey);
       cacheRef.current = storedApiCache ? new Map(storedApiCache) : new Map();
-      
+
       const storedHistory = cacheService.getCache<string[]>(historyCacheKey) || [];
       setHistory(storedHistory);
       setIsInitialized(true);
@@ -104,24 +104,24 @@ const SentenceChainModal: React.FC<SentenceChainModalProps> = ({ isOpen, onClose
   // Effect to fetch data whenever history changes, but only after initialization
   useEffect(() => {
     if (isOpen && isInitialized) {
-      const fullRussianPhrase = getFullRussianPhrase(history);
-      fetchContinuations(fullRussianPhrase);
+      const fullNativePhrase = getFullNativePhrase(history);
+      fetchContinuations(fullNativePhrase);
     }
-  }, [history, isOpen, isInitialized, getFullRussianPhrase, fetchContinuations]);
+  }, [history, isOpen, isInitialized, getFullNativePhrase, fetchContinuations]);
 
 
   const handleSelectContinuation = (continuation: string) => {
     const newHistory = [...history, continuation];
     setHistory(newHistory);
     // The useEffect listening to `history` will trigger the fetch
-    setCurrentGerman('...');
+    setCurrentLearning('...');
   };
-  
+
   const handleAddContinuation = (text: string) => {
     handleSelectContinuation(text);
     setIsAddModalOpen(false);
   };
-  
+
   const handleBlockClick = (blockIndex: number) => {
     if (isLoading) return;
     // Clicking any block reverts the history to the state *before* that block was added.
@@ -129,9 +129,9 @@ const SentenceChainModal: React.FC<SentenceChainModalProps> = ({ isOpen, onClose
     const newHistory = history.slice(0, Math.max(0, blockIndex - 1));
     setHistory(newHistory);
     // The useEffect listening to `history` will trigger the fetch
-    setCurrentGerman('...');
+    setCurrentLearning('...');
   };
-  
+
   const handleGoBackOneStep = () => {
     if (history.length > 0) {
       handleBlockClick(history.length);
@@ -142,7 +142,7 @@ const SentenceChainModal: React.FC<SentenceChainModalProps> = ({ isOpen, onClose
     e.stopPropagation();
     const cleanedWord = word.replace(/[.,!?]/g, '');
     if (cleanedWord) {
-      const proxyPhrase: Phrase = { ...phrase, text: { learning: currentGerman, native: getFullRussianPhrase(history) } };
+      const proxyPhrase: Phrase = { ...phrase, text: { learning: currentLearning, native: getFullNativePhrase(history) } };
       onWordClick(proxyPhrase, cleanedWord);
     }
   };
@@ -173,70 +173,70 @@ const SentenceChainModal: React.FC<SentenceChainModalProps> = ({ isOpen, onClose
   return (
     <>
       <div className="fixed inset-0 bg-black/60 z-50 flex justify-center items-end" onClick={onClose}>
-        <div 
+        <div
           className={`bg-slate-800 w-full max-w-2xl h-[90%] max-h-[90vh] rounded-t-2xl shadow-2xl flex flex-col transition-transform duration-300 ease-out ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
           onClick={e => e.stopPropagation()}
         >
           <header className="flex items-center justify-between p-4 border-b border-slate-700 flex-shrink-0">
             <div className="flex items-center space-x-3">
-               <button
-                 onClick={handleGoBackOneStep}
-                 disabled={history.length === 0 || isLoading}
-                 className="p-2 rounded-full hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                 aria-label={t('modals.sentenceChain.aria.goBack')}
-             >
-                 <ArrowLeftIcon className="w-6 h-6 text-slate-400" />
-             </button>
-             <div className="flex items-center space-x-2">
-                  <LinkIcon className="w-6 h-6 text-purple-400"/>
-                 <h2 className="text-lg font-bold text-slate-100">{t('modals.sentenceChain.title')}</h2>
-             </div>
+              <button
+                onClick={handleGoBackOneStep}
+                disabled={history.length === 0 || isLoading}
+                className="p-2 rounded-full hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label={t('modals.sentenceChain.aria.goBack')}
+              >
+                <ArrowLeftIcon className="w-6 h-6 text-slate-400" />
+              </button>
+              <div className="flex items-center space-x-2">
+                <LinkIcon className="w-6 h-6 text-purple-400" />
+                <h2 className="text-lg font-bold text-slate-100">{t('modals.sentenceChain.title')}</h2>
+              </div>
             </div>
             <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-700">
-              <CloseIcon className="w-6 h-6 text-slate-400"/>
+              <CloseIcon className="w-6 h-6 text-slate-400" />
             </button>
           </header>
-          
-          <div className="flex-grow p-4 overflow-y-auto hide-scrollbar">
-              {/* Phrase Display Area */}
-              <div className="bg-slate-700/50 p-3 rounded-lg mb-4 text-center">
-                <div className="mb-3 min-h-[36px]">
-                  {renderPhraseBlocks()}
-                </div>
-                <div className="flex items-center justify-center gap-x-2 border-t border-slate-600/50 pt-3">
-                  <AudioPlayer textToSpeak={currentGerman} />
-                  <div className="text-lg font-bold text-purple-300 text-left flex flex-wrap justify-center items-center gap-x-1">
-                      {currentGerman.split(' ').map((word, index) => (
-                          <span key={index} onClick={(e) => handleWordClick(e, word)} className="cursor-pointer hover:bg-white/20 px-1 py-0.5 rounded-md transition-colors">
-                              {word}
-                          </span>
-                      ))}
-                  </div>
-                </div>
-              </div>
 
-              {/* Continuations Area */}
-              <div className="flex flex-col justify-center items-center min-h-[120px]">
-                {isLoading && <SkeletonLoader />}
-                {error && <div className="text-center bg-red-900/50 border border-red-700 text-red-300 p-3 rounded-lg"><p className="font-semibold">{t('modals.sentenceChain.errors.generic')}</p><p className="text-sm">{error}</p></div>}
-                {!isLoading && !error && (
-                  continuations.length > 0 ? (
-                      <div className="flex flex-wrap justify-center gap-2 p-1">
-                          {continuations.map((cont, index) => (
-                          <button
-                              key={index}
-                              onClick={() => handleSelectContinuation(cont)}
-                              className="px-3 py-1.5 bg-slate-600/70 hover:bg-slate-600 rounded-lg transition-colors text-slate-200 text-sm font-medium"
-                          >
-                              {cont}
-                          </button>
-                          ))}
-                      </div>
-                  ) : (
-                    <p className="text-center text-slate-400 text-sm p-4">{t('modals.sentenceChain.messages.noContinuations')}</p>
-                  )
-                )}
+          <div className="flex-grow p-4 overflow-y-auto hide-scrollbar">
+            {/* Phrase Display Area */}
+            <div className="bg-slate-700/50 p-3 rounded-lg mb-4 text-center">
+              <div className="mb-3 min-h-[36px]">
+                {renderPhraseBlocks()}
               </div>
+              <div className="flex items-center justify-center gap-x-2 border-t border-slate-600/50 pt-3">
+                <AudioPlayer textToSpeak={currentLearning} />
+                <div className="text-lg font-bold text-purple-300 text-left flex flex-wrap justify-center items-center gap-x-1">
+                  {currentLearning.split(' ').map((word, index) => (
+                    <span key={index} onClick={(e) => handleWordClick(e, word)} className="cursor-pointer hover:bg-white/20 px-1 py-0.5 rounded-md transition-colors">
+                      {word}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Continuations Area */}
+            <div className="flex flex-col justify-center items-center min-h-[120px]">
+              {isLoading && <SkeletonLoader />}
+              {error && <div className="text-center bg-red-900/50 border border-red-700 text-red-300 p-3 rounded-lg"><p className="font-semibold">{t('modals.sentenceChain.errors.generic')}</p><p className="text-sm">{error}</p></div>}
+              {!isLoading && !error && (
+                continuations.length > 0 ? (
+                  <div className="flex flex-wrap justify-center gap-2 p-1">
+                    {continuations.map((cont, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSelectContinuation(cont)}
+                        className="px-3 py-1.5 bg-slate-600/70 hover:bg-slate-600 rounded-lg transition-colors text-slate-200 text-sm font-medium"
+                      >
+                        {cont}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-slate-400 text-sm p-4">{t('modals.sentenceChain.messages.noContinuations')}</p>
+                )
+              )}
+            </div>
           </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
@@ -247,8 +247,8 @@ const SentenceChainModal: React.FC<SentenceChainModalProps> = ({ isOpen, onClose
           </button>
         </div>
       </div>
-      <AddContinuationModal 
-        isOpen={isAddModalOpen} 
+      <AddContinuationModal
+        isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddContinuation}
       />

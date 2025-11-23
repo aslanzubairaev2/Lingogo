@@ -1,4 +1,4 @@
 ---
 trigger: manual
 ---
-Language='Use Russian language for unswers'
+Language='Use Native language for unswers'
