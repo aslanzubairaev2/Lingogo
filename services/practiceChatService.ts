@@ -510,71 +510,31 @@ export function createInitialGreeting(
     ja: 'こんにちは！日本語を練習しましょう！',
     ar: 'مرحبا! دعونا نمارس العربية!',
     hi: 'नमस्ते! चलो हिंदी का अभ्यास करें!',
-  };
-
-  // Translation templates by native language
-  const greetingTranslations: Record<string, Record<string, string>> = {
-    ru: {
-      de: 'Привет! Давай практиковать немецкий!',
-      en: 'Привет! Давай практиковать английский!',
-      fr: 'Привет! Давай практиковать французский!',
-      es: 'Привет! Давай практиковать испанский!',
-      it: 'Привет! Давай практиковать итальянский!',
-      pt: 'Привет! Давай практиковать португальский!',
-      pl: 'Привет! Давай практиковать польский!',
-      zh: 'Привет! Давай практиковать китайский!',
-      ja: 'Привет! Давай практиковать японский!',
-      ar: 'Привет! Давай практиковать арабский!',
-      hi: 'Привет! Давай практиковать хинди!',
-    },
-    en: {
-      de: 'Hello! Let\'s practice Learning!',
-      en: 'Hello! Let\'s practice English!',
-      fr: 'Hello! Let\'s practice French!',
-      es: 'Hello! Let\'s practice Spanish!',
-      it: 'Hello! Let\'s practice Italian!',
-      pt: 'Hello! Let\'s practice Portuguese!',
-      pl: 'Hello! Let\'s practice Polish!',
-      zh: 'Hello! Let\'s practice Chinese!',
-      ja: 'Hello! Let\'s practice Japanese!',
-      ar: 'Hello! Let\'s practice Arabic!',
-      hi: 'Hello! Let\'s practice Hindi!',
-    },
-    es: {
-      hi: '¡Hola! Practiquemos hindi!',
-    },
-    de: {
-      hi: 'Hallo! Lass uns Hindi üben!',
-    },
-    fr: {
-      hi: 'Bonjour ! Pratiquons le hindi !',
-    },
-    it: {
-      hi: 'Ciao! Alleniamoci con l’hindi!',
-    },
-    pt: {
-      hi: 'Olá! Vamos praticar híndi!',
-    },
-    pl: {
-      hi: 'Cześć! Poćwiczmy hindi!',
-    },
-    zh: {
-      hi: '你好！我们来练习印地语吧！',
-    },
-    ja: {
-      hi: 'こんにちは！ヒンディー語を練習しましょう！',
-    },
-    ar: {
-      hi: 'مرحبًا! لنتمرن على الهندية!',
-    },
+    mr: 'नमस्कार! मराठी सराव करूया!',
   };
 
   const greetingText = greetingTexts[languageProfile.learning] || greetingTexts['en'];
-  const translationMap = greetingTranslations[languageProfile.native] || greetingTranslations['en'];
-  const defaultTranslation = translationMap[languageProfile.learning];
-  const greetingTranslation = defaultTranslation || translationMap['en'] || `Hello! Let's practice ${learningLang}!`;
 
-  const greeting = { text: greetingText, translation: greetingTranslation };
+  // Generate translation dynamically for ANY native language
+  // Format: "Hello! Let's practice [LearningLanguage]!" in native language
+  const greetingTranslations: Record<string, string> = {
+    ru: `Привет! Давай практиковать ${learningLang.toLowerCase()}!`,
+    en: `Hello! Let's practice ${learningLang}!`,
+    de: `Hallo! Lass uns ${learningLang} üben!`,
+    fr: `Bonjour! Pratiquons le ${learningLang.toLowerCase()}!`,
+    es: `¡Hola! ¡Practiquemos ${learningLang.toLowerCase()}!`,
+    it: `Ciao! Pratichiamo l'${learningLang.toLowerCase()}!`,
+    pt: `Olá! Vamos praticar ${learningLang.toLowerCase()}!`,
+    pl: `Cześć! Poćwiczmy ${learningLang.toLowerCase()}!`,
+    zh: `你好！让我们练习${learningLang}！`,
+    ja: `こんにちは！${learningLang}を練習しましょう！`,
+    ar: `مرحبًا! لنتمرن على ${learningLang}!`,
+    hi: `नमस्ते! चलो ${learningLang} का अभ्यास करें!`,
+    mr: `नमस्कार! ${learningLang} सराव करूया!`,
+  };
+
+  const greetingTranslation = greetingTranslations[languageProfile.native] ||
+    `Hello! Let's practice ${learningLang}!`; // Fallback to English if native language not found
 
   const suggestionsByLang: Record<string, string[]> = {
     de: ['Hallo!', 'Guten Tag!', 'Ja, gerne!'],
@@ -588,6 +548,7 @@ export function createInitialGreeting(
     ja: ['こんにちは！', 'おはよう！', 'はい！'],
     ar: ['مرحبا!', 'صباح الخير!', 'نعم!'],
     hi: ['नमस्ते!', 'चलो शुरू करें!', 'मैं तैयार हूँ!'],
+    mr: ['नमस्कार!', 'चालू करूया!', 'मी तयार आहे!'],
   };
 
   const suggestions = suggestionsByLang[languageProfile.learning] || suggestionsByLang['en'];
@@ -605,6 +566,8 @@ export function createInitialGreeting(
     zh: '我会用你词汇表中的短语与你进行自然对话。让我们开始吧！',
     ja: 'あなたの語彙のフレーズを使って自然な会話をします。始めましょう！',
     ar: 'سأجري محادثة طبيعية معك باستخدام عبارات من مفرداتك. لنبدأ!',
+    hi: 'मैं आपकी शब्दावली के वाक्यांशों का उपयोग करके आपके साथ एक प्राकृतिक बातचीत करूंगा। चलो शुरू करें!',
+    mr: 'मी तुमच्या शब्दसंग्रहातील वाक्यांश वापरून तुमच्याशी नैसर्गिक संवाद करेन. चला सुरू करूया!',
   };
 
   return {
@@ -612,8 +575,8 @@ export function createInitialGreeting(
     messageType: 'greeting',
     content: {
       primary: {
-        text: greeting.text,
-        translation: greeting.translation
+        text: greetingText,
+        translation: greetingTranslation
       },
       secondary: {
         text: explanations[languageProfile.native] || explanations['en']
