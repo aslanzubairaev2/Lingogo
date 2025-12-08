@@ -9,7 +9,7 @@ export const LANGUAGE_LABELS: Record<LanguageCode, string> = {
   hi: 'हिन्दी',
   it: 'Italiano',
   ja: '日本語',
-  ma: 'मराठी',
+  mr: 'मराठी',
   pl: 'Polski',
   pt: 'Português',
   ru: 'Русский',

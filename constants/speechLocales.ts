@@ -17,6 +17,7 @@ export const SPEECH_LOCALE_MAP: Record<LanguageCode, string> = {
   ja: 'ja-JP',
   ar: 'ar-SA',
   hi: 'hi-IN',
+  mr: 'mr-IN',
 };
 
 /**

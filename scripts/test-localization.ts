@@ -96,7 +96,7 @@ const hasLocaleGaps = async (lang) => {
 };
 
 const TEST_LANG = 'fr'; // Testing with French which has gaps
-const SUPPORTED_LANGS = ['en', 'de', 'ru', 'fr', 'es', 'it', 'pt', 'pl', 'zh', 'ja', 'ar'];
+const SUPPORTED_LANGS = ['en', 'de', 'ru', 'fr', 'es', 'it', 'pt', 'pl', 'zh', 'ja', 'ar', 'hi', 'mr'];
 
 const log = (message) => console.log(`[${new Date().toISOString()}] ${message}`);
 

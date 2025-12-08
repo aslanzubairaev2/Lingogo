@@ -17,13 +17,14 @@ export const LANGUAGE_NAMES: Record<LanguageCode, string> = {
   ja: 'Japanese',
   ar: 'Arabic',
   hi: 'Hindi',
+  mr: 'Marathi',
 };
 
 /**
  * Languages that require romanization/transcription
  * Non-European languages with non-Latin scripts
  */
-export const NEEDS_TRANSCRIPTION: LanguageCode[] = ['zh', 'ja', 'ar', 'ru'];
+export const NEEDS_TRANSCRIPTION: LanguageCode[] = ['zh', 'ja', 'ar', 'ru', 'hi', 'mr'];
 
 /**
  * Get full language name for use in prompts

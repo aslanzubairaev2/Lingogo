@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import * as backendService from '../../services/backendService';
+import * as configService from '../../services/configService';
 import type { LanguageCode } from '../../types';
 
 interface UseLanguageOnboardingResult {
@@ -26,7 +27,7 @@ const detectBrowserLanguage = (): LanguageCode => {
     return 'en';
   }
   const base = navigator.language.split('-')[0].toLowerCase();
-  const SUPPORTED_LANGS = ['en', 'de', 'ru', 'fr', 'es', 'it', 'pt', 'pl', 'zh', 'ja', 'ar', 'hi'];
+  const SUPPORTED_LANGS = ['en', 'de', 'ru', 'fr', 'es', 'it', 'pt', 'pl', 'zh', 'ja', 'ar', 'hi', 'mr'];
   return (SUPPORTED_LANGS.includes(base) ? base : 'en') as LanguageCode;
 };
 
@@ -131,11 +132,17 @@ export const useLanguageOnboarding = (userId: string | null): UseLanguageOnboard
     try {
       setIsGeneratingData(true);
 
+      const newProfile = { ui: native, native, learning };
+
       // Save profile to backend
-      await backendService.updateUserProfile({
-        ui: native, // Use native language for UI
-        native,
-        learning,
+      await backendService.updateUserProfile(newProfile);
+
+      // IMPORTANT: Also save to localStorage with uiLocked=true
+      // This ensures the UI language persists after page reload
+      configService.saveLanguageProfile(newProfile);
+      configService.saveLanguageProfileMeta({
+        uiLocked: true,
+        lastDetected: native,
       });
 
       // Load initial data for this language pair - this may take a while

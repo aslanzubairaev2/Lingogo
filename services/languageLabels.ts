@@ -18,6 +18,7 @@ export function getLanguageLabel(languageCode: LanguageCode): string {
     ja: 'JA',
     ar: 'AR',
     hi: 'HI',
+    mr: 'MR',
   };
   return labels[languageCode] || languageCode.toUpperCase();
 }
@@ -39,6 +40,7 @@ export function getLanguageNameInEnglish(languageCode: LanguageCode): string {
     ja: 'Japanese',
     ar: 'Arabic',
     hi: 'Hindi',
+    mr: 'Marathi',
   };
   return names[languageCode] || languageCode;
 }
