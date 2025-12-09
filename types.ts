@@ -163,10 +163,14 @@ export interface ContentPart {
 }
 
 export interface ExamplePair {
-  // FIX: Renamed 'learningExample' to 'learningExample' for consistency.
   learningExample: string;
-  // FIX: Renamed 'nativeTranslation' to 'nativeTranslation' for consistency.
   nativeTranslation: string;
+}
+
+// Chat-specific example pair with simplified property names
+export interface ChatExamplePair {
+  learning: string;
+  native: string;
 }
 
 export interface ProactiveSuggestion {
@@ -174,11 +178,18 @@ export interface ProactiveSuggestion {
   icon: string;
 }
 
+// Chat-specific suggestion with title and content parts
+export interface ChatProactiveSuggestion {
+  title: string;
+  contentParts: ContentPart[];
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text?: string;
-  examples?: ExamplePair[];
-  suggestions?: ProactiveSuggestion[];
+  grammarParts?: ContentPart[]; // For interactive grammar analysis with text/learning segments
+  examples?: ChatExamplePair[]; // Use chat-specific type
+  suggestions?: ChatProactiveSuggestion[]; // Use chat-specific type
   contentParts?: ContentPart[];
   promptSuggestions?: string[];
   isCorrect?: boolean;

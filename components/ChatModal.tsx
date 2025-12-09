@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Phrase, ChatMessage, WordAnalysis, ExamplePair } from '../types';
+import { Phrase, ChatMessage, WordAnalysis, ChatExamplePair } from '../types';
 import { getCache, setCache } from '../services/cacheService';
 import { ApiProviderType } from '../services/apiProvider';
 import GeminiLogo from './icons/GeminiLogo';
@@ -124,14 +124,29 @@ const ChatMessageContent: React.FC<{
   }
 
   // Render initial structured model responses
-  if (message.role === 'model' && (examples?.length || suggestions?.length)) {
+  if (message.role === 'model' && (examples?.length || suggestions?.length || message.grammarParts?.length)) {
     return (
       <div className="space-y-4 text-left">
-        {/* Grammar Analysis - FIRST */}
-        {text && (
+        {/* Grammar Analysis - FIRST (with interactive German words) */}
+        {message.grammarParts && message.grammarParts.length > 0 && (
           <div className="bg-slate-700/30 p-3 rounded-lg border-l-2 border-purple-500">
-            <div className="text-slate-300 prose prose-invert prose-sm max-w-none prose-headings:text-purple-300 prose-headings:text-sm prose-headings:font-semibold prose-p:my-1 prose-ul:my-1 prose-li:my-0">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+            <div className="whitespace-pre-wrap leading-relaxed text-slate-300">
+              {message.grammarParts.map((part, partIndex) =>
+                part.type === 'learning' ? (
+                  <span key={partIndex} className="inline-flex items-center align-middle bg-slate-500/50 px-1.5 py-0.5 rounded-md mx-0.5">
+                    <span className="font-medium text-purple-200">{renderClickableLearning({ learning: part.text, native: part.translation || '' })}</span>
+                    <button
+                      onClick={() => onSpeak(part.text)}
+                      className="p-0.5 rounded-full hover:bg-white/20 flex-shrink-0 ml-1.5"
+                      aria-label={`Speak: ${part.text}`}
+                    >
+                      <SoundIcon className="w-3.5 h-3.5 text-slate-200" />
+                    </button>
+                  </span>
+                ) : (
+                  <span key={partIndex}>{part.text}</span>
+                )
+              )}
             </div>
           </div>
         )}
@@ -279,7 +294,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, phrase, onGenera
 
       const fetchInitialMessage = async () => {
         // Cache version: increment when prompt structure changes to invalidate old cached responses
-        const CACHE_VERSION = 4;
+        const CACHE_VERSION = 6;
         const cacheKey = `chat_initial_v${CACHE_VERSION}_${phrase.id}`;
         const cachedMessage = getCache<ChatMessage>(cacheKey);
 

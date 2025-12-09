@@ -2,7 +2,7 @@
 
 
 import { GoogleGenAI, Type } from "@google/genai";
-import type { Phrase, ChatMessage, ExamplePair, ProactiveSuggestion, ContentPart, DeepDiveAnalysis, MovieExample, WordAnalysis, VerbConjugation, NounDeclension, AdjectiveDeclension, SentenceContinuation, PhraseBuilderOptions, PhraseEvaluation, CategoryAssistantRequest, CategoryAssistantResponse, CategoryAssistantRequestType, ProposedCard, LanguageCode } from '../types';
+import type { Phrase, ChatMessage, ChatExamplePair, ChatProactiveSuggestion, ContentPart, DeepDiveAnalysis, MovieExample, WordAnalysis, VerbConjugation, NounDeclension, AdjectiveDeclension, SentenceContinuation, PhraseBuilderOptions, PhraseEvaluation, CategoryAssistantRequest, CategoryAssistantResponse, CategoryAssistantRequestType, ProposedCard, LanguageCode } from '../types';
 
 import { AiService } from './aiService';
 import { getGeminiApiKey } from './env';
@@ -751,15 +751,23 @@ const improvePhrase: AiService['improvePhrase'] = async (originalNative, current
     }
 };
 
-
 const initialResponseSchema = () => {
     const lang = getLang();
     return {
         type: Type.OBJECT,
         properties: {
-            text: {
-                type: Type.STRING,
-                description: `REQUIRED. A CONCISE grammar analysis in ${lang.native} using Markdown formatting. Structure with 2-3 short sections using **bold headers**. Include: 1) **Word breakdown** (parts of speech for key words), 2) **Word order** (brief comparison with ${lang.native}), 3) **Key grammar point** (one important takeaway). Keep it SHORT - max 150 words. Use bullet points for clarity. NO intro phrases like "Here is an analysis".`
+            grammarParts: {
+                type: Type.ARRAY,
+                description: `REQUIRED. A CONCISE grammar analysis broken into segments. Include: 1) Word breakdown (parts of speech), 2) Word order comparison with ${lang.native}, 3) Key grammar point. Keep SHORT - max 150 words total. When mentioning ${lang.learning} words/phrases, use type 'learning' with translation.`,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        type: { type: Type.STRING, enum: ['text', 'learning'], description: `Use 'text' for ${lang.native} explanatory text, 'learning' for ${lang.learning} words/phrases.` },
+                        text: { type: Type.STRING, description: "The segment content." },
+                        translation: { type: Type.STRING, description: `${lang.native} translation, REQUIRED when type is 'learning'.` }
+                    },
+                    required: ["type", "text"]
+                }
             },
             examples: {
                 type: Type.ARRAY,
@@ -805,7 +813,7 @@ const initialResponseSchema = () => {
                 }
             }
         },
-        required: ["text", "examples", "proactiveSuggestions", "promptSuggestions"]
+        required: ["grammarParts", "examples", "proactiveSuggestions", "promptSuggestions"]
     };
 };
 
@@ -818,36 +826,27 @@ const generateInitialExamples: AiService['generateInitialExamples'] = async (phr
     const prompt = `User is learning the ${lang.learning} phrase: "${phrase.text.learning}" (translation: "${phrase.text.native}").
 
 Your task is to create a useful card for detailed analysis of this phrase.
-The response structure must be as follows (return JSON according to the schema, contentParts will be used for text description):
+Return JSON according to the schema. IMPORTANT: Use the 'grammarParts' field (ARRAY of segments) for grammar analysis.
 
-1. **Deep Analysis and Explanation (contentParts/text)**:
-   - **Do NOT use intro phrases** like "Here are some examples" or "Here is an analysis". Start DIRECTLY with the content.
-   - Provide a DETAILED grammar breakdown:
-     * **Parts of speech**: Identify each word's grammatical role (noun, verb, article, preposition, etc.).
-     * **Word order**: Explain WHY the words are arranged in this specific order. Compare with ${lang.native} word order - what's similar and what's different?
-     * **Sentence structure**: Explain the grammatical construction (e.g., main clause vs subordinate clause, verb placement rules).
-     * **Cases/Declensions** (if applicable): Explain why specific case forms are used.
-     * **Verb conjugation**: If there's a verb, explain the tense/mood/person used.
-   - Compare with ${lang.native}: What would be literally translated? What's idiomatic vs literal?
-   - If there are interesting cultural features or etymology, add them.
-   - **IMPORTANT: Provide this explanation in ${lang.native} language.**
-   - **MUST BE IN 'text' FIELD**. Do NOT put this in 'suggestions'.
+1. **Grammar Analysis (grammarParts)** - REQUIRED, use grammarParts array:
+   - Break down your explanation into an ARRAY of segments with 'type' and 'text' fields.
+   - For ${lang.native} explanatory text: use type='text'.
+   - For ${lang.learning} words/phrases: use type='learning' with 'translation' field.
+   - Example structure: [{"type":"text","text":"Слово "},{"type":"learning","text":"Monat","translation":"месяц"},{"type":"text","text":" — существительное (м.р.)."}]
+   - Include: parts of speech, word order comparison with ${lang.native}, key grammar points.
+   - Keep it SHORT - max 150 words total.
+   - Start DIRECTLY with content, NO intro phrases.
 
-2. **Alternatives and Variations (proactiveSuggestions)**:
-   - Suggest synonyms, more formal or informal variations.
-   - Compare with similar expressions.
-   - You can add comparison with idioms in ${lang.native} language.
-   - Use 'suggestions' field ONLY for these lists of alternatives.
+2. **Alternatives (proactiveSuggestions)**:
+   - 1-2 alternative phrasings with contentParts (same format: text/learning segments).
 
 3. **Examples (examples)**:
-   - Generate exactly **5** diverse and practical example sentences in ${lang.learning}.
-   - The examples should show the phrase in different contexts.
-   - **MUST provide ${lang.native} translation for each example.**
+   - Exactly 5 diverse sentence examples with ${lang.learning} and ${lang.native} translations.
 
-4. **Conversation Questions (promptSuggestions)**:
-   - 2-4 questions that the user can ask you to deepen the topic (in ${lang.native}).
+4. **Follow-up Questions (promptSuggestions)**:
+   - 2-4 questions in ${lang.native} for continuing the conversation.
 
-Return the result as a JSON object matching the schema. Use the 'suggestions' (proactiveSuggestions) field STRICTLY for alternatives/synonyms. Place the MAIN ANALYSIS text in the introductory part of the response (text).`;
+CRITICAL: The grammar analysis MUST go into 'grammarParts' as an array of {type, text, translation?} objects. Do NOT use a plain 'text' string.`;
 
     try {
         const response = await api.models.generateContent({
@@ -863,19 +862,16 @@ Return the result as a JSON object matching the schema. Use the 'suggestions' (p
         const jsonText = response.text.trim();
         const parsedResponse = JSON.parse(jsonText);
 
-        const examples: ExamplePair[] = (parsedResponse.examples || []).map((ex: any) => ({ learning: ex[lang.learningCode], native: ex[lang.nativeCode] }));
-        const suggestions: ProactiveSuggestion[] = parsedResponse.proactiveSuggestions || [];
+        const examples: ChatExamplePair[] = (parsedResponse.examples || []).map((ex: any) => ({ learning: ex[lang.learningCode], native: ex[lang.nativeCode] }));
+        const suggestions: ChatProactiveSuggestion[] = parsedResponse.proactiveSuggestions || [];
         const promptSuggestions: string[] = parsedResponse.promptSuggestions || [];
 
-        // Use AI-generated grammar analysis text, fallback to i18n intro if not provided
-        const grammarAnalysis = parsedResponse.text || i18n.t('practice.discuss.examples.intro', {
-            lng: currentLanguageProfile.getUi(),
-            defaultValue: i18n.getFixedT('en')('practice.discuss.examples.intro'),
-        });
+        // Use AI-generated grammarParts array for interactive grammar analysis
+        const grammarParts: ContentPart[] = parsedResponse.grammarParts || [];
 
         return {
             role: 'model' as const,
-            text: grammarAnalysis,
+            grammarParts,
             examples,
             suggestions,
             promptSuggestions,
@@ -929,12 +925,12 @@ const continueChat: AiService['continueChat'] = async (phrase, history, newMessa
         } else if (msg.text) {
             fullText = msg.text;
             if (msg.examples && msg.examples.length > 0) {
-                const examplesText = msg.examples.map(ex => `- ${ex.learningExample} (${ex.nativeTranslation})`).join('\n');
+                const examplesText = msg.examples.map(ex => `- ${ex.learning} (${ex.native})`).join('\n');
                 fullText += '\n\nПримеры:\n' + examplesText;
             }
             if (msg.suggestions && msg.suggestions.length > 0) {
                 // We don't have detailed structure for suggestions in the type definition
-                const suggestionsText = msg.suggestions.map(s => `- ${s.topic}`).join('\n');
+                const suggestionsText = msg.suggestions.map(s => `- ${s.title}`).join('\n');
                 fullText += '\n\nСоветы:\n' + suggestionsText;
             }
         }
