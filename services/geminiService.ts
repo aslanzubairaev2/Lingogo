@@ -914,7 +914,7 @@ const continueChat: AiService['continueChat'] = async (phrase, history, newMessa
     });
 
     const systemInstruction = `Ты AI-помощник для изучения ${lang.learning} языка. Пользователь изучает фразу "${phrase.text.learning}" (${phrase.text.native}).
-1. Отвечай на вопросы пользователя. В своем ответе ОБЯЗАТЕЛЬНО используй предоставленную JSON-схему. Разбей свой ответ на массив 'responseParts'. Каждый элемент массива должен быть объектом с ключами 'type' и 'text'. Если часть ответа - это обычный текст на ${lang.native}, используй 'type': 'text'. Если это ${lang.learning} слово или фраза, используй 'type': 'learning'. Если 'type' равен 'learning', ОБЯЗАТЕЛЬНО предоставь перевод в поле 'translation'. Не используй Markdown в JSON. Сохраняй форматирование с помощью переносов строк (\\n) в текстовых блоках.
+1. Отвечай на вопросы пользователя. В своем ответе ОБЯЗАТЕЛЬНО используй предоставленную JSON-схему. Разбей свой ответ на массив 'contentParts'. Каждый элемент массива должен быть объектом с ключами 'type' и 'text'. Если часть ответа - это обычный текст на ${lang.native}, используй 'type': 'text'. Если это ${lang.learning} слово или фраза, используй 'type': 'learning'. Если 'type' равен 'learning', ОБЯЗАТЕЛЬНО предоставь перевод в поле 'translation'. Не используй Markdown в JSON. Сохраняй форматирование с помощью переносов строк (\\n) в текстовых блоках.
 2. После ответа, сгенерируй от 2 до 4 новых, контекстно-зависимых вопросов для продолжения диалога в поле 'promptSuggestions'. Эти вопросы должны быть основаны на последнем сообщении пользователя и общем контексте диалога.
    - Предлагай "Покажи варианты с местоимениями" только если во фразе есть глагол для спряжения и это релевантно.
    - Предлагай "Как это использовать в вопросе?" только если фраза не является вопросом и это релевантно.
@@ -935,8 +935,8 @@ const continueChat: AiService['continueChat'] = async (phrase, history, newMessa
         const jsonText = response.text.trim();
         const parsedResponse = JSON.parse(jsonText);
 
-        const contentParts: ContentPart[] = parsedResponse.responseParts && parsedResponse.responseParts.length > 0
-            ? parsedResponse.responseParts
+        const contentParts: ContentPart[] = parsedResponse.contentParts && parsedResponse.contentParts.length > 0
+            ? parsedResponse.contentParts
             : [{ type: 'text', text: 'Получен пустой ответ от AI.' }];
 
         const promptSuggestions: string[] = parsedResponse.promptSuggestions || [];
@@ -983,7 +983,7 @@ ${JSON.stringify(allPhrases.map(p => ({ learning: p.text.learning, native: p.tex
 Your response MUST be a JSON object with this EXACT structure:
 
 {
-  "responseParts": [
+  "contentParts": [
     {
       "type": "learning",
       "text": "Your ${lang.learning} conversational response here",
@@ -1003,7 +1003,7 @@ Your response MUST be a JSON object with this EXACT structure:
 
 **EXAMPLE (${lang.native} → ${lang.learning}):**
 {
-  "responseParts": [
+  "contentParts": [
     {
       "type": "learning",
       "text": "Hallo! Wie geht es dir?",
@@ -1018,7 +1018,7 @@ Your response MUST be a JSON object with this EXACT structure:
 }
 
 **IMPORTANT:**
-- responseParts is REQUIRED (array of objects)
+- contentParts is REQUIRED (array of objects)
 - Each object MUST have "type" ("learning" or "text") and "text"
 - If type is "learning", include "translation"
 - promptSuggestions is REQUIRED (array of 2-3 strings)
@@ -1034,7 +1034,7 @@ Your response MUST be a JSON object with this EXACT structure:
                 config: {
                     systemInstruction,
                     responseMimeType: "application/json",
-                    responseSchema: chatResponseSchema,
+                    responseSchema: chatResponseSchema(),
                     temperature: 0.7,
                 },
             });
