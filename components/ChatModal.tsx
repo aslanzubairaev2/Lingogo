@@ -127,7 +127,16 @@ const ChatMessageContent: React.FC<{
   if (message.role === 'model' && (examples?.length || suggestions?.length)) {
     return (
       <div className="space-y-4 text-left">
+        {/* Grammar Analysis - FIRST */}
+        {text && (
+          <div className="bg-slate-700/30 p-3 rounded-lg border-l-2 border-purple-500">
+            <div className="text-slate-300 prose prose-invert prose-sm max-w-none prose-headings:text-purple-300 prose-headings:text-sm prose-headings:font-semibold prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+            </div>
+          </div>
+        )}
 
+        {/* Alternatives/Suggestions - SECOND */}
         {suggestions && suggestions.length > 0 && (
           <div className="space-y-3 pt-3 border-slate-600/50 pb-3">
             {suggestions.map((suggestion, index) => (
@@ -135,7 +144,7 @@ const ChatMessageContent: React.FC<{
                 <h5 className="font-semibold text-purple-300 mb-1">{suggestion.title}</h5>
                 <div className="whitespace-pre-wrap leading-relaxed text-slate-400">
                   {suggestion.contentParts && suggestion.contentParts.map((part, partIndex) =>
-                    part.type === 'learning' || part.type === 'learning' ? (
+                    part.type === 'learning' ? (
                       <span key={partIndex} className="inline-flex items-center align-middle bg-slate-500/50 px-1.5 py-0.5 rounded-md mx-0.5">
                         <span className="font-medium text-purple-200">{renderClickableLearning({ learning: part.text, native: part.translation || '' })}</span>
                         <button
@@ -156,8 +165,7 @@ const ChatMessageContent: React.FC<{
           </div>
         )}
 
-        {text && <p className="text-slate-300">{text}</p>}
-
+        {/* Examples - LAST */}
         {examples && examples.length > 0 && (
           <div className="space-y-3 pt-2">
             {examples.map((example, index) => (
@@ -270,7 +278,9 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, phrase, onGenera
       setIsLoading(true);
 
       const fetchInitialMessage = async () => {
-        const cacheKey = `chat_initial_${phrase.id}`;
+        // Cache version: increment when prompt structure changes to invalidate old cached responses
+        const CACHE_VERSION = 4;
+        const cacheKey = `chat_initial_v${CACHE_VERSION}_${phrase.id}`;
         const cachedMessage = getCache<ChatMessage>(cacheKey);
 
         if (cachedMessage) {

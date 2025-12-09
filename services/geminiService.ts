@@ -757,6 +757,10 @@ const initialResponseSchema = () => {
     return {
         type: Type.OBJECT,
         properties: {
+            text: {
+                type: Type.STRING,
+                description: `REQUIRED. A CONCISE grammar analysis in ${lang.native} using Markdown formatting. Structure with 2-3 short sections using **bold headers**. Include: 1) **Word breakdown** (parts of speech for key words), 2) **Word order** (brief comparison with ${lang.native}), 3) **Key grammar point** (one important takeaway). Keep it SHORT - max 150 words. Use bullet points for clarity. NO intro phrases like "Here is an analysis".`
+            },
             examples: {
                 type: Type.ARRAY,
                 description: "List of 3-5 practical example sentences using the phrase.",
@@ -801,7 +805,7 @@ const initialResponseSchema = () => {
                 }
             }
         },
-        required: ["examples", "proactiveSuggestions", "promptSuggestions"]
+        required: ["text", "examples", "proactiveSuggestions", "promptSuggestions"]
     };
 };
 
@@ -818,8 +822,13 @@ The response structure must be as follows (return JSON according to the schema, 
 
 1. **Deep Analysis and Explanation (contentParts/text)**:
    - **Do NOT use intro phrases** like "Here are some examples" or "Here is an analysis". Start DIRECTLY with the content.
-   - At the very beginning, provide a detailed explanation of the grammar, usage context, and nuances of this phrase.
-   - Explain why the phrase is constructed this way.
+   - Provide a DETAILED grammar breakdown:
+     * **Parts of speech**: Identify each word's grammatical role (noun, verb, article, preposition, etc.).
+     * **Word order**: Explain WHY the words are arranged in this specific order. Compare with ${lang.native} word order - what's similar and what's different?
+     * **Sentence structure**: Explain the grammatical construction (e.g., main clause vs subordinate clause, verb placement rules).
+     * **Cases/Declensions** (if applicable): Explain why specific case forms are used.
+     * **Verb conjugation**: If there's a verb, explain the tense/mood/person used.
+   - Compare with ${lang.native}: What would be literally translated? What's idiomatic vs literal?
    - If there are interesting cultural features or etymology, add them.
    - **IMPORTANT: Provide this explanation in ${lang.native} language.**
    - **MUST BE IN 'text' FIELD**. Do NOT put this in 'suggestions'.
@@ -857,14 +866,16 @@ Return the result as a JSON object matching the schema. Use the 'suggestions' (p
         const examples: ExamplePair[] = (parsedResponse.examples || []).map((ex: any) => ({ learning: ex[lang.learningCode], native: ex[lang.nativeCode] }));
         const suggestions: ProactiveSuggestion[] = parsedResponse.proactiveSuggestions || [];
         const promptSuggestions: string[] = parsedResponse.promptSuggestions || [];
-        const intro = i18n.t('practice.discuss.examples.intro', {
+
+        // Use AI-generated grammar analysis text, fallback to i18n intro if not provided
+        const grammarAnalysis = parsedResponse.text || i18n.t('practice.discuss.examples.intro', {
             lng: currentLanguageProfile.getUi(),
             defaultValue: i18n.getFixedT('en')('practice.discuss.examples.intro'),
         });
 
         return {
             role: 'model' as const,
-            text: intro,
+            text: grammarAnalysis,
             examples,
             suggestions,
             promptSuggestions,
@@ -953,11 +964,30 @@ const continueChat: AiService['continueChat'] = async (phrase, history, newMessa
         });
 
         const jsonText = response.text.trim();
-        const parsedResponse = JSON.parse(jsonText);
+
+        // Try to extract valid JSON from response (handles cases where AI adds extra text)
+        let cleanedJson = jsonText;
+        const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            cleanedJson = jsonMatch[0];
+        }
+
+        let parsedResponse;
+        try {
+            parsedResponse = JSON.parse(cleanedJson);
+        } catch (parseError) {
+            console.error("JSON Parse error, raw response:", jsonText);
+            // Fallback: return a generic response
+            return {
+                role: 'model',
+                contentParts: [{ type: 'text', text: 'Sorry, I had trouble processing that. Please try again.' }],
+                promptSuggestions: [],
+            };
+        }
 
         const contentParts: ContentPart[] = parsedResponse.contentParts && parsedResponse.contentParts.length > 0
             ? parsedResponse.contentParts
-            : [{ type: 'text', text: 'Получен пустой ответ от AI.' }];
+            : [{ type: 'text', text: 'Received empty response from AI.' }];
 
         const promptSuggestions: string[] = parsedResponse.promptSuggestions || [];
 
