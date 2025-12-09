@@ -297,14 +297,46 @@
       opacity: 0;
     }
 
+    /* Зелёная подсветка "Знаю" - градиент + светло-зелёный border и текст */
+    .flash-green-animation .card-face {
+      border-color: #86efac !important;
+      /* light green border */
+      transition: border-color 0.1s ease-out;
+    }
+
+    .flash-green-animation h2,
+    .flash-green-animation .text-slate-100,
+    .flash-green-animation .text-2xl {
+      color: #86efac !important;
+      /* light green text */
+      transition: color 0.1s ease-out;
+    }
+
     .flash-green-animation::after {
       background-image: radial-gradient(circle, rgba(74, 222, 128, 0.7) 0%, rgba(16, 185, 129, 0) 70%);
-      animation: flash-effect 1.5s ease-out forwards;
+      animation: flash-effect-fast 0.5s ease-out forwards;
     }
 
     .flash-red-animation::after {
       background-image: radial-gradient(circle, rgba(248, 113, 113, 0.7) 0%, rgba(220, 38, 38, 0) 70%);
       animation: flash-effect 1.5s ease-out forwards;
+    }
+
+    @keyframes flash-effect-fast {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+
+      30% {
+        opacity: 1;
+        transform: scale(1.2);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1.5);
+      }
     }
 
     @keyframes flash-effect {

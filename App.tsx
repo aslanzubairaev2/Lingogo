@@ -2977,12 +2977,24 @@ const App: React.FC = () => {
         action
       );
 
-      setIsPracticeAnswerRevealed(true);
+      // При "Знаю" не переворачиваем карточку - пользователь и так знает ответ
+      if (action !== "know") {
+        setIsPracticeAnswerRevealed(true);
+      }
       setPracticeCardEvaluated(action === "know");
       setCurrentPracticePhrase(finalPhraseState);
 
       if (action === "know") {
         if (settings.soundEffects) playCorrectSound();
+        // Озвучиваем фразу при "Знаю" без переворота карточки
+        if (settings.autoSpeak && "speechSynthesis" in window) {
+          const utterance = new SpeechSynthesisUtterance(originalPhrase.text.learning);
+          const learningLang = languageProfile.learning || "de";
+          utterance.lang = SPEECH_LOCALE_MAP[learningLang] || "de-DE";
+          utterance.rate = 0.9;
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(utterance);
+        }
       } else {
         if (settings.soundEffects) playIncorrectSound();
       }

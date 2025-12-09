@@ -252,7 +252,7 @@ const PracticePage: React.FC<PracticePageProps> = (props) => {
         if (!leechModalShown) {
             setTimeout(() => {
                 onContinue();
-            }, 1500);
+            }, 600);
         }
     }, [isExiting, currentPhrase, onUpdateMastery, onContinue]);
 
