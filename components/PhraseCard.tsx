@@ -17,6 +17,7 @@ import ProgressBar from './ProgressBar';
 import { MAX_MASTERY_LEVEL } from '../services/srsService';
 import SoundIcon from './icons/SoundIcon';
 import { useTranslation } from '../src/hooks/useTranslation.ts';
+import { FaMars, FaVenus, FaGenderless } from 'react-icons/fa';
 
 
 interface PhraseCardProps {
@@ -96,6 +97,39 @@ const PhraseCard: React.FC<PhraseCardProps> = ({
   const buttonContainerRefBack = useRef<HTMLDivElement>(null);
 
   const flashRef = useRef<HTMLDivElement>(null);
+
+  const detectedGender = useMemo(() => {
+    const words = phrase.text.learning.split(' ');
+    for (let index = 0; index < words.length; index++) {
+      const word = words[index];
+      const cleanWord = word.replace(/[.,!?]/g, '');
+      if (cleanWord && /^[A-ZÄÖÜ]/.test(cleanWord)) {
+        // 1. Check article (Previous word)
+        if (index > 0) {
+          const prevWord = words[index - 1].toLowerCase().replace(/[.,!?]/g, '');
+          if (prevWord === 'der') return 'male';
+          else if (prevWord === 'die') return 'female';
+          else if (prevWord === 'das') return 'neuter';
+        }
+
+        // 2. Suffix Heuristics (if no article match)
+        const lower = cleanWord.toLowerCase();
+        // Female Suffixes (High reliability)
+        if (/(ung|heit|keit|schaft|tät|ion|ie|ei|enz|anz|ur|ik)$/.test(lower)) {
+          return 'female';
+        }
+        // Neuter Suffixes
+        else if (/(chen|lein|ment|tum|um|ma)$/.test(lower)) {
+          return 'neuter';
+        }
+        // Male Suffixes
+        else if (/(ismus|ling|ig|ich)$/.test(lower)) {
+          return 'male';
+        }
+      }
+    }
+    return null;
+  }, [phrase.text.learning]);
 
   useEffect(() => {
     const flashElement = flashRef.current;
@@ -384,19 +418,31 @@ const PhraseCard: React.FC<PhraseCardProps> = ({
             >
               <SettingsIcon className="w-5 h-5" />
             </button>
-            <div className="text-2xl font-bold text-white flex flex-wrap justify-center items-center gap-x-1">
-              {phrase.text.learning.split(' ').map((word, index) => (
-                <span
-                  key={index}
-                  className={`cursor-pointer hover:bg-white/20 px-1 py-0.5 rounded-md transition-colors ${isWordAnalysisLoading ? 'opacity-50 pointer-events-none' : ''}`}
-                  onClick={(e) => handleLearningWordClick(e, word)}
-                  onPointerDown={(e) => handleWordPointerDown(e, word)}
-                  onPointerUp={clearWordLongPress}
-                  onPointerLeave={clearWordLongPress}
-                >
-                  {word}
-                </span>
-              ))}
+
+            {/* Gender Icon Centered Above Phrase */}
+            {detectedGender && (
+              <div className="mb-4 animate-in fade-in zoom-in duration-300">
+                {detectedGender === 'male' && <FaMars className="w-8 h-8 text-blue-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" />}
+                {detectedGender === 'female' && <FaVenus className="w-8 h-8 text-pink-500 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" />}
+                {detectedGender === 'neuter' && <FaGenderless className="w-8 h-8 text-green-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" />}
+              </div>
+            )}
+
+            <div className="text-2xl font-bold text-white flex flex-wrap justify-center items-center gap-x-1 gap-y-4">
+              {phrase.text.learning.split(' ').map((word, index) => {
+                return (
+                  <span
+                    key={index}
+                    className={`relative cursor-pointer hover:bg-white/20 px-1 py-0.5 rounded-md transition-colors ${isWordAnalysisLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                    onClick={(e) => handleLearningWordClick(e, word)}
+                    onPointerDown={(e) => handleWordPointerDown(e, word)}
+                    onPointerUp={clearWordLongPress}
+                    onPointerLeave={clearWordLongPress}
+                  >
+                    {word}
+                  </span>
+                );
+              })}
             </div>
             {phrase.romanization?.learning && (
               <p className="text-slate-200 mt-3 text-lg font-mono">{phrase.romanization.learning}</p>

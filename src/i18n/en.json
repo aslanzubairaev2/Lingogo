@@ -96,7 +96,8 @@
       "general": "General",
       "automation": "Automation (AI)",
       "categories": "Practice categories",
-      "analytics": "Progress & analytics"
+      "analytics": "Progress & analytics",
+      "maintenance": "Maintenance"
     },
     "general": {
       "legend": "General settings",
@@ -150,6 +151,14 @@
         "noDifficultCards": "No difficult cards yet",
         "emptyState": "No practice data yet",
         "emptyStateHint": "Start practicing cards to see your progress statistics here."
+      }
+    },
+    "maintenance": {
+      "legend": "Data Maintenance",
+      "addArticles": {
+        "label": "Add missing articles",
+        "description": "Automatically add Der/Die/Das to nouns.",
+        "button": "Scan"
       }
     }
   },

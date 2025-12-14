@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import CloseIcon from "./icons/CloseIcon";
 import ArrowLeftIcon from "./icons/ArrowLeftIcon";
 import ArrowRightIcon from "./icons/ArrowRightIcon";
+import ConstructIcon from "./icons/ConstructIcon";
 import { Category, PhraseCategory, PracticeChatSessionRecord } from "../types";
 import { PracticeAnalyticsSummary } from "../services/practiceAnalyticsService";
 import { useTranslation } from "../src/hooks/useTranslation.ts";
@@ -40,6 +41,7 @@ interface SettingsModalProps {
   categories: Category[];
   practiceChatSessions: PracticeChatSessionRecord[]; // DEPRECATED: no longer used for analytics
   practiceAnalyticsSummary: PracticeAnalyticsSummary;
+  onTriggerArticleFix: () => void;
 }
 
 type SettingsView =
@@ -47,7 +49,8 @@ type SettingsView =
   | "general"
   | "automation"
   | "categories"
-  | "analytics";
+  | "analytics"
+  | "maintenance";
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
@@ -58,6 +61,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   categories,
   practiceChatSessions,
   practiceAnalyticsSummary,
+  onTriggerArticleFix,
 }) => {
   const { t } = useTranslation();
   const [view, setView] = useState<SettingsView>("main");
@@ -68,6 +72,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     automation: t("settings.views.automation"),
     categories: t("settings.views.categories"),
     analytics: t("settings.views.analytics"),
+    maintenance: t("settings.views.maintenance"),
   };
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(), []);
@@ -200,9 +205,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="relative h-[480px] overflow-hidden">
           {/* Main Settings View */}
           <div
-            className={`absolute inset-0 p-2 space-y-2 transition-transform duration-300 ease-in-out ${
-              view === "main" ? "translate-x-0" : "-translate-x-full"
-            }`}
+            className={`absolute inset-0 p-2 space-y-2 transition-transform duration-300 ease-in-out ${view === "main" ? "translate-x-0" : "-translate-x-full"
+              }`}
           >
             <button
               onClick={() => setView("analytics")}
@@ -240,13 +244,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               </span>
               <ArrowRightIcon className="w-5 h-5 text-slate-400" />
             </button>
+            <button
+              onClick={() => setView("maintenance")}
+              className="w-full flex items-center justify-between p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <span className="text-left text-slate-200">
+                {t("settings.views.maintenance")}
+              </span>
+              <ArrowRightIcon className="w-5 h-5 text-slate-400" />
+            </button>
           </div>
+
 
           {/* General View */}
           <div
-            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out ${
-              view === "general" ? "translate-x-0" : "translate-x-full"
-            }`}
+            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out ${view === "general" ? "translate-x-0" : "translate-x-full"
+              }`}
           >
             <fieldset className="space-y-4">
               <legend className="sr-only">
@@ -264,14 +277,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     onClick={() =>
                       handleSettingChange("autoSpeak", !settings.autoSpeak)
                     }
-                    className={`${
-                      settings.autoSpeak ? "bg-purple-600" : "bg-slate-600"
-                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                    className={`${settings.autoSpeak ? "bg-purple-600" : "bg-slate-600"
+                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
                   >
                     <span
-                      className={`${
-                        settings.autoSpeak ? "translate-x-6" : "translate-x-1"
-                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                      className={`${settings.autoSpeak ? "translate-x-6" : "translate-x-1"
+                        } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                     />
                   </button>
                 </div>
@@ -287,14 +298,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   onClick={() =>
                     handleSettingChange("soundEffects", !settings.soundEffects)
                   }
-                  className={`${
-                    settings.soundEffects ? "bg-purple-600" : "bg-slate-600"
-                  } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                  className={`${settings.soundEffects ? "bg-purple-600" : "bg-slate-600"
+                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
                 >
                   <span
-                    className={`${
-                      settings.soundEffects ? "translate-x-6" : "translate-x-1"
-                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                    className={`${settings.soundEffects ? "translate-x-6" : "translate-x-1"
+                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                   />
                 </button>
               </div>
@@ -303,9 +312,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Automation View */}
           <div
-            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out ${
-              view === "automation" ? "translate-x-0" : "translate-x-full"
-            }`}
+            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out ${view === "automation" ? "translate-x-0" : "translate-x-full"
+              }`}
           >
             <fieldset className="space-y-4">
               <legend className="sr-only">
@@ -334,18 +342,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         !settings.automation.autoCheckShortPhrases
                       )
                     }
-                    className={`${
-                      settings.automation.autoCheckShortPhrases
-                        ? "bg-purple-600"
-                        : "bg-slate-600"
-                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                    className={`${settings.automation.autoCheckShortPhrases
+                      ? "bg-purple-600"
+                      : "bg-slate-600"
+                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
                   >
                     <span
-                      className={`${
-                        settings.automation.autoCheckShortPhrases
-                          ? "translate-x-6"
-                          : "translate-x-1"
-                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                      className={`${settings.automation.autoCheckShortPhrases
+                        ? "translate-x-6"
+                        : "translate-x-1"
+                        } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                     />
                   </button>
                 </div>
@@ -373,18 +379,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         !settings.automation.learnNextPhraseHabit
                       )
                     }
-                    className={`${
-                      settings.automation.learnNextPhraseHabit
-                        ? "bg-purple-600"
-                        : "bg-slate-600"
-                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                    className={`${settings.automation.learnNextPhraseHabit
+                      ? "bg-purple-600"
+                      : "bg-slate-600"
+                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
                   >
                     <span
-                      className={`${
-                        settings.automation.learnNextPhraseHabit
-                          ? "translate-x-6"
-                          : "translate-x-1"
-                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                      className={`${settings.automation.learnNextPhraseHabit
+                        ? "translate-x-6"
+                        : "translate-x-1"
+                        } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                     />
                   </button>
                 </div>
@@ -394,9 +398,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Categories View */}
           <div
-            className={`absolute inset-0 p-2 space-y-4 transition-transform duration-300 ease-in-out hide-scrollbar overflow-y-auto ${
-              view === "categories" ? "translate-x-0" : "translate-x-full"
-            }`}
+            className={`absolute inset-0 p-2 space-y-4 transition-transform duration-300 ease-in-out hide-scrollbar overflow-y-auto ${view === "categories" ? "translate-x-0" : "translate-x-full"
+              }`}
           >
             <div className="bg-slate-900/50 p-4 rounded-lg space-y-4 h-[85%] flex flex-col justify-between overflow-y-auto">
               {categories.map((category) => (
@@ -426,18 +429,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                           !(settings.enabledCategories[category.id] ?? true)
                         )
                       }
-                      className={`${
-                        settings.enabledCategories[category.id] ?? true
-                          ? "bg-purple-600"
-                          : "bg-slate-600"
-                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                      className={`${settings.enabledCategories[category.id] ?? true
+                        ? "bg-purple-600"
+                        : "bg-slate-600"
+                        } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
                     >
                       <span
-                        className={`${
-                          settings.enabledCategories[category.id] ?? true
-                            ? "translate-x-6"
-                            : "translate-x-1"
-                        } inline-block h-4 min-w-4 transform rounded-full bg-white transition-transform`}
+                        className={`${settings.enabledCategories[category.id] ?? true
+                          ? "translate-x-6"
+                          : "translate-x-1"
+                          } inline-block h-4 min-w-4 transform rounded-full bg-white transition-transform`}
                       />
                     </button>
                   </div>
@@ -454,9 +455,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Analytics View - SRS Practice Analytics */}
           <div
-            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out hide-scrollbar overflow-y-auto ${
-              view === "analytics" ? "translate-x-0" : "translate-x-full"
-            }`}
+            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out hide-scrollbar overflow-y-auto ${view === "analytics" ? "translate-x-0" : "translate-x-full"
+              }`}
           >
             {practiceAnalyticsSummary.totals.totalCards > 0 ? (
               <>
@@ -740,6 +740,39 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 </p>
               </div>
             )}
+          </div>
+
+          {/* Maintenance View */}
+          <div
+            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out ${view === "maintenance" ? "translate-x-0" : "translate-x-full"
+              }`}
+          >
+            <fieldset className="space-y-4">
+              <legend className="sr-only">{t("settings.maintenance.legend")}</legend>
+
+              <div className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg border border-slate-700/50">
+                <div className="flex-1 pr-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <ConstructIcon className="w-4 h-4 text-slate-400" />
+                    <label className="text-sm font-medium text-slate-200">
+                      {t("settings.maintenance.addArticles.label")}
+                    </label>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    {t("settings.maintenance.addArticles.description")}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    handleClose();
+                    onTriggerArticleFix();
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-lg shadow-lg transition-all active:scale-95"
+                >
+                  {t("settings.maintenance.addArticles.button")}
+                </button>
+              </div>
+            </fieldset>
           </div>
         </div>
       </div>

@@ -179,9 +179,26 @@ export interface ProactiveSuggestion {
 }
 
 // Chat-specific suggestion with title and content parts
-export interface ChatProactiveSuggestion {
+export interface DeepDiveAnalysis {
+  stages: {
+    deconstruction: string;
+    personalization: string;
+    encoding: string;
+  };
+}
+
+export interface PhraseEvaluation {
+  score: number;
+  feedback: string;
+}
+
+export interface BookRecord {
+  id: string;
   title: string;
-  contentParts: ContentPart[];
+  author: string;
+  coverUrl?: string;
+  progress: number;
+  totalChapters?: number;
 }
 
 export interface ChatMessage {

@@ -53,6 +53,8 @@ import ChatModal from "./components/ChatModal";
 import SettingsModal from "./components/SettingsModal";
 import DeepDiveModal from "./components/DeepDiveModal";
 import MovieExamplesModal from "./components/MovieExamplesModal";
+import { useAddArticles } from "./hooks/useAddArticles";
+import AddArticlesModal from "./components/AddArticlesModal";
 import WordAnalysisModal from "./components/WordAnalysisModal";
 import VerbConjugationModal from "./components/VerbConjugationModal";
 import NounDeclensionModal from "./components/NounDeclensionModal";
@@ -3194,6 +3196,24 @@ const App: React.FC = () => {
     }
   );
 
+  const addArticlesState = useAddArticles(
+    allPhrases,
+    apiProvider,
+    async (fixedPhrases) => {
+      for (const phrase of fixedPhrases) {
+        try {
+          await backendService.updatePhrase(phrase);
+        } catch (error) {
+          console.error("[AddArticles] Failed to update phrase:", phrase.id, error);
+        }
+      }
+      updateAndSavePhrases((prev) => {
+        const fixedMap = new Map(fixedPhrases.map((p) => [p.id, p]));
+        return prev.map((p) => fixedMap.get(p.id) || p);
+      });
+    }
+  );
+
   const renderCurrentView = () => {
     switch (view) {
       case "practice":
@@ -3372,6 +3392,7 @@ const App: React.FC = () => {
         practiceChatSessions={practiceChatSessions}
         practiceAnalyticsSummary={practiceAnalyticsSummary}
         onOpenCategoryManager={() => setIsCategoryManagerModalOpen(true)}
+        onTriggerArticleFix={addArticlesState.analyze}
       />
       {deepDivePhrase && (
         <AiErrorBoundary componentName="Deep Dive">
@@ -3764,7 +3785,11 @@ const App: React.FC = () => {
           />
         );
       })()}
-      {/* <AutoFixModal state={autoFixState.state} onDismiss={autoFixState.reset} /> */}
+      <AddArticlesModal
+        state={addArticlesState.state}
+        onDismiss={addArticlesState.reset}
+        onStartFix={addArticlesState.startFix}
+      />
     </div>
   );
 };

@@ -191,7 +191,8 @@ const phraseSchema = () => {
             properties: {
                 [lang.learningCode]: {
                     type: Type.STRING,
-                    description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
+
+                    description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field. IMPORTANT: For German nouns, ALWAYS include the correct article (der, die, das) if it is missing (e.g., 'der Hund' instead of 'Hund').`,
                 },
                 [lang.nativeCode]: {
                     type: Type.STRING,
@@ -430,7 +431,7 @@ const cardsFromTranscriptSchema = () => {
             properties: {
                 [lang.learningCode]: {
                     type: Type.STRING,
-                    description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
+                    description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field. IMPORTANT: For German nouns, ALWAYS include the correct article (der, die, das).`,
                 },
                 [lang.nativeCode]: {
                     type: Type.STRING,
@@ -515,7 +516,7 @@ const imageCardsWithCategorySchema = () => {
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        [lang.learningCode]: { type: Type.STRING, description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.` },
+                        [lang.learningCode]: { type: Type.STRING, description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field. IMPORTANT: For German nouns, ALWAYS include the correct article.` },
                         [lang.nativeCode]: { type: Type.STRING, description: `The phrase in ${lang.native}.` },
                         ...(requiresRomanization(lang.learningCode) ? {
                             romanization: { type: Type.STRING, description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.` }
@@ -540,6 +541,7 @@ const generateCardsFromImage: AiService['generateCardsFromImage'] = async (image
     const lang = getLang();
 
     const prompt = `You are an AI assistant for learning ${lang.learning}. Your task is to create flashcards from an image.
+    IMPORTANT: If the target language is German, ALWAYS include the definite article (der, die, das) for every noun.
 
 **1. HIGHEST PRIORITY: User's Refinement**
 First, check if the user provided a specific instruction. If they did, YOU MUST FOLLOW IT EXACTLY. It overrides all other rules.
@@ -618,7 +620,7 @@ const generateTopicCards: AiService['generateTopicCards'] = async (topic, refine
 
 Твоя задача:
 1.  Проанализируй запрос пользователя.
-2.  Сгенерируй список из 10-15 полезных, разнообразных ${lang.learning} слов и фраз с ${lang.native} переводом по этой теме. Фразы должны быть естественными и часто употребимыми.
+2.  Сгенерируй список из 10-15 полезных, разнообразных ${lang.learning} слов и фраз с ${lang.native} переводом по этой теме. Фразы должны быть естественными и часто употребимыми. Если это немецкие существительные, ОБЯЗАТЕЛЬНО добавляй артикль (der, die, das).
 3.  Верни результат ТОЛЬКО как JSON-массив объектов. Каждый объект должен иметь два ключа: '${lang.nativeCode}' и '${lang.learningCode}'.`;
 
     try {
