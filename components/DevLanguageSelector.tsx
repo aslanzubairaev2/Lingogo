@@ -1,6 +1,6 @@
 import React from 'react';
 import type { LanguageCode } from '../types.ts';
-import { LANGUAGE_LABELS, getLanguageLabel } from '../src/i18n/languageMeta.ts';
+import { LANGUAGE_OPTIONS, getLanguageName } from '../src/i18n/languageMeta.ts';
 import { useTranslation } from '../src/hooks/useTranslation.ts';
 
 interface DevLanguageSelectorProps {
@@ -34,19 +34,18 @@ const DevLanguageSelector: React.FC<DevLanguageSelectorProps> = ({ visible, sele
         <div className="h-full flex-1 px-6 py-5 space-y-6 overflow-auto">
           <div className="h-full overflow-auto pr-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-20">
-              {(Object.keys(LANGUAGE_LABELS) as LanguageCode[]).map((code) => (
+              {LANGUAGE_OPTIONS.map((lang) => (
                 <button
-                  key={code}
+                  key={lang.code}
                   type="button"
-                  onClick={() => onSelect(code)}
-                  className={`rounded-xl border px-4 py-3 text-left transition-all ${
-                    code === selectedLanguage
-                      ? 'border-cyan-400 bg-cyan-500/10 text-cyan-100 shadow-cyan-500/20'
-                      : 'border-slate-700 bg-slate-900/70 text-slate-200 hover:border-slate-500 hover:bg-slate-800'
-                  }`}
+                  onClick={() => onSelect(lang.code)}
+                  className={`rounded-xl border px-4 py-3 text-left transition-all ${lang.code === selectedLanguage
+                    ? 'border-cyan-400 bg-cyan-500/10 text-cyan-100 shadow-cyan-500/20'
+                    : 'border-slate-700 bg-slate-900/70 text-slate-200 hover:border-slate-500 hover:bg-slate-800'
+                    }`}
                 >
-                  <p className="font-semibold text-base">{getLanguageLabel(code)}</p>
-                  <p className="text-xs text-slate-400 mt-1 uppercase tracking-wide">{code}</p>
+                  <p className="font-semibold text-base">{getLanguageName(lang.code)}</p>
+                  <p className="text-xs text-slate-400 mt-1 uppercase tracking-wide">{lang.code}</p>
                 </button>
               ))}
             </div>

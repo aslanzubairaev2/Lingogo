@@ -1,26 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import SoundIcon from './icons/SoundIcon';
 import { useLanguage } from '../src/contexts/languageContext';
+import { getSpeechLocale } from '../src/i18n/languageMeta';
 
 interface AudioPlayerProps {
   textToSpeak: string;
 }
-
-// Map language codes to speech synthesis locale codes
-const SPEECH_LOCALE_MAP: Record<string, string> = {
-  'en': 'en-US',
-  'de': 'de-DE',
-  'ru': 'ru-RU',
-  'fr': 'fr-FR',
-  'es': 'es-ES',
-  'it': 'it-IT',
-  'pt': 'pt-PT',
-  'pl': 'pl-PL',
-  'zh': 'zh-CN',
-  'ja': 'ja-JP',
-  'ar': 'ar-SA',
-  'hi': 'hi-IN',
-};
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ textToSpeak }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -33,10 +18,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ textToSpeak }) => {
   useEffect(() => {
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     // Use learning language from profile
-    const learningLang = profile.learning || 'de';
-    utterance.lang = SPEECH_LOCALE_MAP[learningLang] || 'de-DE';
+    utterance.lang = getSpeechLocale(profile.learning);
     utterance.rate = 0.9;
-    
+
     const handleEnd = () => setIsPlaying(false);
     utterance.addEventListener('end', handleEnd);
     utterance.addEventListener('error', handleEnd);
@@ -53,10 +37,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ textToSpeak }) => {
 
   const handlePlay = () => {
     if (!utteranceRef.current || isDisabled) return;
-    
+
     // Stop any other speech before starting a new one
     window.speechSynthesis.cancel();
-    
+
     setIsPlaying(true);
     window.speechSynthesis.speak(utteranceRef.current);
   };

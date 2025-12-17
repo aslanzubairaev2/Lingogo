@@ -1,23 +1,6 @@
 import type { LanguageCode, LanguageProfile } from '../types';
+import { getSpeechLocale } from '../src/i18n/languageMeta';
 
-/**
- * Mapping of language codes to Web Speech API locale codes
- * Centralized source of truth for speech synthesis
- */
-export const SPEECH_LOCALE_MAP: Record<LanguageCode, string> = {
-  en: 'en-US',
-  de: 'de-DE',
-  ru: 'ru-RU',
-  fr: 'fr-FR',
-  es: 'es-ES',
-  it: 'it-IT',
-  pt: 'pt-PT',
-  pl: 'pl-PL',
-  zh: 'zh-CN',
-  ja: 'ja-JP',
-  ar: 'ar-SA',
-  hi: 'hi-IN',
-};
 
 /**
  * Options for speech synthesis
@@ -78,13 +61,8 @@ export const speak = (text: string, options: SpeechOptions): void => {
   const utterance = new SpeechSynthesisUtterance(text);
 
   // Set language locale
-  const locale = SPEECH_LOCALE_MAP[options.lang];
-  if (!locale) {
-    console.warn(`[speechService] Unknown language code: ${options.lang}, falling back to en-US`);
-    utterance.lang = 'en-US';
-  } else {
-    utterance.lang = locale;
-  }
+  const locale = getSpeechLocale(options.lang);
+  utterance.lang = locale;
 
   // Set speech parameters
   utterance.rate = options.rate ?? 0.9;
@@ -158,7 +136,7 @@ export const isVoiceAvailable = (lang: LanguageCode): boolean => {
   if (!isSpeechSupported()) return false;
 
   const voices = window.speechSynthesis.getVoices();
-  const locale = SPEECH_LOCALE_MAP[lang];
+  const locale = getSpeechLocale(lang);
 
   if (!locale) return false;
 
@@ -179,7 +157,7 @@ export const getVoicesForLanguage = (lang: LanguageCode): SpeechSynthesisVoice[]
   if (!isSpeechSupported()) return [];
 
   const voices = window.speechSynthesis.getVoices();
-  const locale = SPEECH_LOCALE_MAP[lang];
+  const locale = getSpeechLocale(lang);
 
   if (!locale) return [];
 
@@ -195,9 +173,7 @@ export const getVoicesForLanguage = (lang: LanguageCode): SpeechSynthesisVoice[]
  * @param lang - Language code
  * @returns Locale string (e.g., 'en-US')
  */
-export const getSpeechLocale = (lang: LanguageCode): string => {
-  return SPEECH_LOCALE_MAP[lang] || 'en-US';
-};
+export { getSpeechLocale };
 
 /**
  * Initialize speech synthesis (load voices)
@@ -236,7 +212,7 @@ export const initializeSpeech = (): Promise<void> => {
  * @returns Speech recognition locale string (e.g., 'de-DE')
  */
 export const getLearningSpeechLocale = (profile: LanguageProfile): string => {
-  return SPEECH_LOCALE_MAP[profile.learning] || 'de-DE';
+  return getSpeechLocale(profile.learning);
 };
 
 /**
@@ -245,7 +221,7 @@ export const getLearningSpeechLocale = (profile: LanguageProfile): string => {
  * @returns Speech recognition locale string (e.g., 'ru-RU')
  */
 export const getNativeSpeechLocale = (profile: LanguageProfile): string => {
-  return SPEECH_LOCALE_MAP[profile.native] || 'ru-RU';
+  return getSpeechLocale(profile.native);
 };
 
 /**
@@ -256,5 +232,5 @@ export const getNativeSpeechLocale = (profile: LanguageProfile): string => {
  */
 export const getSpeechLocaleFromProfile = (profile: LanguageProfile, languageType: 'learning' | 'native'): string => {
   const langCode = languageType === 'learning' ? profile.learning : profile.native;
-  return SPEECH_LOCALE_MAP[langCode] || (languageType === 'learning' ? 'de-DE' : 'ru-RU');
+  return getSpeechLocale(langCode);
 };

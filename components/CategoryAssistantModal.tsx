@@ -17,7 +17,8 @@ import ListIcon from './icons/ListIcon';
 import Spinner from './Spinner';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useLanguage } from '../src/contexts/languageContext';
-import { SPEECH_LOCALE_MAP, getNativeSpeechLocale } from '../services/speechService';
+import { getSpeechLocale } from '../src/i18n/languageMeta';
+import { getNativeSpeechLocale } from '../services/speechService';
 
 interface CategoryAssistantModalProps {
     isOpen: boolean;
@@ -250,8 +251,7 @@ const CategoryAssistantModal: React.FC<CategoryAssistantModalProps> = (props) =>
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             // Use learning language from profile for correct pronunciation
-            const learningLang = profile.learning || 'de';
-            utterance.lang = SPEECH_LOCALE_MAP[learningLang] || 'de-DE';
+            utterance.lang = getSpeechLocale(profile.native);
             utterance.rate = 0.9;
             window.speechSynthesis.speak(utterance);
         }

@@ -7,8 +7,7 @@ import SendIcon from './icons/SendIcon';
 import PhraseCardSkeleton from './PhraseCardSkeleton';
 import { useTranslation } from '../src/hooks/useTranslation.ts';
 import { LanguageContext } from '../src/contexts/languageContext.tsx';
-import { SPEECH_LOCALE_MAP } from '../constants/speechLocales';
-import { getLanguageLabel } from '../services/languageLabels';
+import { getSpeechLocale, getLanguageLabel } from '../src/i18n/languageMeta.ts';
 
 interface AddPhraseModalProps {
   isOpen: boolean;
@@ -80,7 +79,7 @@ const AddPhraseModal: React.FC<AddPhraseModalProps> = ({
     if (!SpeechRecognitionAPI) return;
 
     const recognition = new SpeechRecognitionAPI();
-    recognition.lang = SPEECH_LOCALE_MAP[language] || 'en-US';
+    recognition.lang = getSpeechLocale(language);
     recognition.interimResults = true;
     recognition.continuous = false;
 

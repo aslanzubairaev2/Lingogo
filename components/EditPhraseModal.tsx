@@ -9,7 +9,7 @@ import AudioPlayer from './AudioPlayer';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useLanguage } from '../src/contexts/languageContext';
 import { getNativeSpeechLocale } from '../services/speechService';
-import { getLanguageNameInEnglish } from '../services/languageLabels';
+import { getLanguageNameInEnglish } from '../src/i18n/languageMeta.ts';
 
 interface EditPhraseModalProps {
     isOpen: boolean;

@@ -9,7 +9,7 @@ import SoundIcon from './icons/SoundIcon';
 import CheckIcon from './icons/CheckIcon';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useLanguage } from '../src/contexts/languageContext';
-import { SPEECH_LOCALE_MAP } from '../constants/speechLocales';
+import { getSpeechLocale } from '../src/i18n/languageMeta';
 import { getNativeSpeechLocale } from '../services/speechService';
 
 interface DiscussTranslationModalProps {
@@ -210,8 +210,7 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({ isOpe
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             // Use learning language from profile for correct pronunciation
-            const learningLang = profile.learning || 'de';
-            utterance.lang = SPEECH_LOCALE_MAP[learningLang] || 'de-DE';
+            utterance.lang = getSpeechLocale(profile.learning);
             utterance.rate = 0.9;
             window.speechSynthesis.speak(utterance);
         }

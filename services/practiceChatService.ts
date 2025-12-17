@@ -13,6 +13,7 @@
  */
 
 import { GoogleGenAI, Type } from '@google/genai';
+import i18n from '../src/i18n/config';
 import type {
   Phrase,
   LanguageProfile,
@@ -20,6 +21,7 @@ import type {
   PracticeChatAIResponse,
   PracticeChatMessageType,
 } from '../types';
+import { getLanguageName } from '@/src/i18n/languageMeta';
 
 // Retry helper (from geminiService.ts)
 async function retryWithExponentialBackoff<T>(
@@ -55,22 +57,6 @@ async function retryWithExponentialBackoff<T>(
 
   throw lastError || new Error('Max retries exceeded');
 }
-
-// Language name mapping
-const LANGUAGE_NAMES: Record<string, string> = {
-  en: 'English',
-  de: 'German',
-  ru: 'Russian',
-  fr: 'French',
-  es: 'Spanish',
-  it: 'Italian',
-  pt: 'Portuguese',
-  pl: 'Polish',
-  zh: 'Chinese',
-  ja: 'Japanese',
-  ar: 'Arabic',
-  hi: 'Hindi',
-};
 
 /**
  * Simplified JSON Schema for Practice Chat
@@ -156,49 +142,10 @@ function createFallbackResponse(
   errorMessage: string,
   lang: LanguageProfile
 ): PracticeChatMessage {
-  const fallbackPrimaryTexts: Record<string, string> = {
-    de: 'Entschuldigung',
-    en: 'Sorry',
-    fr: 'Désolé',
-    es: 'Lo siento',
-    it: 'Mi dispiace',
-    pt: 'Desculpa',
-    pl: 'Przepraszam',
-    zh: '对不起',
-    ja: 'ごめんなさい',
-    ar: 'عذرًا',
-  };
+  const fallbackPrimary = i18n.t('practice.chat.fallback.primary', { lng: lang.learning });
+  const fallbackTranslation = i18n.t('practice.chat.fallback.translation', { lng: lang.native });
+  const retry = i18n.t('practice.chat.fallback.retry', { lng: lang.learning });
 
-  const fallbackTranslations: Record<string, string> = {
-    de: 'Entschuldigung',
-    en: 'Sorry',
-    ru: 'Извините',
-    fr: 'Désolé',
-    es: 'Lo siento',
-    it: 'Mi dispiace',
-    pt: 'Desculpa',
-    pl: 'Przepraszam',
-    zh: '对不起',
-    ja: 'ごめんなさい',
-    ar: 'عذرًا',
-  };
-
-  const retrySuggestions: Record<string, string> = {
-    de: 'Noch einmal',
-    en: 'Try again',
-    fr: 'Encore',
-    es: 'Otra vez',
-    it: 'Ancora una volta',
-    pt: 'Mais uma vez',
-    pl: 'Jeszcze raz',
-    zh: '再试一次',
-    ja: 'もう一度',
-    ar: 'حاول مرة أخرى',
-  };
-
-  const fallbackPrimary = fallbackPrimaryTexts[lang.learning] ?? fallbackPrimaryTexts.en;
-  const fallbackTranslation = fallbackTranslations[lang.native] ?? fallbackTranslations.en;
-  const retry = retrySuggestions[lang.learning] ?? retrySuggestions.en;
 
   return {
     role: 'assistant',
@@ -302,8 +249,8 @@ export async function sendPracticeChatMessage(
   const api = new GoogleGenAI({ apiKey });
   const model = 'gemini-2.0-flash-exp';
 
-  const learningLang = LANGUAGE_NAMES[languageProfile.learning] || languageProfile.learning;
-  const nativeLang = LANGUAGE_NAMES[languageProfile.native] || languageProfile.native;
+  const learningLang = getLanguageName(languageProfile.learning);
+  const nativeLang = getLanguageName(languageProfile.native);
 
   // Build vocabulary list (limit to 30 phrases for context window)
   const vocabList = userVocabulary
@@ -494,81 +441,20 @@ export function createInitialGreeting(
   languageProfile: LanguageProfile,
   userVocabulary: Phrase[]
 ): PracticeChatMessage {
-  const learningLang = LANGUAGE_NAMES[languageProfile.learning] || languageProfile.learning;
-  const nativeLang = LANGUAGE_NAMES[languageProfile.native] || languageProfile.native;
+  const learningLang = getLanguageName(languageProfile.learning);
+  const nativeLang = getLanguageName(languageProfile.native);
 
   // Greeting templates by learning language
-  const greetingTexts: Record<string, string> = {
-    de: 'Hallo! Lass uns Deutsch üben!',
-    en: 'Hello! Let\'s practice English!',
-    fr: 'Bonjour! Pratiquons le français!',
-    es: '¡Hola! ¡Practiquemos español!',
-    it: 'Ciao! Pratichiamo l\'italiano!',
-    pt: 'Olá! Vamos praticar português!',
-    pl: 'Cześć! Ćwiczmy polski!',
-    zh: '你好！让我们练习中文！',
-    ja: 'こんにちは！日本語を練習しましょう！',
-    ar: 'مرحبا! دعونا نمارس العربية!',
-    hi: 'नमस्ते! चलो हिंदी का अभ्यास करें!',
-    mr: 'नमस्कार! मराठी सराव करूया!',
-  };
-
-  const greetingText = greetingTexts[languageProfile.learning] || greetingTexts['en'];
-
-  // Generate translation dynamically for ANY native language
-  // Format: "Hello! Let's practice [LearningLanguage]!" in native language
-  const greetingTranslations: Record<string, string> = {
-    ru: `Привет! Давай практиковать ${learningLang.toLowerCase()}!`,
-    en: `Hello! Let's practice ${learningLang}!`,
-    de: `Hallo! Lass uns ${learningLang} üben!`,
-    fr: `Bonjour! Pratiquons le ${learningLang.toLowerCase()}!`,
-    es: `¡Hola! ¡Practiquemos ${learningLang.toLowerCase()}!`,
-    it: `Ciao! Pratichiamo l'${learningLang.toLowerCase()}!`,
-    pt: `Olá! Vamos praticar ${learningLang.toLowerCase()}!`,
-    pl: `Cześć! Poćwiczmy ${learningLang.toLowerCase()}!`,
-    zh: `你好！让我们练习${learningLang}！`,
-    ja: `こんにちは！${learningLang}を練習しましょう！`,
-    ar: `مرحبًا! لنتمرن على ${learningLang}!`,
-    hi: `नमस्ते! चलो ${learningLang} का अभ्यास करें!`,
-    mr: `नमस्कार! ${learningLang} सराव करूया!`,
-  };
-
-  const greetingTranslation = greetingTranslations[languageProfile.native] ||
-    `Hello! Let's practice ${learningLang}!`; // Fallback to English if native language not found
-
-  const suggestionsByLang: Record<string, string[]> = {
-    de: ['Hallo!', 'Guten Tag!', 'Ja, gerne!'],
-    en: ['Hello!', 'Hi!', 'Yes, let\'s go!'],
-    fr: ['Bonjour!', 'Salut!', 'Oui, d\'accord!'],
-    es: ['¡Hola!', '¡Buenos días!', '¡Sí, claro!'],
-    it: ['Ciao!', 'Buongiorno!', 'Sì, certo!'],
-    pt: ['Olá!', 'Bom dia!', 'Sim, vamos!'],
-    pl: ['Cześć!', 'Dzień dobry!', 'Tak, chętnie!'],
-    zh: ['你好！', '早上好！', '好的！'],
-    ja: ['こんにちは！', 'おはよう！', 'はい！'],
-    ar: ['مرحبا!', 'صباح الخير!', 'نعم!'],
-    hi: ['नमस्ते!', 'चलो शुरू करें!', 'मैं तैयार हूँ!'],
-    mr: ['नमस्कार!', 'चालू करूया!', 'मी तयार आहे!'],
-  };
-
-  const suggestions = suggestionsByLang[languageProfile.learning] || suggestionsByLang['en'];
-
-  // Explanations in native language
-  const explanations: Record<string, string> = {
-    ru: 'Я буду вести с тобой естественный разговор используя фразы из твоего словаря. Давай начнем!',
-    en: `I'll have a natural conversation with you using phrases from your vocabulary. Let's begin!`,
-    de: 'Ich werde ein natürliches Gespräch mit dir führen und dabei Phrasen aus deinem Vokabular verwenden. Lass uns beginnen!',
-    fr: 'Je vais avoir une conversation naturelle avec toi en utilisant des phrases de ton vocabulaire. Commençons!',
-    es: 'Voy a tener una conversación natural contigo usando frases de tu vocabulario. ¡Empecemos!',
-    it: 'Avrò una conversazione naturale con te usando frasi dal tuo vocabolario. Cominciamo!',
-    pt: 'Vou ter uma conversa natural contigo usando frases do teu vocabulário. Vamos começar!',
-    pl: 'Będę prowadzić naturalną rozmowę z tobą używając fraz z twojego słownictwa. Zacznijmy!',
-    zh: '我会用你词汇表中的短语与你进行自然对话。让我们开始吧！',
-    ja: 'あなたの語彙のフレーズを使って自然な会話をします。始めましょう！',
-    ar: 'سأجري محادثة طبيعية معك باستخدام عبارات من مفرداتك. لنبدأ!',
-    hi: 'मैं आपकी शब्दावली के वाक्यांशों का उपयोग करके आपके साथ एक प्राकृतिक बातचीत करूंगा। चलो शुरू करें!',
-    mr: 'मी तुमच्या शब्दसंग्रहातील वाक्यांश वापरून तुमच्याशी नैसर्गिक संवाद करेन. चला सुरू करूया!',
-  };
+  const greetingText = i18n.t('practice.chat.greeting.text', { lng: languageProfile.learning });
+  const greetingTranslation = i18n.t('practice.chat.greeting.translation', {
+    lng: languageProfile.native,
+    language: learningLang
+  });
+  const suggestions = i18n.t('practice.chat.greeting.suggestions', {
+    lng: languageProfile.learning,
+    returnObjects: true
+  }) as string[];
+  const explanation = i18n.t('practice.chat.greeting.explanation', { lng: languageProfile.native });
 
   return {
     role: 'assistant',
@@ -579,7 +465,7 @@ export function createInitialGreeting(
         translation: greetingTranslation
       },
       secondary: {
-        text: explanations[languageProfile.native] || explanations['en']
+        text: explanation
       }
     },
     actions: {
