@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as backendService from '../../services/backendService';
 import * as configService from '../../services/configService';
-import type { LanguageCode } from '../../types';
+import { SUPPORTED_LANGUAGE_CODES, type LanguageCode } from '../../types';
 
 interface UseLanguageOnboardingResult {
   needsOnboarding: boolean;
@@ -27,8 +27,7 @@ const detectBrowserLanguage = (): LanguageCode => {
     return 'en';
   }
   const base = navigator.language.split('-')[0].toLowerCase();
-  const SUPPORTED_LANGS = ['en', 'de', 'ru', 'fr', 'es', 'it', 'pt', 'pl', 'zh', 'ja', 'ar', 'hi', 'mr'];
-  return (SUPPORTED_LANGS.includes(base) ? base : 'en') as LanguageCode;
+  return (SUPPORTED_LANGUAGE_CODES.includes(base) ? base : 'en') as LanguageCode;
 };
 
 export const useLanguageOnboarding = (userId: string | null): UseLanguageOnboardingResult => {

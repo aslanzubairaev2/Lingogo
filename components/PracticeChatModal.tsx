@@ -8,7 +8,8 @@ import MicrophoneIcon from './icons/MicrophoneIcon';
 import MessageQuestionIcon from './icons/MessageQuestionIcon';
 import { useTranslation } from '../src/hooks/useTranslation.ts';
 import { useLanguage } from '../src/contexts/languageContext';
-import { SPEECH_LOCALE_MAP, getLearningSpeechLocale } from '../services/speechService';
+import { getSpeechLocale } from '../src/i18n/languageMeta';
+import { getLearningSpeechLocale } from '../services/speechService';
 
 // Reusing a similar component from other chat modals for consistent UI
 import ChatContextMenu from './ChatContextMenu';
@@ -145,7 +146,7 @@ const PracticeChatModal: React.FC<PracticeChatModalProps> = ({ isOpen, onClose, 
       const utterance = new SpeechSynthesisUtterance(text);
       // Use learning language from profile for correct pronunciation
       const learningLang = profile.learning || 'de';
-      utterance.lang = SPEECH_LOCALE_MAP[learningLang] || 'de-DE';
+      utterance.lang = getSpeechLocale(learningLang);
       utterance.rate = 0.9;
       window.speechSynthesis.speak(utterance);
     }

@@ -304,6 +304,21 @@
         "errorPrefix": "त्रुटि: {{message}}",
         "unknownError": "अज्ञात त्रुटि"
       },
+      "fallback": {
+        "primary": "क्षमा माँगना",
+        "translation": "क्षमा माँगना",
+        "retry": "पुनः प्रयास करें"
+      },
+      "greeting": {
+        "text": "नमस्ते! चलो हिंदी का अभ्यास करें!",
+        "translation": "नमस्ते! चलो {{language}} का अभ्यास करें!",
+        "suggestions": [
+          "नमस्ते!",
+          "चलो शुरू करें!",
+          "मैं तैयार हूँ!"
+        ],
+        "explanation": "मैं आपकी शब्दावली के वाक्यांशों का उपयोग करके आपके साथ एक प्राकृतिक बातचीत करूंगा। चलो शुरू करें!"
+      },
       "stats": {
         "phrasesUsed_zero": "{{count}} वाक्यांश दोहराए गए",
         "phrasesUsed_one": "{{count}} वाक्यांश दोहराया गया",
@@ -1102,5 +1117,8 @@
       "playTranslation": "अनुवाद बोलें",
       "moreActions": "अतिरिक्त कार्रवाइयाँ"
     }
+  },
+  "gemini": {
+    "personNumberExample": "प्रथम पुरुष, एकवचन"
   }
 }

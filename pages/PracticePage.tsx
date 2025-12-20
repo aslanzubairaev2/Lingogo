@@ -15,7 +15,7 @@ import PlusIcon from '../components/icons/PlusIcon';
 import SettingsIcon from '../components/icons/SettingsIcon';
 import { useTranslation } from '../src/hooks/useTranslation.ts';
 import { useLanguage } from '../src/contexts/languageContext';
-
+import { getSpeechLocale } from '../src/i18n/languageMeta';
 
 const SWIPE_THRESHOLD = 50; // pixels
 
@@ -174,21 +174,6 @@ const CategoryFilter: React.FC<{
 };
 
 
-const SPEECH_LOCALE_MAP: Record<string, string> = {
-    'en': 'en-US',
-    'de': 'de-DE',
-    'ru': 'ru-RU',
-    'fr': 'fr-FR',
-    'es': 'es-ES',
-    'it': 'it-IT',
-    'pt': 'pt-PT',
-    'pl': 'pl-PL',
-    'zh': 'zh-CN',
-    'ja': 'ja-JP',
-    'ar': 'ar-SA',
-    'hi': 'hi-IN',
-};
-
 const PracticePage: React.FC<PracticePageProps> = (props) => {
     const {
         currentPhrase, isAnswerRevealed, onSetIsAnswerRevealed, isCardEvaluated, animationState, isExiting, unmasteredCount, currentPoolCount,
@@ -223,8 +208,7 @@ const PracticePage: React.FC<PracticePageProps> = (props) => {
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             // Использовать реальный язык из профиля вместо переданного параметра
-            const learningLang = profile.learning || 'de';
-            utterance.lang = SPEECH_LOCALE_MAP[learningLang] || 'de-DE';
+            utterance.lang = getSpeechLocale(profile.learning);
             utterance.rate = 0.9;
             window.speechSynthesis.speak(utterance);
         }

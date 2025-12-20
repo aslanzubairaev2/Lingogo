@@ -304,6 +304,21 @@
         "errorPrefix": "错误: {{message}}",
         "unknownError": "未知错误"
       },
+      "fallback": {
+        "primary": "对不起",
+        "translation": "对不起",
+        "retry": "再试一次"
+      },
+      "greeting": {
+        "text": "你好！让我们练习中文！",
+        "translation": "你好！让我们练习{{language}}！",
+        "suggestions": [
+          "你好！",
+          "早上好！",
+          "好的！"
+        ],
+        "explanation": "我会用你词汇表中的短语与你进行自然对话。让我们开始吧！"
+      },
       "stats": {
         "phrasesUsed_zero": "{{count}} 个短语已复习",
         "phrasesUsed_one": "{{count}} 个短语已复习",
@@ -1102,5 +1117,8 @@
       "playTranslation": "发音翻译",
       "moreActions": "更多操作"
     }
+  },
+  "gemini": {
+    "personNumberExample": "第一人称，单数"
   }
 }

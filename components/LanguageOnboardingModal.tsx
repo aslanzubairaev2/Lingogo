@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { LanguageCode } from '../types';
+import { LANGUAGE_OPTIONS } from '../src/i18n/languageMeta';
+
 
 interface LanguageOnboardingModalProps {
   isOpen: boolean;
@@ -7,22 +9,6 @@ interface LanguageOnboardingModalProps {
   isGeneratingData?: boolean;
   onComplete: (nativeLanguage: LanguageCode, learningLanguage: LanguageCode) => void;
 }
-
-const LANGUAGE_OPTIONS: { code: LanguageCode; name: string; nativeName: string }[] = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'ru', name: 'Russian', nativeName: 'Русский' },
-  { code: 'de', name: 'German', nativeName: 'Deutsch' },
-  { code: 'fr', name: 'French', nativeName: 'Français' },
-  { code: 'es', name: 'Spanish', nativeName: 'Español' },
-  { code: 'it', name: 'Italian', nativeName: 'Italiano' },
-  { code: 'pt', name: 'Portuguese', nativeName: 'Português' },
-  { code: 'pl', name: 'Polish', nativeName: 'Polski' },
-  { code: 'zh', name: 'Chinese', nativeName: '中文' },
-  { code: 'ja', name: 'Japanese', nativeName: '日本語' },
-  { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
-  { code: 'mr', name: 'Marathi', nativeName: 'मराठी' },
-];
 
 // Status messages for progress display
 const GENERATION_STEPS = [
@@ -137,8 +123,8 @@ const LanguageOnboardingModal: React.FC<LanguageOnboardingModalProps> = ({
             <div className="h-16 flex items-center justify-center mb-8 relative overflow-hidden">
               <div
                 className={`flex items-center gap-3 transition-all duration-300 ease-out ${isTransitioning
-                    ? 'opacity-0 translate-y-4'
-                    : 'opacity-100 translate-y-0'
+                  ? 'opacity-0 translate-y-4'
+                  : 'opacity-100 translate-y-0'
                   }`}
               >
                 {/* Animated Dot */}
@@ -189,8 +175,8 @@ const LanguageOnboardingModal: React.FC<LanguageOnboardingModalProps> = ({
                       key={lang.code}
                       onClick={() => handleNativeLanguageChange(lang.code)}
                       className={`w-full text-left px-4 py-2.5 flex items-center justify-between transition-colors ${nativeLanguage === lang.code
-                          ? 'bg-purple-500/20 text-purple-400'
-                          : 'text-slate-300 hover:bg-slate-700/50'
+                        ? 'bg-purple-500/20 text-purple-400'
+                        : 'text-slate-300 hover:bg-slate-700/50'
                         }`}
                     >
                       <span>{lang.nativeName}</span>
@@ -220,8 +206,8 @@ const LanguageOnboardingModal: React.FC<LanguageOnboardingModalProps> = ({
                     key={lang.code}
                     onClick={() => setLearningLanguage(lang.code)}
                     className={`w-full text-left px-4 py-2.5 rounded-lg flex items-center justify-between transition-all ${learningLanguage === lang.code
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 border border-slate-700/50'
+                      ? 'bg-purple-500 text-white'
+                      : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 border border-slate-700/50'
                       }`}
                   >
                     <span className="font-medium">{lang.nativeName}</span>

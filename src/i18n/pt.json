@@ -304,6 +304,21 @@
         "errorPrefix": "Erro: {{message}}",
         "unknownError": "Erro desconhecido"
       },
+      "fallback": {
+        "primary": "Desculpa",
+        "translation": "Desculpa",
+        "retry": "Mais uma vez"
+      },
+      "greeting": {
+        "text": "Olá! Vamos praticar português!",
+        "translation": "Olá! Vamos praticar {{language}}!",
+        "suggestions": [
+          "Olá!",
+          "Bom dia!",
+          "Sim, vamos!"
+        ],
+        "explanation": "Vou ter uma conversa natural contigo usando frases do teu vocabulário. Vamos começar!"
+      },
       "stats": {
         "phrasesUsed_zero": "{{count}} frases revisadas",
         "phrasesUsed_one": "{{count}} frase revisada",
@@ -1102,5 +1117,8 @@
       "playTranslation": "Pronunciar tradução",
       "moreActions": "Ações adicionais"
     }
+  },
+  "gemini": {
+    "personNumberExample": "1ª pessoa, singular"
   }
 }

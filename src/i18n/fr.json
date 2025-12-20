@@ -304,6 +304,21 @@
         "errorPrefix": "Erreur : {{message}}",
         "unknownError": "Erreur inconnue"
       },
+      "fallback": {
+        "primary": "Désolé",
+        "translation": "Désolé",
+        "retry": "Encore"
+      },
+      "greeting": {
+        "text": "Bonjour! Pratiquons le français!",
+        "translation": "Bonjour! Pratiquons le {{language}}!",
+        "suggestions": [
+          "Bonjour!",
+          "Salut!",
+          "Oui, d'accord!"
+        ],
+        "explanation": "Je vais avoir une conversation naturelle avec toi en utilisant des phrases de ton vocabulaire. Commençons!"
+      },
       "stats": {
         "phrasesUsed_zero": "{{count}} phrases révisées",
         "phrasesUsed_one": "{{count}} phrase révisée",
@@ -1102,5 +1117,8 @@
       "playTranslation": "Prononcer la traduction",
       "moreActions": "Actions supplémentaires"
     }
+  },
+  "gemini": {
+    "personNumberExample": "1ère personne, singulier"
   }
 }
