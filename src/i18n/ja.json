@@ -96,7 +96,8 @@
       "general": "一般",
       "automation": "自動化（AI）",
       "categories": "練習用カテゴリ",
-      "analytics": "進捗と分析"
+      "analytics": "進捗と分析",
+      "maintenance": "メンテナンス"
     },
     "general": {
       "legend": "一般設定",
@@ -150,6 +151,14 @@
         "noDifficultCards": "まだ難しいカードはありません",
         "emptyState": "まだ練習データがありません",
         "emptyStateHint": "カードの練習を始めて、進捗統計をここで確認してください。"
+      }
+    },
+    "maintenance": {
+      "legend": "データメンテナンス",
+      "addArticles": {
+        "label": "不足記事を追加",
+        "description": "名詞にDer/Die/Dasを自動的に追加します。",
+        "button": "スキャン"
       }
     }
   },
@@ -304,6 +313,15 @@
         "errorPrefix": "エラー：{{message}}",
         "unknownError": "不明なエラー"
       },
+      "stats": {
+        "phrasesUsed_zero": "{{count}}個のフレーズを復習",
+        "phrasesUsed_one": "{{count}}個のフレーズを復習",
+        "phrasesUsed_few": "{{count}}個のフレーズを復習",
+        "phrasesUsed_many": "{{count}}個のフレーズを復習",
+        "phrasesUsed_other": "{{count}}個のフレーズを復習",
+        "phrasesUsed": "{{count}}個のフレーズを復習",
+        "phrasesUsed_plural": "{{count}}個のフレーズを練習"
+      },
       "fallback": {
         "primary": "ごめんなさい",
         "translation": "ごめんなさい",
@@ -318,15 +336,6 @@
           "はい！"
         ],
         "explanation": "あなたの語彙のフレーズを使って自然な会話をします。始めましょう！"
-      },
-      "stats": {
-        "phrasesUsed_zero": "{{count}}個のフレーズを復習",
-        "phrasesUsed_one": "{{count}}個のフレーズを復習",
-        "phrasesUsed_few": "{{count}}個のフレーズを復習",
-        "phrasesUsed_many": "{{count}}個のフレーズを復習",
-        "phrasesUsed_other": "{{count}}個のフレーズを復習",
-        "phrasesUsed": "{{count}}個のフレーズを復習",
-        "phrasesUsed_plural": "{{count}}個のフレーズを練習"
       }
     },
     "actions": {

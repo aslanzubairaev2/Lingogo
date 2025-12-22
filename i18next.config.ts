@@ -5,7 +5,13 @@ export default defineConfig({
   locales: SUPPORTED_LANGUAGE_CODES,
   extract: {
     primaryLanguage: 'en',
-    input: ["./App.tsx", "src/**/*.{js,jsx,ts,tsx}"],
+    input: [
+      "./App.tsx", "src/**/*.{js,jsx,ts,tsx}",
+      "components/**/*.{js,jsx,ts,tsx}",
+      "services/**/*.{js,jsx,ts,tsx}",
+      "pages/**/*.{js,jsx,ts,tsx}",
+      "hooks/**/*.{js,jsx,ts,tsx}"
+    ],
     output: "src/i18n/{{language}}.json"
   }
 });

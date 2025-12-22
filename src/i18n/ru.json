@@ -313,6 +313,15 @@
         "errorPrefix": "Ошибка: {{message}}",
         "unknownError": "Неизвестная ошибка"
       },
+      "stats": {
+        "phrasesUsed_zero": "{{count}} фраз повторено",
+        "phrasesUsed_one": "{{count}} фраза повторена",
+        "phrasesUsed_few": "{{count}} фразы повторены",
+        "phrasesUsed_many": "{{count}} фраз повторено",
+        "phrasesUsed_other": "{{count}} фраз повторено",
+        "phrasesUsed": "{{count}} фраз повторено",
+        "phrasesUsed_plural": "{{count}} фраз отработано"
+      },
       "fallback": {
         "primary": "Извините",
         "translation": "Извините",
@@ -327,15 +336,6 @@
           "Да, конечно!"
         ],
         "explanation": "Я буду вести с тобой естественный разговор используя фразы из твоего словаря. Давай начнем!"
-      },
-      "stats": {
-        "phrasesUsed_zero": "{{count}} фраз повторено",
-        "phrasesUsed_one": "{{count}} фраза повторена",
-        "phrasesUsed_few": "{{count}} фразы повторены",
-        "phrasesUsed_many": "{{count}} фраз повторено",
-        "phrasesUsed_other": "{{count}} фраз повторено",
-        "phrasesUsed": "{{count}} фраз повторено",
-        "phrasesUsed_plural": "{{count}} фраз отработано"
       }
     },
     "actions": {

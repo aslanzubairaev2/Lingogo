@@ -96,7 +96,8 @@
       "general": "عام",
       "automation": "الأتمتة (الذكاء الاصطناعي)",
       "categories": "الفئات للتمرين",
-      "analytics": "التقدم والتحليلات"
+      "analytics": "التقدم والتحليلات",
+      "maintenance": "الصيانة"
     },
     "general": {
       "legend": "الإعدادات العامة",
@@ -150,6 +151,14 @@
         "noDifficultCards": "لا توجد بطاقات صعبة حتى الآن",
         "emptyState": "لا توجد بيانات تمرين حتى الآن",
         "emptyStateHint": "ابدأ في ممارسة البطاقات لرؤية إحصائيات التقدم هنا."
+      }
+    },
+    "maintenance": {
+      "legend": "صيانة البيانات",
+      "addArticles": {
+        "label": "إضافة الأدوات الناقصة",
+        "description": "إضافة Der/Die/Das تلقائيًا إلى الأسماء.",
+        "button": "فحص"
       }
     }
   },
@@ -304,6 +313,15 @@
         "errorPrefix": "خطأ: {{message}}",
         "unknownError": "خطأ غير معروف"
       },
+      "stats": {
+        "phrasesUsed_zero": "تمت مراجعة {{count}} عبارة",
+        "phrasesUsed_one": "تمت مراجعة {{count}} عبارة",
+        "phrasesUsed_few": "تمت مراجعة {{count}} عبارة",
+        "phrasesUsed_many": "تمت مراجعة {{count}} عبارة",
+        "phrasesUsed_other": "تمت مراجعة {{count}} عبارة",
+        "phrasesUsed": "تمت مراجعة {{count}} عبارة",
+        "phrasesUsed_plural": "تم تمرين {{count}} عبارة"
+      },
       "fallback": {
         "primary": "عذرًا",
         "translation": "عذرًا",
@@ -318,15 +336,6 @@
           "نعم!"
         ],
         "explanation": "سأجري محادثة طبيعية معك باستخدام عبارات من مفرداتك. لنبدأ!"
-      },
-      "stats": {
-        "phrasesUsed_zero": "تمت مراجعة {{count}} عبارة",
-        "phrasesUsed_one": "تمت مراجعة {{count}} عبارة",
-        "phrasesUsed_few": "تمت مراجعة {{count}} عبارة",
-        "phrasesUsed_many": "تمت مراجعة {{count}} عبارة",
-        "phrasesUsed_other": "تمت مراجعة {{count}} عبارة",
-        "phrasesUsed": "تمت مراجعة {{count}} عبارة",
-        "phrasesUsed_plural": "تم تمرين {{count}} عبارة"
       }
     },
     "actions": {

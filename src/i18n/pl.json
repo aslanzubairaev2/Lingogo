@@ -96,7 +96,8 @@
       "general": "Ogólne",
       "automation": "Automatyzacja (AI)",
       "categories": "Kategorie do ćwiczeń",
-      "analytics": "Postęp i analiza"
+      "analytics": "Postęp i analiza",
+      "maintenance": "Konserwacja"
     },
     "general": {
       "legend": "Ustawienia ogólne",
@@ -150,6 +151,14 @@
         "noDifficultCards": "Brak trudnych fiszek",
         "emptyState": "Brak danych ćwiczeń",
         "emptyStateHint": "Zacznij ćwiczyć fiszki, aby zobaczyć tutaj statystyki postępu."
+      }
+    },
+    "maintenance": {
+      "legend": "Konserwacja danych",
+      "addArticles": {
+        "label": "Dodaj brakujące artykuły",
+        "description": "Automatycznie dodaj Der/Die/Das do rzeczowników.",
+        "button": "Skanuj"
       }
     }
   },
@@ -304,6 +313,15 @@
         "errorPrefix": "Błąd: {{message}}",
         "unknownError": "Nieznany błąd"
       },
+      "stats": {
+        "phrasesUsed_zero": "{{count}} zwrotów powtórzonych",
+        "phrasesUsed_one": "{{count}} zwrot powtórzony",
+        "phrasesUsed_few": "{{count}} zwroty powtórzone",
+        "phrasesUsed_many": "{{count}} zwrotów powtórzonych",
+        "phrasesUsed_other": "{{count}} zwrotów powtórzonych",
+        "phrasesUsed": "{{count}} zwrotów powtórzonych",
+        "phrasesUsed_plural": "{{count}} zwrotów przećwiczonych"
+      },
       "fallback": {
         "primary": "Przepraszam",
         "translation": "Przepraszam",
@@ -318,15 +336,6 @@
           "Tak, chętnie!"
         ],
         "explanation": "Będę prowadzić naturalną rozmowę z tobą używając fraz z twojego słownictwa. Zacznijmy!"
-      },
-      "stats": {
-        "phrasesUsed_zero": "{{count}} zwrotów powtórzonych",
-        "phrasesUsed_one": "{{count}} zwrot powtórzony",
-        "phrasesUsed_few": "{{count}} zwroty powtórzone",
-        "phrasesUsed_many": "{{count}} zwrotów powtórzonych",
-        "phrasesUsed_other": "{{count}} zwrotów powtórzonych",
-        "phrasesUsed": "{{count}} zwrotów powtórzonych",
-        "phrasesUsed_plural": "{{count}} zwrotów przećwiczonych"
       }
     },
     "actions": {

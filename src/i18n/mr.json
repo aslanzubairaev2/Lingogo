@@ -96,7 +96,8 @@
       "general": "सामान्य",
       "automation": "ऑटोमेशन (AI)",
       "categories": "सरावासाठी श्रेण्या",
-      "analytics": "प्रगती आणि विश्लेषण"
+      "analytics": "प्रगती आणि विश्लेषण",
+      "maintenance": "देखभाल"
     },
     "general": {
       "legend": "सामान्य सेटिंग्ज",
@@ -150,6 +151,14 @@
         "noDifficultCards": "अद्याप अवघड कार्ड नाहीत",
         "emptyState": "अद्याप सराव डेटा नाही",
         "emptyStateHint": "प्रगती आकडेवारी पाहण्यासाठी कार्डचा सराव सुरू करा."
+      }
+    },
+    "maintenance": {
+      "legend": "डेटा देखभाल",
+      "addArticles": {
+        "label": "गहाळ लेख जोडा",
+        "description": "नामांमध्ये Der/Die/Das स्वयंचलितपणे जोडा.",
+        "button": "स्कॅन करा"
       }
     }
   },
@@ -304,6 +313,15 @@
         "errorPrefix": "त्रुटी: {{message}}",
         "unknownError": "अज्ञात त्रुटी"
       },
+      "stats": {
+        "phrasesUsed_zero": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
+        "phrasesUsed_one": "{{count}} वाक्प्रचार पुनरावृत्ती केला",
+        "phrasesUsed_few": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
+        "phrasesUsed_many": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
+        "phrasesUsed_other": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
+        "phrasesUsed": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
+        "phrasesUsed_plural": "{{count}} वाक्प्रचार सराव केले"
+      },
       "fallback": {
         "primary": "क्षमस्व",
         "translation": "क्षमस्व",
@@ -318,15 +336,6 @@
           "मी तयार आहे!"
         ],
         "explanation": "मी तुमच्या शब्दसंग्रहातील वाक्यांश वापरून तुमच्याशी नैसर्गिक संवाद करेन. चला सुरू करूया!"
-      },
-      "stats": {
-        "phrasesUsed_zero": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
-        "phrasesUsed_one": "{{count}} वाक्प्रचार पुनरावृत्ती केला",
-        "phrasesUsed_few": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
-        "phrasesUsed_many": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
-        "phrasesUsed_other": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
-        "phrasesUsed": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
-        "phrasesUsed_plural": "{{count}} वाक्प्रचार सराव केले"
       }
     },
     "actions": {

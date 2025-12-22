@@ -96,7 +96,8 @@
       "general": "Général",
       "automation": "Automatisation (IA)",
       "categories": "Catégories pour la pratique",
-      "analytics": "Progression et analyse"
+      "analytics": "Progression et analyse",
+      "maintenance": "Maintenance"
     },
     "general": {
       "legend": "Paramètres généraux",
@@ -150,6 +151,14 @@
         "noDifficultCards": "Aucune carte difficile pour le moment",
         "emptyState": "Aucune donnée de pratique pour le moment",
         "emptyStateHint": "Commencez à pratiquer des cartes pour voir les statistiques de progression ici."
+      }
+    },
+    "maintenance": {
+      "legend": "Maintenance des données",
+      "addArticles": {
+        "label": "Ajouter les articles manquants",
+        "description": "Ajouter automatiquement Der/Die/Das aux noms.",
+        "button": "Scanner"
       }
     }
   },
@@ -304,6 +313,15 @@
         "errorPrefix": "Erreur : {{message}}",
         "unknownError": "Erreur inconnue"
       },
+      "stats": {
+        "phrasesUsed_zero": "{{count}} phrases révisées",
+        "phrasesUsed_one": "{{count}} phrase révisée",
+        "phrasesUsed_few": "{{count}} phrases révisées",
+        "phrasesUsed_many": "{{count}} phrases révisées",
+        "phrasesUsed_other": "{{count}} phrases révisées",
+        "phrasesUsed": "{{count}} phrases révisées",
+        "phrasesUsed_plural": "{{count}} phrases pratiquées"
+      },
       "fallback": {
         "primary": "Désolé",
         "translation": "Désolé",
@@ -318,15 +336,6 @@
           "Oui, d'accord!"
         ],
         "explanation": "Je vais avoir une conversation naturelle avec toi en utilisant des phrases de ton vocabulaire. Commençons!"
-      },
-      "stats": {
-        "phrasesUsed_zero": "{{count}} phrases révisées",
-        "phrasesUsed_one": "{{count}} phrase révisée",
-        "phrasesUsed_few": "{{count}} phrases révisées",
-        "phrasesUsed_many": "{{count}} phrases révisées",
-        "phrasesUsed_other": "{{count}} phrases révisées",
-        "phrasesUsed": "{{count}} phrases révisées",
-        "phrasesUsed_plural": "{{count}} phrases pratiquées"
       }
     },
     "actions": {

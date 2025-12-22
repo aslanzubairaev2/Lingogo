@@ -96,7 +96,8 @@
       "general": "Generali",
       "automation": "Automazione (AI)",
       "categories": "Categorie per la pratica",
-      "analytics": "Progressi e analisi"
+      "analytics": "Progressi e analisi",
+      "maintenance": "Manutenzione"
     },
     "general": {
       "legend": "Impostazioni generali",
@@ -150,6 +151,14 @@
         "noDifficultCards": "Ancora nessuna carta difficile",
         "emptyState": "Ancora nessun dato di pratica",
         "emptyStateHint": "Inizia a praticare le carte per vedere le statistiche di progresso qui."
+      }
+    },
+    "maintenance": {
+      "legend": "Manutenzione dati",
+      "addArticles": {
+        "label": "Aggiungi articoli mancanti",
+        "description": "Aggiungi automaticamente Der/Die/Das ai sostantivi.",
+        "button": "Scansione"
       }
     }
   },
@@ -304,6 +313,15 @@
         "errorPrefix": "Errore: {{message}}",
         "unknownError": "Errore sconosciuto"
       },
+      "stats": {
+        "phrasesUsed_zero": "{{count}} frasi ripassate",
+        "phrasesUsed_one": "{{count}} frase ripassata",
+        "phrasesUsed_few": "{{count}} frasi ripassate",
+        "phrasesUsed_many": "{{count}} frasi ripassate",
+        "phrasesUsed_other": "{{count}} frasi ripassate",
+        "phrasesUsed": "{{count}} frasi ripassate",
+        "phrasesUsed_plural": "{{count}} frasi praticate"
+      },
       "fallback": {
         "primary": "Mi dispiace",
         "translation": "Mi dispiace",
@@ -318,15 +336,6 @@
           "Sì, certo!"
         ],
         "explanation": "Avrò una conversazione naturale con te usando frasi dal tuo vocabolario. Cominciamo!"
-      },
-      "stats": {
-        "phrasesUsed_zero": "{{count}} frasi ripassate",
-        "phrasesUsed_one": "{{count}} frase ripassata",
-        "phrasesUsed_few": "{{count}} frasi ripassate",
-        "phrasesUsed_many": "{{count}} frasi ripassate",
-        "phrasesUsed_other": "{{count}} frasi ripassate",
-        "phrasesUsed": "{{count}} frasi ripassate",
-        "phrasesUsed_plural": "{{count}} frasi praticate"
       }
     },
     "actions": {

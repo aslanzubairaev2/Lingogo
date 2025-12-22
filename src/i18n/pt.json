@@ -96,7 +96,8 @@
       "general": "Geral",
       "automation": "Automação (IA)",
       "categories": "Categorias para prática",
-      "analytics": "Progresso e análise"
+      "analytics": "Progresso e análise",
+      "maintenance": "Manutenção"
     },
     "general": {
       "legend": "Configurações gerais",
@@ -150,6 +151,14 @@
         "noDifficultCards": "Ainda sem cartões difíceis",
         "emptyState": "Ainda sem dados de prática",
         "emptyStateHint": "Comece a praticar cartões para ver estatísticas de progresso aqui."
+      }
+    },
+    "maintenance": {
+      "legend": "Manutenção de dados",
+      "addArticles": {
+        "label": "Adicionar artigos ausentes",
+        "description": "Adicionar automaticamente Der/Die/Das aos substantivos.",
+        "button": "Escanear"
       }
     }
   },
@@ -304,6 +313,15 @@
         "errorPrefix": "Erro: {{message}}",
         "unknownError": "Erro desconhecido"
       },
+      "stats": {
+        "phrasesUsed_zero": "{{count}} frases revisadas",
+        "phrasesUsed_one": "{{count}} frase revisada",
+        "phrasesUsed_few": "{{count}} frases revisadas",
+        "phrasesUsed_many": "{{count}} frases revisadas",
+        "phrasesUsed_other": "{{count}} frases revisadas",
+        "phrasesUsed": "{{count}} frases revisadas",
+        "phrasesUsed_plural": "{{count}} frases praticadas"
+      },
       "fallback": {
         "primary": "Desculpa",
         "translation": "Desculpa",
@@ -318,15 +336,6 @@
           "Sim, vamos!"
         ],
         "explanation": "Vou ter uma conversa natural contigo usando frases do teu vocabulário. Vamos começar!"
-      },
-      "stats": {
-        "phrasesUsed_zero": "{{count}} frases revisadas",
-        "phrasesUsed_one": "{{count}} frase revisada",
-        "phrasesUsed_few": "{{count}} frases revisadas",
-        "phrasesUsed_many": "{{count}} frases revisadas",
-        "phrasesUsed_other": "{{count}} frases revisadas",
-        "phrasesUsed": "{{count}} frases revisadas",
-        "phrasesUsed_plural": "{{count}} frases praticadas"
       }
     },
     "actions": {

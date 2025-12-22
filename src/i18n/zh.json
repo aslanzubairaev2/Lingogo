@@ -96,7 +96,8 @@
       "general": "通用",
       "automation": "自动化(AI)",
       "categories": "练习分类",
-      "analytics": "进度与分析"
+      "analytics": "进度与分析",
+      "maintenance": "维护"
     },
     "general": {
       "legend": "通用设置",
@@ -150,6 +151,14 @@
         "noDifficultCards": "暂无困难卡片",
         "emptyState": "暂无练习数据",
         "emptyStateHint": "开始练习卡片以查看进度统计。"
+      }
+    },
+    "maintenance": {
+      "legend": "数据维护",
+      "addArticles": {
+        "label": "添加缺失冠词",
+        "description": "自动为名词添加Der/Die/Das。",
+        "button": "扫描"
       }
     }
   },
@@ -304,6 +313,15 @@
         "errorPrefix": "错误: {{message}}",
         "unknownError": "未知错误"
       },
+      "stats": {
+        "phrasesUsed_zero": "{{count}} 个短语已复习",
+        "phrasesUsed_one": "{{count}} 个短语已复习",
+        "phrasesUsed_few": "{{count}} 个短语已复习",
+        "phrasesUsed_many": "{{count}} 个短语已复习",
+        "phrasesUsed_other": "{{count}} 个短语已复习",
+        "phrasesUsed": "{{count}} 个短语已复习",
+        "phrasesUsed_plural": "{{count}} 个短语已练习"
+      },
       "fallback": {
         "primary": "对不起",
         "translation": "对不起",
@@ -318,15 +336,6 @@
           "好的！"
         ],
         "explanation": "我会用你词汇表中的短语与你进行自然对话。让我们开始吧！"
-      },
-      "stats": {
-        "phrasesUsed_zero": "{{count}} 个短语已复习",
-        "phrasesUsed_one": "{{count}} 个短语已复习",
-        "phrasesUsed_few": "{{count}} 个短语已复习",
-        "phrasesUsed_many": "{{count}} 个短语已复习",
-        "phrasesUsed_other": "{{count}} 个短语已复习",
-        "phrasesUsed": "{{count}} 个短语已复习",
-        "phrasesUsed_plural": "{{count}} 个短语已练习"
       }
     },
     "actions": {

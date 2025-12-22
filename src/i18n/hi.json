@@ -96,7 +96,8 @@
       "general": "सामान्य",
       "automation": "ऑटोमेशन (एआई)",
       "categories": "अभ्यास के लिए श्रेणियाँ",
-      "analytics": "प्रगति और विश्लेषण"
+      "analytics": "प्रगति और विश्लेषण",
+      "maintenance": "रखरखाव"
     },
     "general": {
       "legend": "सामान्य सेटिंग्स",
@@ -150,6 +151,14 @@
         "noDifficultCards": "अभी तक कोई कठिन कार्ड नहीं",
         "emptyState": "अभी तक अभ्यास डेटा नहीं है",
         "emptyStateHint": "प्रगति आँकड़े देखने के लिए कार्ड का अभ्यास शुरू करें।"
+      }
+    },
+    "maintenance": {
+      "legend": "डेटा रखरखाव",
+      "addArticles": {
+        "label": "लुप्त आर्टिकल जोड़ें",
+        "description": "संज्ञाओं में स्वचालित रूप से Der/Die/Das जोड़ें।",
+        "button": "स्कैन करें"
       }
     }
   },
@@ -304,6 +313,15 @@
         "errorPrefix": "त्रुटि: {{message}}",
         "unknownError": "अज्ञात त्रुटि"
       },
+      "stats": {
+        "phrasesUsed_zero": "{{count}} वाक्यांश दोहराए गए",
+        "phrasesUsed_one": "{{count}} वाक्यांश दोहराया गया",
+        "phrasesUsed_few": "{{count}} वाक्यांश दोहराए गए",
+        "phrasesUsed_many": "{{count}} वाक्यांश दोहराए गए",
+        "phrasesUsed_other": "{{count}} वाक्यांश दोहराए गए",
+        "phrasesUsed": "{{count}} वाक्यांश दोहराए गए",
+        "phrasesUsed_plural": "{{count}} वाक्यांश अभ्यास किए गए"
+      },
       "fallback": {
         "primary": "क्षमा माँगना",
         "translation": "क्षमा माँगना",
@@ -318,15 +336,6 @@
           "मैं तैयार हूँ!"
         ],
         "explanation": "मैं आपकी शब्दावली के वाक्यांशों का उपयोग करके आपके साथ एक प्राकृतिक बातचीत करूंगा। चलो शुरू करें!"
-      },
-      "stats": {
-        "phrasesUsed_zero": "{{count}} वाक्यांश दोहराए गए",
-        "phrasesUsed_one": "{{count}} वाक्यांश दोहराया गया",
-        "phrasesUsed_few": "{{count}} वाक्यांश दोहराए गए",
-        "phrasesUsed_many": "{{count}} वाक्यांश दोहराए गए",
-        "phrasesUsed_other": "{{count}} वाक्यांश दोहराए गए",
-        "phrasesUsed": "{{count}} वाक्यांश दोहराए गए",
-        "phrasesUsed_plural": "{{count}} वाक्यांश अभ्यास किए गए"
       }
     },
     "actions": {

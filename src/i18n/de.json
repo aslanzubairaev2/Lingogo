@@ -96,7 +96,8 @@
       "general": "Allgemein",
       "automation": "Automatisierung (KI)",
       "categories": "Übungskategorien",
-      "analytics": "Fortschritt & Analytik"
+      "analytics": "Fortschritt & Analytik",
+      "maintenance": "Wartung"
     },
     "general": {
       "legend": "Allgemeine Einstellungen",
@@ -150,6 +151,14 @@
         "noDifficultCards": "Noch keine schwierigen Karten",
         "emptyState": "Noch keine Übungsdaten",
         "emptyStateHint": "Beginne mit dem Üben, um hier deine Fortschrittsstatistiken zu sehen."
+      }
+    },
+    "maintenance": {
+      "legend": "Datenwartung",
+      "addArticles": {
+        "label": "Fehlende Artikel hinzufügen",
+        "description": "Automatisch Der/Die/Das zu Substantiven hinzufügen.",
+        "button": "Scannen"
       }
     }
   },
@@ -304,6 +313,15 @@
         "errorPrefix": "Fehler: {{message}}",
         "unknownError": "Unbekannter Fehler"
       },
+      "stats": {
+        "phrasesUsed_zero": "{{count}} phrases practiced",
+        "phrasesUsed_one": "{{count}} phrase practiced",
+        "phrasesUsed_few": "{{count}} phrases practiced",
+        "phrasesUsed_many": "{{count}} phrases practiced",
+        "phrasesUsed_other": "{{count}} phrases practiced",
+        "phrasesUsed": "{{count}} geübte Phrase",
+        "phrasesUsed_plural": "{{count}} geübte Phrasen"
+      },
       "fallback": {
         "primary": "Entschuldigung",
         "translation": "Entschuldigung",
@@ -318,15 +336,6 @@
           "Ja, gerne!"
         ],
         "explanation": "Ich werde ein natürliches Gespräch mit dir führen und dabei Phrasen aus deinem Vokabular verwenden. Lass uns beginnen!"
-      },
-      "stats": {
-        "phrasesUsed_zero": "{{count}} phrases practiced",
-        "phrasesUsed_one": "{{count}} phrase practiced",
-        "phrasesUsed_few": "{{count}} phrases practiced",
-        "phrasesUsed_many": "{{count}} phrases practiced",
-        "phrasesUsed_other": "{{count}} phrases practiced",
-        "phrasesUsed": "{{count}} geübte Phrase",
-        "phrasesUsed_plural": "{{count}} geübte Phrasen"
       }
     },
     "actions": {
