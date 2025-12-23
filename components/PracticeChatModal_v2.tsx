@@ -16,7 +16,8 @@ import type { Phrase, PracticeChatMessage, PracticeChatSessionStats, PracticeCha
 import { sendPracticeChatMessage, createInitialGreeting } from '../services/practiceChatService';
 import { useLanguage } from '../src/contexts/languageContext';
 import { useTranslation } from '../src/hooks/useTranslation';
-import { SPEECH_LOCALE_MAP } from '../constants/speechLocales';
+import { getSpeechLocale } from '../src/i18n/languageMeta';
+import { getLearningSpeechLocale } from '../services/speechService';
 import CloseIcon from './icons/CloseIcon';
 import SendIcon from './icons/SendIcon';
 import SoundIcon from './icons/SoundIcon';
@@ -288,7 +289,7 @@ export const PracticeChatModal_v2: React.FC<Props> = ({
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       const learningLang = profile.learning || 'de';
-      utterance.lang = SPEECH_LOCALE_MAP[learningLang] || 'de-DE';
+      utterance.lang = getSpeechLocale(learningLang);
       utterance.rate = 0.9;
       window.speechSynthesis.speak(utterance);
     }
@@ -383,8 +384,7 @@ export const PracticeChatModal_v2: React.FC<Props> = ({
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
-      const learningLang = profile.learning || 'de';
-      recognition.lang = SPEECH_LOCALE_MAP[learningLang] || 'de-DE';
+      recognition.lang = getSpeechLocale(profile.learning);
       recognition.interimResults = false;
       recognition.continuous = false;
       recognition.onstart = () => setIsListening(true);

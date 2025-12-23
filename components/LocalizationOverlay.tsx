@@ -6,7 +6,7 @@ import {
   type LocalizationPhase,
   type LocalizationStep,
 } from "../src/i18n/localizationPhases.ts";
-import { getLanguageLabel } from "../src/i18n/languageMeta.ts";
+import { getLanguageName } from "../src/i18n/languageMeta.ts";
 
 interface LocalizationOverlayProps {
   visible: boolean;
@@ -27,7 +27,7 @@ const LocalizationOverlay: React.FC<LocalizationOverlayProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const languageLabel = getLanguageLabel(languageCode);
+  const languageName = getLanguageName(languageCode);
 
   const steps = useMemo(() => {
     const currentIndex = LOCALIZATION_STEPS.indexOf(phase as LocalizationStep);
@@ -62,12 +62,12 @@ const LocalizationOverlay: React.FC<LocalizationOverlayProps> = ({
             {t("localization.overlay.heading")}
           </p>
           <h2 className="text-xl font-semibold text-slate-100">
-            {t("localization.overlay.title", { language: languageLabel })}
+            {t("localization.overlay.title", { language: languageName })}
           </h2>
           <p className="text-sm text-slate-400">
             {isFallback
               ? t("localization.overlay.fallbackDescription")
-              : t("localization.overlay.subtitle", { language: languageLabel })}
+              : t("localization.overlay.subtitle", { language: languageName })}
           </p>
         </div>
 
@@ -82,8 +82,8 @@ const LocalizationOverlay: React.FC<LocalizationOverlayProps> = ({
                   {status === "completed"
                     ? "✓"
                     : status === "active"
-                    ? "•"
-                    : ""}
+                      ? "•"
+                      : ""}
                 </div>
                 <div>
                   <p className="text-sm font-medium text-slate-100">
@@ -103,7 +103,7 @@ const LocalizationOverlay: React.FC<LocalizationOverlayProps> = ({
         {isFallback && (
           <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
             {t("localization.overlay.fallbackMessage", {
-              language: languageLabel,
+              language: languageName,
             })}
           </div>
         )}

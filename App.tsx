@@ -41,7 +41,7 @@ import {
 import { AiService } from "./services/aiService";
 import { buildPracticeAnalyticsSummary } from "./services/practiceAnalyticsService";
 import { playCorrectSound, playIncorrectSound } from "./services/soundService";
-import { SPEECH_LOCALE_MAP } from "./constants/speechLocales";
+import { getSpeechLocale } from "./src/i18n/languageMeta";
 
 import Header from "./components/Header";
 import PracticePage from "./pages/PracticePage";
@@ -2992,7 +2992,7 @@ const App: React.FC = () => {
         if (settings.autoSpeak && "speechSynthesis" in window) {
           const utterance = new SpeechSynthesisUtterance(originalPhrase.text.learning);
           const learningLang = languageProfile.learning || "de";
-          utterance.lang = SPEECH_LOCALE_MAP[learningLang] || "de-DE";
+          utterance.lang = getSpeechLocale(learningLang);
           utterance.rate = 0.9;
           window.speechSynthesis.cancel();
           window.speechSynthesis.speak(utterance);
@@ -3083,7 +3083,7 @@ const App: React.FC = () => {
       );
       // Use learning language from profile for correct pronunciation
       const learningLang = languageProfile.learning || "de";
-      utterance.lang = SPEECH_LOCALE_MAP[learningLang] || "de-DE";
+      utterance.lang = getSpeechLocale(learningLang);
       utterance.rate = 0.9;
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);

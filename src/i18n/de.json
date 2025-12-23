@@ -304,6 +304,21 @@
         "errorPrefix": "Fehler: {{message}}",
         "unknownError": "Unbekannter Fehler"
       },
+      "fallback": {
+        "primary": "Entschuldigung",
+        "translation": "Entschuldigung",
+        "retry": "Noch einmal"
+      },
+      "greeting": {
+        "text": "Hallo! Lass uns Deutsch üben!",
+        "translation": "Hallo! Lass uns {{language}} üben!",
+        "suggestions": [
+          "Hallo!",
+          "Guten Tag!",
+          "Ja, gerne!"
+        ],
+        "explanation": "Ich werde ein natürliches Gespräch mit dir führen und dabei Phrasen aus deinem Vokabular verwenden. Lass uns beginnen!"
+      },
       "stats": {
         "phrasesUsed_zero": "{{count}} phrases practiced",
         "phrasesUsed_one": "{{count}} phrase practiced",
@@ -1102,5 +1117,8 @@
       "playTranslation": "Übersetzung abspielen",
       "moreActions": "Weitere Aktionen"
     }
+  },
+  "gemini": {
+    "personNumberExample": "1. Person, Singular"
   }
 }

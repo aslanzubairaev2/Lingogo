@@ -8,7 +8,7 @@ import { AiService } from './aiService';
 import { getGeminiApiKey } from './env';
 import type { TranslationRecord } from '../src/services/languageService.ts';
 import { currentLanguageProfile } from './currentLanguageProfile';
-import { getLanguageName } from './languageNames';
+import { getLanguageName } from '../src/i18n/languageMeta';
 import i18n from '../src/i18n/config.ts';
 
 let ai: GoogleGenAI | null = null;
@@ -1537,21 +1537,7 @@ const generateMovieExamples: AiService['generateMovieExamples'] = async (phrase)
  * Returns person/number example based on language code
  */
 const getPersonNumberExample = (languageCode: LanguageCode): string => {
-    const examples: Record<LanguageCode, string> = {
-        'ru': '1-е лицо, ед.ч.',
-        'en': '1st person, singular',
-        'de': '1. Person, Singular',
-        'es': '1ª persona, singular',
-        'fr': '1ère personne, singulier',
-        'it': '1ª persona, singolare',
-        'pt': '1ª pessoa, singular',
-        'pl': '1. osoba, liczba pojedyncza',
-        'zh': '第一人称，单数',
-        'ja': '一人称、単数',
-        'ar': 'المتكلم، المفرد',
-        'hi': 'प्रथम पुरुष, एकवचन'
-    };
-    return examples[languageCode] || examples['en'];
+    return i18n.t('gemini.personNumberExample', { lng: languageCode });
 };
 
 const wordAnalysisSchema = () => {

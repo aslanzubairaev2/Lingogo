@@ -312,6 +312,21 @@
         "phrasesUsed_other": "{{count}} phrases practiced",
         "phrasesUsed": "{{count}} phrase practiced",
         "phrasesUsed_plural": "{{count}} phrases practiced"
+      },
+      "fallback": {
+        "primary": "Sorry",
+        "translation": "Sorry",
+        "retry": "Try again"
+      },
+      "greeting": {
+        "text": "Hello! Let's practice English!",
+        "translation": "Hello! Let's practice {{language}}!",
+        "suggestions": [
+          "Hello!",
+          "Hi!",
+          "Yes, let's go!"
+        ],
+        "explanation": "I'll have a natural conversation with you using phrases from your vocabulary. Let's begin!"
       }
     },
     "actions": {
@@ -1102,5 +1117,8 @@
       "playTranslation": "Play translation audio",
       "moreActions": "More actions"
     }
+  },
+  "gemini": {
+    "personNumberExample": "1st person, singular"
   }
 }

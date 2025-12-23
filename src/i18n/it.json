@@ -304,6 +304,21 @@
         "errorPrefix": "Errore: {{message}}",
         "unknownError": "Errore sconosciuto"
       },
+      "fallback": {
+        "primary": "Mi dispiace",
+        "translation": "Mi dispiace",
+        "retry": "Ancora una volta"
+      },
+      "greeting": {
+        "text": "Ciao! Pratichiamo l'italiano!",
+        "translation": "Ciao! Pratichiamo l'{{language}}!",
+        "suggestions": [
+          "Ciao!",
+          "Buongiorno!",
+          "Sì, certo!"
+        ],
+        "explanation": "Avrò una conversazione naturale con te usando frasi dal tuo vocabolario. Cominciamo!"
+      },
       "stats": {
         "phrasesUsed_zero": "{{count}} frasi ripassate",
         "phrasesUsed_one": "{{count}} frase ripassata",
@@ -1102,5 +1117,8 @@
       "playTranslation": "Pronuncia traduzione",
       "moreActions": "Azioni aggiuntive"
     }
+  },
+  "gemini": {
+    "personNumberExample": "1ª persona, singolare"
   }
 }

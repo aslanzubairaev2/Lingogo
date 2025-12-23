@@ -1,5 +1,5 @@
 import type { LanguageProfile } from '../types';
-import { getLanguageName } from './languageNames';
+import { getLanguageName } from '../src/i18n/languageMeta';
 
 /**
  * Helper class for building language-aware prompts

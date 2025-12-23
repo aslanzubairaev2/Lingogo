@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { SUPPORTED_LANGUAGE_CODES } from '@/types';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -96,7 +97,6 @@ const hasLocaleGaps = async (lang) => {
 };
 
 const TEST_LANG = 'fr'; // Testing with French which has gaps
-const SUPPORTED_LANGS = ['en', 'de', 'ru', 'fr', 'es', 'it', 'pt', 'pl', 'zh', 'ja', 'ar', 'hi', 'mr'];
 
 const log = (message) => console.log(`[${new Date().toISOString()}] ${message}`);
 
@@ -107,7 +107,7 @@ const testLocalizationProcess = async () => {
     // Step 1: Check all languages for gaps
     log('Step 1: Checking all supported languages for gaps...');
     const languagesWithGaps = [];
-    for (const lang of SUPPORTED_LANGS) {
+    for (const lang of SUPPORTED_LANGUAGE_CODES) {
       const hasGaps = await hasLocaleGaps(lang);
       if (hasGaps) {
         languagesWithGaps.push(lang);

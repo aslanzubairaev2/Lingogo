@@ -9,8 +9,7 @@ import CheckIcon from './icons/CheckIcon';
 import MicrophoneIcon from './icons/MicrophoneIcon';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useLanguage } from '../src/contexts/languageContext';
-import { SPEECH_LOCALE_MAP } from '../constants/speechLocales';
-import { getLanguageLabel } from '../services/languageLabels';
+import { getSpeechLocale, getLanguageLabel } from '../src/i18n/languageMeta';
 
 interface LearningAssistantModalProps {
   isOpen: boolean;
@@ -118,8 +117,7 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       // Use learning language from profile for correct pronunciation
-      const learningLang = profile.learning || 'de';
-      utterance.lang = SPEECH_LOCALE_MAP[learningLang] || 'de-DE';
+      utterance.lang = getSpeechLocale(profile.learning);
       utterance.rate = 0.9;
       window.speechSynthesis.speak(utterance);
     }
@@ -172,7 +170,7 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({ isOpen,
     if (SpeechRecognitionAPI) {
       const setupRecognizer = (langCode: LanguageCode) => {
         const recognition = new SpeechRecognitionAPI();
-        recognition.lang = SPEECH_LOCALE_MAP[langCode] || 'en-US';
+        recognition.lang = getSpeechLocale(profile.native);
         recognition.continuous = false;
         recognition.interimResults = false;
         recognition.onstart = () => setIsListening(true);

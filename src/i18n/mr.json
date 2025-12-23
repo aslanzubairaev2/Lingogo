@@ -304,6 +304,21 @@
         "errorPrefix": "त्रुटी: {{message}}",
         "unknownError": "अज्ञात त्रुटी"
       },
+      "fallback": {
+        "primary": "क्षमस्व",
+        "translation": "क्षमस्व",
+        "retry": "पुन्हा प्रयत्न करा"
+      },
+      "greeting": {
+        "text": "नमस्कार! मराठी सराव करूया!",
+        "translation": "नमस्कार! {{language}} सराव करूया!",
+        "suggestions": [
+          "नमस्कार!",
+          "चालू करूया!",
+          "मी तयार आहे!"
+        ],
+        "explanation": "मी तुमच्या शब्दसंग्रहातील वाक्यांश वापरून तुमच्याशी नैसर्गिक संवाद करेन. चला सुरू करूया!"
+      },
       "stats": {
         "phrasesUsed_zero": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
         "phrasesUsed_one": "{{count}} वाक्प्रचार पुनरावृत्ती केला",
@@ -1102,5 +1117,8 @@
       "playTranslation": "भाषांतर बोला",
       "moreActions": "अतिरिक्त क्रिया"
     }
+  },
+  "gemini": {
+    "personNumberExample": "प्रथम व्यक्ती, एकवचन"
   }
 }

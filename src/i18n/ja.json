@@ -304,6 +304,21 @@
         "errorPrefix": "エラー：{{message}}",
         "unknownError": "不明なエラー"
       },
+      "fallback": {
+        "primary": "ごめんなさい",
+        "translation": "ごめんなさい",
+        "retry": "もう一度"
+      },
+      "greeting": {
+        "text": "こんにちは！日本語を練習しましょう！",
+        "translation": "こんにちは！{{language}}を練習しましょう！",
+        "suggestions": [
+          "こんにちは！",
+          "おはよう！",
+          "はい！"
+        ],
+        "explanation": "あなたの語彙のフレーズを使って自然な会話をします。始めましょう！"
+      },
       "stats": {
         "phrasesUsed_zero": "{{count}}個のフレーズを復習",
         "phrasesUsed_one": "{{count}}個のフレーズを復習",
@@ -1102,5 +1117,8 @@
       "playTranslation": "翻訳を発音",
       "moreActions": "追加アクション"
     }
+  },
+  "gemini": {
+    "personNumberExample": "一人称、単数"
   }
 }

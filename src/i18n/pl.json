@@ -304,6 +304,21 @@
         "errorPrefix": "Błąd: {{message}}",
         "unknownError": "Nieznany błąd"
       },
+      "fallback": {
+        "primary": "Przepraszam",
+        "translation": "Przepraszam",
+        "retry": "Jeszcze raz"
+      },
+      "greeting": {
+        "text": "Cześć! Ćwiczmy polski!",
+        "translation": "Cześć! Poćwiczmy {{language}}!",
+        "suggestions": [
+          "Cześć!",
+          "Dzień dobry!",
+          "Tak, chętnie!"
+        ],
+        "explanation": "Będę prowadzić naturalną rozmowę z tobą używając fraz z twojego słownictwa. Zacznijmy!"
+      },
       "stats": {
         "phrasesUsed_zero": "{{count}} zwrotów powtórzonych",
         "phrasesUsed_one": "{{count}} zwrot powtórzony",
@@ -1102,5 +1117,8 @@
       "playTranslation": "Wymów tłumaczenie",
       "moreActions": "Dodatkowe działania"
     }
+  },
+  "gemini": {
+    "personNumberExample": "1. osoba, liczba pojedyncza"
   }
 }

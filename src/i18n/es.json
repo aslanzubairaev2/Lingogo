@@ -304,6 +304,21 @@
         "errorPrefix": "Error: {{message}}",
         "unknownError": "Error desconocido"
       },
+      "fallback": {
+        "primary": "Lo siento",
+        "translation": "Lo siento",
+        "retry": "Otra vez"
+      },
+      "greeting": {
+        "text": "¡Hola! ¡Practiquemos español!",
+        "translation": "¡Hola! ¡Practiquemos {{language}}!",
+        "suggestions": [
+          "¡Hola!",
+          "¡Buenos días!",
+          "¡Sí, claro!"
+        ],
+        "explanation": "Voy a tener una conversación natural contigo usando frases de tu vocabulario. ¡Empecemos!"
+      },
       "stats": {
         "phrasesUsed_zero": "{{count}} phrases practiced",
         "phrasesUsed_one": "{{count}} phrase practiced",
@@ -1102,5 +1117,8 @@
       "playTranslation": "Reproducir traducción",
       "moreActions": "Más acciones"
     }
+  },
+  "gemini": {
+    "personNumberExample": "1ª persona, singular"
   }
 }

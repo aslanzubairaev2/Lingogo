@@ -304,6 +304,21 @@
         "errorPrefix": "خطأ: {{message}}",
         "unknownError": "خطأ غير معروف"
       },
+      "fallback": {
+        "primary": "عذرًا",
+        "translation": "عذرًا",
+        "retry": "حاول مرة أخرى"
+      },
+      "greeting": {
+        "text": "مرحبا! دعونا نمارس العربية!",
+        "translation": "مرحبًا! لنتمرن على {{language}}!",
+        "suggestions": [
+          "مرحبا!",
+          "صباح الخير!",
+          "نعم!"
+        ],
+        "explanation": "سأجري محادثة طبيعية معك باستخدام عبارات من مفرداتك. لنبدأ!"
+      },
       "stats": {
         "phrasesUsed_zero": "تمت مراجعة {{count}} عبارة",
         "phrasesUsed_one": "تمت مراجعة {{count}} عبارة",
@@ -1102,5 +1117,8 @@
       "playTranslation": "نطق الترجمة",
       "moreActions": "إجراءات إضافية"
     }
+  },
+  "gemini": {
+    "personNumberExample": "المتكلم، المفرد"
   }
 }

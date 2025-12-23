@@ -304,6 +304,21 @@
         "errorPrefix": "Ошибка: {{message}}",
         "unknownError": "Неизвестная ошибка"
       },
+      "fallback": {
+        "primary": "Извините",
+        "translation": "Извините",
+        "retry": "Попробуйте еще раз"
+      },
+      "greeting": {
+        "text": "Привет! Давай практиковать русский!",
+        "translation": "Привет! Давай практиковать {{language}}!",
+        "suggestions": [
+          "Привет!",
+          "Здравствуйте!",
+          "Да, конечно!"
+        ],
+        "explanation": "Я буду вести с тобой естественный разговор используя фразы из твоего словаря. Давай начнем!"
+      },
       "stats": {
         "phrasesUsed_zero": "{{count}} фраз повторено",
         "phrasesUsed_one": "{{count}} фраза повторена",
@@ -1102,5 +1117,8 @@
       "playTranslation": "Озвучить перевод",
       "moreActions": "Дополнительные действия"
     }
+  },
+  "gemini": {
+    "personNumberExample": "1-е лицо, ед.ч."
   }
 }
