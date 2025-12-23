@@ -96,7 +96,8 @@
       "general": "सामान्य",
       "automation": "ऑटोमेशन (AI)",
       "categories": "सरावासाठी श्रेण्या",
-      "analytics": "प्रगती आणि विश्लेषण"
+      "analytics": "प्रगती आणि विश्लेषण",
+      "maintenance": "देखभाल"
     },
     "general": {
       "legend": "सामान्य सेटिंग्ज",
@@ -150,6 +151,14 @@
         "noDifficultCards": "अद्याप अवघड कार्ड नाहीत",
         "emptyState": "अद्याप सराव डेटा नाही",
         "emptyStateHint": "प्रगती आकडेवारी पाहण्यासाठी कार्डचा सराव सुरू करा."
+      }
+    },
+    "maintenance": {
+      "legend": "डेटा देखभाल",
+      "addArticles": {
+        "label": "गहाळ लेख जोडा",
+        "description": "नामांमध्ये Der/Die/Das स्वयंचलितपणे जोडा.",
+        "button": "स्कॅन करा"
       }
     }
   },
@@ -312,6 +321,21 @@
         "phrasesUsed_other": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
         "phrasesUsed": "{{count}} वाक्प्रचार पुनरावृत्ती केले",
         "phrasesUsed_plural": "{{count}} वाक्प्रचार सराव केले"
+      },
+      "fallback": {
+        "primary": "क्षमस्व",
+        "translation": "क्षमस्व",
+        "retry": "पुन्हा प्रयत्न करा"
+      },
+      "greeting": {
+        "text": "नमस्कार! मराठी सराव करूया!",
+        "translation": "नमस्कार! {{language}} सराव करूया!",
+        "suggestions": [
+          "नमस्कार!",
+          "चालू करूया!",
+          "मी तयार आहे!"
+        ],
+        "explanation": "मी तुमच्या शब्दसंग्रहातील वाक्यांश वापरून तुमच्याशी नैसर्गिक संवाद करेन. चला सुरू करूया!"
       }
     },
     "actions": {
@@ -1102,5 +1126,8 @@
       "playTranslation": "भाषांतर बोला",
       "moreActions": "अतिरिक्त क्रिया"
     }
+  },
+  "gemini": {
+    "personNumberExample": "प्रथम व्यक्ती, एकवचन"
   }
 }

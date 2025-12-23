@@ -96,7 +96,8 @@
       "general": "Geral",
       "automation": "Automação (IA)",
       "categories": "Categorias para prática",
-      "analytics": "Progresso e análise"
+      "analytics": "Progresso e análise",
+      "maintenance": "Manutenção"
     },
     "general": {
       "legend": "Configurações gerais",
@@ -150,6 +151,14 @@
         "noDifficultCards": "Ainda sem cartões difíceis",
         "emptyState": "Ainda sem dados de prática",
         "emptyStateHint": "Comece a praticar cartões para ver estatísticas de progresso aqui."
+      }
+    },
+    "maintenance": {
+      "legend": "Manutenção de dados",
+      "addArticles": {
+        "label": "Adicionar artigos ausentes",
+        "description": "Adicionar automaticamente Der/Die/Das aos substantivos.",
+        "button": "Escanear"
       }
     }
   },
@@ -312,6 +321,21 @@
         "phrasesUsed_other": "{{count}} frases revisadas",
         "phrasesUsed": "{{count}} frases revisadas",
         "phrasesUsed_plural": "{{count}} frases praticadas"
+      },
+      "fallback": {
+        "primary": "Desculpa",
+        "translation": "Desculpa",
+        "retry": "Mais uma vez"
+      },
+      "greeting": {
+        "text": "Olá! Vamos praticar português!",
+        "translation": "Olá! Vamos praticar {{language}}!",
+        "suggestions": [
+          "Olá!",
+          "Bom dia!",
+          "Sim, vamos!"
+        ],
+        "explanation": "Vou ter uma conversa natural contigo usando frases do teu vocabulário. Vamos começar!"
       }
     },
     "actions": {
@@ -1102,5 +1126,8 @@
       "playTranslation": "Pronunciar tradução",
       "moreActions": "Ações adicionais"
     }
+  },
+  "gemini": {
+    "personNumberExample": "1ª pessoa, singular"
   }
 }

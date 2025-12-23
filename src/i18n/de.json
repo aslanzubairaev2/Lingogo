@@ -96,7 +96,8 @@
       "general": "Allgemein",
       "automation": "Automatisierung (KI)",
       "categories": "Übungskategorien",
-      "analytics": "Fortschritt & Analytik"
+      "analytics": "Fortschritt & Analytik",
+      "maintenance": "Wartung"
     },
     "general": {
       "legend": "Allgemeine Einstellungen",
@@ -150,6 +151,14 @@
         "noDifficultCards": "Noch keine schwierigen Karten",
         "emptyState": "Noch keine Übungsdaten",
         "emptyStateHint": "Beginne mit dem Üben, um hier deine Fortschrittsstatistiken zu sehen."
+      }
+    },
+    "maintenance": {
+      "legend": "Datenwartung",
+      "addArticles": {
+        "label": "Fehlende Artikel hinzufügen",
+        "description": "Automatisch Der/Die/Das zu Substantiven hinzufügen.",
+        "button": "Scannen"
       }
     }
   },
@@ -312,6 +321,21 @@
         "phrasesUsed_other": "{{count}} phrases practiced",
         "phrasesUsed": "{{count}} geübte Phrase",
         "phrasesUsed_plural": "{{count}} geübte Phrasen"
+      },
+      "fallback": {
+        "primary": "Entschuldigung",
+        "translation": "Entschuldigung",
+        "retry": "Noch einmal"
+      },
+      "greeting": {
+        "text": "Hallo! Lass uns Deutsch üben!",
+        "translation": "Hallo! Lass uns {{language}} üben!",
+        "suggestions": [
+          "Hallo!",
+          "Guten Tag!",
+          "Ja, gerne!"
+        ],
+        "explanation": "Ich werde ein natürliches Gespräch mit dir führen und dabei Phrasen aus deinem Vokabular verwenden. Lass uns beginnen!"
       }
     },
     "actions": {
@@ -1102,5 +1126,8 @@
       "playTranslation": "Übersetzung abspielen",
       "moreActions": "Weitere Aktionen"
     }
+  },
+  "gemini": {
+    "personNumberExample": "1. Person, Singular"
   }
 }
