@@ -274,7 +274,6 @@ const PracticePage: React.FC<PracticePageProps> = (props) => {
      */
     const renderContent = () => {
         if (isLoading) return <PhraseCardSkeleton />;
-        if (error) return <div className="text-center bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-lg max-w-md mx-auto"><p className="font-semibold">{t('practice.states.errorOccurred')}</p><p className="text-sm">{error}</p></div>;
 
         if (!currentPhrase) {
             if (unmasteredCount === 0 && practiceCategoryFilter === 'all') {
@@ -445,6 +444,7 @@ const PracticePage: React.FC<PracticePageProps> = (props) => {
                     onOpenAdjectiveDeclension={onOpenAdjectiveDeclension}
                 />
             )}
+            {error && <div className="text-center bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-lg max-w-md mx-auto"><p className="font-semibold">{t('practice.states.errorOccurred')}</p><p className="text-sm">{error}</p></div>}
         </>
     );
 };
