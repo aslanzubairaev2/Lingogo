@@ -3,7 +3,7 @@ import React, { useCallback, useContext, useEffect, useRef, useState } from 'rea
 import { LanguageContext } from '../contexts/languageContext.tsx';
 import { useTranslation } from '../hooks/useTranslation.ts';
 import { getLanguageLabel, getSpeechLocale } from '../i18n/languageMeta.ts';
-import { LanguageCode, SpeechRecognition, SpeechRecognitionErrorEvent } from '../types.ts';
+import { LanguageCode } from '../types.ts';
 import CloseIcon from './icons/CloseIcon';
 import KeyboardIcon from './icons/KeyboardIcon';
 import MicrophoneIcon from './icons/MicrophoneIcon';
@@ -79,7 +79,7 @@ const AddPhraseModal: React.FC<AddPhraseModalProps> = ({
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) return;
 
-    const recognition = new SpeechRecognitionAPI();
+    const recognition = new SpeechRecognition();
     recognition.lang = getSpeechLocale(language);
     recognition.interimResults = true;
     recognition.continuous = false;

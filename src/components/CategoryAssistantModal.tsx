@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm';
 
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
-import { speak, SpeechOptions } from '../services/speechService';
+import { getNativeSpeechLocale, speak, SpeechOptions } from '../services/speechService';
 import {
   Category,
   CategoryAssistantRequest,
@@ -384,7 +384,7 @@ const CategoryAssistantModal: React.FC<CategoryAssistantModalProps> = (props) =>
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
-      const recognition = new SpeechRecognitionAPI();
+      const recognition = new SpeechRecognition();
       recognition.lang = getNativeSpeechLocale(profile);
       recognition.interimResults = false;
       recognition.continuous = false;

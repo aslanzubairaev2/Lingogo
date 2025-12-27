@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation.ts';
 import { getNativeSpeechLocale } from '../services/speechService';
-import { SpeechRecognition, SpeechRecognitionErrorEvent } from '../types.ts';
 import CloseIcon from './icons/CloseIcon';
 import KeyboardIcon from './icons/KeyboardIcon';
 import MicrophoneIcon from './icons/MicrophoneIcon';
@@ -29,7 +28,7 @@ const AddContinuationModal: React.FC<AddContinuationModalProps> = ({ isOpen, onC
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) return;
 
-    const recognition = new SpeechRecognitionAPI();
+    const recognition = new SpeechRecognition();
     recognition.lang = getNativeSpeechLocale(profile);
     recognition.interimResults = true;
     recognition.continuous = false;

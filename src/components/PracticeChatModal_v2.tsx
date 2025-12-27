@@ -23,8 +23,6 @@ import type {
   PracticeChatMessage,
   PracticeChatSessionRecord,
   PracticeChatSessionStats,
-  SpeechRecognition,
-  SpeechRecognitionErrorEvent,
   WordAnalysis,
 } from '../types.ts';
 import ChatContextMenu from './ChatContextMenu';
@@ -400,9 +398,9 @@ export const PracticeChatModal_v2: React.FC<Props> = ({
 
   // Initialize speech recognition
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognitionAPI) {
+      const recognition = new SpeechRecognitionAPI();
       recognition.lang = getSpeechLocale(profile.learning);
       recognition.interimResults = false;
       recognition.continuous = false;

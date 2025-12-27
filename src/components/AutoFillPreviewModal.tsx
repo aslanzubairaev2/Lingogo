@@ -3,7 +3,7 @@
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation.ts';
 import { getNativeSpeechLocale } from '../services/speechService';
-import { ProposedCard, SpeechRecognition, SpeechRecognitionErrorEvent } from '../types.ts';
+import { ProposedCard } from '../types.ts';
 import CheckIcon from './icons/CheckIcon';
 import CloseIcon from './icons/CloseIcon';
 import MicrophoneIcon from './icons/MicrophoneIcon';
@@ -70,7 +70,7 @@ const AutoFillPreviewModal: React.FC<AutoFillPreviewModalProps> = ({
       return;
     }
 
-    const recognition = new SpeechRecognitionAPI();
+    const recognition = new SpeechRecognition();
     recognition.lang = getNativeSpeechLocale(profile);
     recognition.interimResults = true;
     recognition.continuous = false;

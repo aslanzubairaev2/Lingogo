@@ -273,48 +273,48 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognitionAPI) return;
+    if (SpeechRecognitionAPI) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = getSpeechLocale(lang);
+      recognition.interimResults = true;
+      recognition.continuous = true;
 
-    const recognition = new SpeechRecognitionAPI();
-    recognition.lang = getSpeechLocale(lang);
-    recognition.interimResults = true;
-    recognition.continuous = true;
+      recognition.onstart = () => {
+        setSpeechStatus('recording');
+        finalTranscriptRef.current = '';
+        setTranscript('');
+      };
+      recognition.onend = () => {
+        setSpeechStatus('stopped');
+      };
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        console.error('Speech recognition error:', event.error);
+        setSpeechStatus('idle');
+      };
 
-    recognition.onstart = () => {
-      setSpeechStatus('recording');
-      finalTranscriptRef.current = '';
-      setTranscript('');
-    };
-    recognition.onend = () => {
-      setSpeechStatus('stopped');
-    };
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error('Speech recognition error:', event.error);
-      setSpeechStatus('idle');
-    };
+      recognition.onresult = (event) => {
+        const finalPart = Array.from(event.results)
+          .filter((result) => result.isFinal)
+          .map((result) => result[0].transcript)
+          .join('');
+        const interimPart = Array.from(event.results)
+          .filter((result) => !result.isFinal)
+          .map((result) => result[0].transcript)
+          .join('');
+        finalTranscriptRef.current = finalPart.trim();
+        setTranscript((finalPart + interimPart).trim());
+      };
 
-    recognition.onresult = (event) => {
-      const finalPart = Array.from(event.results)
-        .filter((result) => result.isFinal)
-        .map((result) => result[0].transcript)
-        .join('');
-      const interimPart = Array.from(event.results)
-        .filter((result) => !result.isFinal)
-        .map((result) => result[0].transcript)
-        .join('');
-      finalTranscriptRef.current = finalPart.trim();
-      setTranscript((finalPart + interimPart).trim());
-    };
-
-    recognitionRef.current = recognition;
-    return () => recognition.abort();
+      recognitionRef.current = recognition;
+      return () => recognition.abort();
+    }
   }, [lang]);
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) return;
 
-    const recognition = new SpeechRecognitionAPI();
+    const recognition = new SpeechRecognition();
     recognition.lang = getSpeechLocale(lang);
     recognition.interimResults = false;
     recognition.continuous = false;
@@ -339,7 +339,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) return;
 
-    const recognition = new SpeechRecognitionAPI();
+    const recognition = new SpeechRecognition();
     recognition.lang = getSpeechLocale(lang);
     recognition.interimResults = true;
     recognition.continuous = false;

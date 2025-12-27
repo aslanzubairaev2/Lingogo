@@ -23,36 +23,35 @@ const VoicePracticeModal: React.FC<VoicePracticeModalProps> = ({ isOpen, onClose
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognitionAPI) return;
+    if (SpeechRecognitionAPI) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = getLearningSpeechLocale(profile);
+      recognition.continuous = false;
+      recognition.interimResults = true;
 
-    const recognition = new SpeechRecognitionAPI();
-    recognition.lang = getLearningSpeechLocale(profile);
-    recognition.continuous = false;
-    recognition.interimResults = true;
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = (e: any) => {
-      if (e.error !== 'aborted' && e.error !== 'no-speech') {
-        console.error('Speech recognition error:', e.error);
-      }
-      setIsListening(false);
-    };
-    recognition.onresult = (event) => {
-      const fullTranscript = Array.from(event.results)
-        .map((r) => r[0].transcript)
-        .join('');
-      setTranscript(fullTranscript);
-      if (event.results[event.results.length - 1].isFinal) {
-        if (fullTranscript.trim()) {
-          onSubmit(fullTranscript.trim());
-        } else {
-          onClose(); // Close if nothing was said
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = (e: any) => {
+        if (e.error !== 'aborted' && e.error !== 'no-speech') {
+          console.error('Speech recognition error:', e.error);
         }
-      }
-    };
-    recognitionRef.current = recognition;
-  }, [onSubmit, onClose]);
+        setIsListening(false);
+      };
+      recognition.onresult = (event) => {
+        const fullTranscript = Array.from(event.results)
+          .map((r) => r[0].transcript)
+          .join('');
+        setTranscript(fullTranscript);
+        if (event.results[event.results.length - 1].isFinal) {
+          if (fullTranscript.trim()) {
+            onSubmit(fullTranscript.trim());
+          } else {
+            onClose(); // Close if nothing was said
+          }
+        }
+      };
+      recognitionRef.current = recognition;
+    }, [onSubmit, onClose]);
 
   useEffect(() => {
     if (isOpen) {

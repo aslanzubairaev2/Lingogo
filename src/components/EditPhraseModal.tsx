@@ -109,7 +109,7 @@ const EditPhraseModal: React.FC<EditPhraseModalProps> = ({
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
-      const recognition = new SpeechRecognitionAPI();
+      const recognition = new SpeechRecognition();
       recognition.lang = getNativeSpeechLocale(profile);
       recognition.continuous = false;
       recognition.interimResults = true;

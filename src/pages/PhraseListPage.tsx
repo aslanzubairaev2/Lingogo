@@ -1,37 +1,4 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from 'react';
-
-import type { Category, LanguageCode, Phrase, PhraseCategory } from '../types.ts';
-
-// Local type definitions for Speech Recognition API
-interface SpeechRecognitionErrorEvent extends Event {
-  error: string;
-  message?: string;
-}
-
-interface SpeechRecognitionEvent extends Event {
-  results: SpeechRecognitionResultList;
-}
-
-interface SpeechRecognition extends EventTarget {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  maxAlternatives: number;
-  start(): void;
-  stop(): void;
-  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
-  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
-}
-
-// Extend window interface for Speech Recognition API
-declare global {
-  interface Window {
-    SpeechRecognition: new () => SpeechRecognition;
-    webkitSpeechRecognition: new () => SpeechRecognition;
-  }
-}
-
 import { FiCopy, FiZap } from 'react-icons/fi';
 
 import CategoryFilterContextMenu from '../components/CategoryFilterContextMenu';
@@ -44,6 +11,7 @@ import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { getLanguageLabel, getSpeechLocale } from '../i18n/languageMeta';
 import * as backendService from '../services/backendService';
+import type { Category, LanguageCode, Phrase, PhraseCategory } from '../types.ts';
 const HEADER_ESTIMATE = 48;
 const PHRASE_ESTIMATE = 176;
 
@@ -184,7 +152,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
       const setupRecognizer = (langCode: LanguageCode): SpeechRecognition => {
-        const recognition = new SpeechRecognitionAPI();
+        const recognition = new SpeechRecognition();
         recognition.lang = getSpeechLocale(langCode);
         recognition.continuous = false;
         recognition.interimResults = true;

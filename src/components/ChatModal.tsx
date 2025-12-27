@@ -6,8 +6,8 @@ import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { ApiProviderType } from '../services/apiProvider';
 import { getCache, setCache } from '../services/cacheService';
-import { speak, SpeechOptions } from '../services/speechService';
-import { ChatExamplePair, ChatMessage, Phrase, WordAnalysis } from '../types.ts';
+import { getNativeSpeechLocale, speak, SpeechOptions } from '../services/speechService';
+import { ChatMessage, Phrase, WordAnalysis } from '../types.ts';
 import ChatContextMenu from './ChatContextMenu';
 import CloseIcon from './icons/CloseIcon';
 import DeepSeekLogo from './icons/DeepSeekLogo';
@@ -288,8 +288,8 @@ const ChatModal: React.FC<ChatModalProps> = ({
   };
 
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognitionAPI) {
       setSpeechSupported(true);
       const recognition = new SpeechRecognition();
       recognition.lang = getNativeSpeechLocale(profile);

@@ -412,7 +412,7 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
-      const recognition = new SpeechRecognitionAPI();
+      const recognition = new SpeechRecognition();
       recognition.lang = getLearningSpeechLocale(profile);
       recognition.continuous = false; // Changed to false for better reliability
       recognition.interimResults = true;

@@ -3,14 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { getNativeSpeechLocale, speak, SpeechOptions } from '../services/speechService';
-import type {
-  ChatMessage,
-  ContentPart,
-  Phrase,
-  SpeechRecognition,
-  SpeechRecognitionErrorEvent,
-  TranslationChatResponse,
-} from '../types.ts';
+import type { ChatMessage, Phrase, TranslationChatResponse } from '../types.ts';
 import CheckIcon from './icons/CheckIcon';
 import CloseIcon from './icons/CloseIcon';
 import GeminiLogo from './icons/GeminiLogo';
@@ -236,7 +229,7 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
-      const recognition = new SpeechRecognitionAPI();
+      const recognition = new SpeechRecognition();
       recognition.lang = getNativeSpeechLocale(profile);
       recognition.continuous = false;
       recognition.interimResults = false;

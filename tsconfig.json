@@ -11,7 +11,8 @@
     ],
     "skipLibCheck": true,
     "types": [
-      "node"
+      "node",
+      "dom-speech-recognition"
     ],
     "moduleResolution": "bundler",
     "isolatedModules": true,

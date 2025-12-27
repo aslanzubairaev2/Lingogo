@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { getNativeSpeechLocale } from '../services/speechService';
-import { SpeechRecognition, SpeechRecognitionErrorEvent } from '../types.ts';
 import CameraCaptureModal from './CameraCaptureModal';
 import CameraIcon from './icons/CameraIcon';
 import CheckIcon from './icons/CheckIcon';
@@ -115,7 +114,7 @@ const FileImportView: React.FC<FileImportViewProps> = ({ onProcessFile }) => {
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
-      const recognition = new SpeechRecognitionAPI();
+      const recognition = new SpeechRecognition();
       recognition.lang = getNativeSpeechLocale(profile);
       recognition.interimResults = true;
       recognition.continuous = false;

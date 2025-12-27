@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation.ts';
-import { speak } from '../services/speechService';
+import { getLearningSpeechLocale, speak, SpeechOptions } from '../services/speechService';
 import { ChatMessage, Phrase, WordAnalysis } from '../types.ts';
 // Reusing a similar component from other chat modals for consistent UI
 import ChatContextMenu from './ChatContextMenu';
@@ -31,7 +31,7 @@ interface PracticeChatModalProps {
 
 const ChatMessageContent: React.FC<{
   message: ChatMessage;
-  onSpeak: (text: string) => void;
+  onSpeak: (text: string, options: SpeechOptions) => void;
   onOpenWordAnalysis: (phrase: Phrase, word: string) => void;
   onOpenContextMenu: (target: { sentence: { learning: string; native: string }; word: string }) => void;
 }> = ({ message, onSpeak, onOpenWordAnalysis, onOpenContextMenu }) => {
@@ -237,8 +237,8 @@ const PracticeChatModal: React.FC<PracticeChatModalProps> = ({
   }, [isOpen, onSendMessage, setHistory, history.length]);
 
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognitionAPI) {
       const recognition = new SpeechRecognition();
       recognition.lang = getLearningSpeechLocale(profile);
       recognition.interimResults = false;

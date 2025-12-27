@@ -185,10 +185,10 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
   }, [isOpen, phrase, onGuide, cache, updateMessages]);
 
   useEffect(() => {
-    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
       const setupRecognizer = (langCode: LanguageCode) => {
-        const recognition = new SpeechRecognitionAPI();
+        const recognition = new SpeechRecognition();
         recognition.lang = getSpeechLocale(profile.native);
         recognition.continuous = false;
         recognition.interimResults = false;
