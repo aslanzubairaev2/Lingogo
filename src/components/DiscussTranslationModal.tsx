@@ -227,12 +227,9 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({
     } else {
       // Reset state or keep it? If we persist, we might want to clear local state to avoid stale data,
       // but we rely on initialHistory to re-populate it.
-      setInput('');
+      // setInput('');
       isInitialMessageSent.current = false;
       // setMessages([]); // Do NOT clear messages here if we want to persist visual state until full close, but technically valid since we reload from props
-      if (!isOpen) {
-        setMessages([]); // Clear LOCAL state when closed, so next open gets fresh initialHistory
-      }
     }
   }, [isOpen, initialMessage, originalNative, currentLearning, onDiscuss, initialHistory]);
 
