@@ -13,7 +13,7 @@ import { useLanguage } from '@/src/contexts/languageContext.tsx';
 import { useTranslation } from '../hooks/useTranslation.ts';
 import { SpeechOptions } from '../services/speechService';
 import { MAX_MASTERY_LEVEL } from '../services/srsService';
-import type { LanguageCode, Phrase } from '../types.ts';
+import type { Phrase } from '../types.ts';
 import AnalysisIcon from './icons/AnalysisIcon';
 import BlocksIcon from './icons/BlocksIcon';
 import BookOpenIcon from './icons/BookOpenIcon';
@@ -143,6 +143,12 @@ const PhraseCard: React.FC<PhraseCardProps> = ({
   const buttonContainerRefBack = useRef<HTMLDivElement>(null);
 
   const flashRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    onSpeak(!isFlipped ? phrase.text.native : phrase.text.learning, {
+      lang: !isFlipped ? profile.native : profile.learning,
+    });
+  }, [isFlipped]);
 
   useEffect(() => {
     const flashElement = flashRef.current;
