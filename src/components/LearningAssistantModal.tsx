@@ -11,6 +11,7 @@ import CloseIcon from './icons/CloseIcon';
 import MicrophoneIcon from './icons/MicrophoneIcon';
 import SendIcon from './icons/SendIcon';
 import SoundIcon from './icons/SoundIcon';
+import { getLanguageLabel } from '../i18n/languageMeta.ts';
 
 interface LearningAssistantModalProps {
   isOpen: boolean;
@@ -235,8 +236,6 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
       }
     }
   };
-
-  useEffect(scrollToBottom, [messages]);
 
   useEffect(() => {
     if (textareaRef.current) {
