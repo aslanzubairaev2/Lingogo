@@ -70,7 +70,6 @@ const normalizeString = (str: string) =>
     .replace(/[.,!?]/g, '')
     .trim();
 
-// FIX: Changed to a named export to resolve "no default export" error.
 export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
   isOpen,
   onClose,
@@ -808,3 +807,5 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
     </>
   );
 };
+
+export default VoiceWorkspaceModal;

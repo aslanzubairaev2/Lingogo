@@ -2,9 +2,23 @@ import { Category, Phrase } from '../types.ts';
 import { getAccessToken, notifyUnauthorized } from './authTokenStore.ts';
 import { getApiBaseUrl } from './env.ts';
 
+/**
+ * backendService.ts
+ *
+ * This service handles all HTTP communication with the Lingogo backend API.
+ * It is responsible for:
+ * - Managing authentication tokens in requests.
+ * - Transforming data between frontend and backend formats.
+ * - Handling API errors and unauthorized states.
+ * - Implementing global retry logic for network robustness.
+ * - Providing typed functions for all CRUD operations on Phrases, Categories, and User Profiles.
+ */
+
 const API_BASE_URL = getApiBaseUrl();
 
 // --- Color Conversion Maps ---
+// Maps Tailwind CSS color classes to Hex codes for backend storage.
+// The backend stores colors as Hex strings to be client-agnostic.
 const tailwindToHexMap: Record<string, string> = {
   'bg-slate-500': '#64748b',
   'bg-red-500': '#ef4444',
@@ -31,7 +45,13 @@ const hexToTailwindMap: Record<string, string> = Object.fromEntries(
 );
 
 // --- Data Conversion Helpers ---
+// These functions transform backend data structures (flat, snake_case)
+// to frontend domain objects (nested, camelCase) and vice versa.
 
+/**
+ * Converts a raw backend category object to the frontend Category type.
+ * Handles color mapping (Hex -> Tailwind).
+ */
 const feCategory = (beCategory: any): Category => ({
   id: beCategory.id.toString(),
   name: beCategory.name,
@@ -39,6 +59,10 @@ const feCategory = (beCategory: any): Category => ({
   isFoundational: beCategory.is_foundational,
 });
 
+/**
+ * Converts a raw backend phrase object to the frontend Phrase type.
+ * Maps flat backend fields to nested objects (text, romanization, context).
+ */
 const fePhrase = (bePhrase: any): Phrase => {
   const categoryId = bePhrase.category_id ?? bePhrase.category;
   // Map backend's flat structure to the frontend's nested `text` object.
@@ -61,6 +85,12 @@ const fePhrase = (bePhrase: any): Phrase => {
   };
 };
 
+/**
+ * Standardized response handler.
+ * - checks for 401/403 to trigger unauthorized flow.
+ * - parses JSON response or throws detailed errors.
+ * - handles 204 No Content.
+ */
 const handleResponse = async (response: Response) => {
   if (response.status === 401 || response.status === 403) {
     notifyUnauthorized();
@@ -88,6 +118,12 @@ const handleResponse = async (response: Response) => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Wrapper around `fetch` that adds:
+ * - Authorization headers with the current token.
+ * - Automatic retry logic for 429 (Rate Limit) errors with exponential backoff.
+ * - Default headers (Accept, Content-Type).
+ */
 const fetchWithRetry = async (
   url: RequestInfo,
   options: RequestInit = {},
@@ -138,6 +174,12 @@ const fetchWithRetry = async (
   throw new Error('Request failed after all retries.');
 };
 
+/**
+ * Fetches the initial data set (categories and phrases) for the application.
+ * If a 404 is encountered, it triggers a data load and retries.
+ *
+ * @returns {Promise<{ categories: Category[]; phrases: Phrase[] }>} A promise resolving to the initial data.
+ */
 export const fetchInitialData = async (): Promise<{ categories: Category[]; phrases: Phrase[] }> => {
   // Логирование токена для диагностики
   const token = getAccessToken();
@@ -169,6 +211,13 @@ export const fetchInitialData = async (): Promise<{ categories: Category[]; phra
   };
 };
 
+/**
+ * Creates a new phrase.
+ * Maps frontend data structure to backend expectations.
+ *
+ * @param {Omit<Phrase, 'id' | ...>} phraseData - The data for the new phrase.
+ * @returns {Promise<Phrase>} The newly created phrase.
+ */
 export const createPhrase = async (
   phraseData: Omit<
     Phrase,
@@ -191,6 +240,14 @@ export const createPhrase = async (
   return fePhrase(created);
 };
 
+/**
+ * Updates an existing phrase.
+ * Handles mapping of legacy fields and ensures category ID is valid.
+ *
+ * @param {Phrase} phrase - The phrase with updated data.
+ * @returns {Promise<Phrase>} The updated phrase from the backend.
+ * @throws {Error} If category ID is missing or invalid.
+ */
 export const updatePhrase = async (phrase: Phrase): Promise<Phrase> => {
   // Map frontend's nested object structure to the flat properties expected by the backend.
   // Support legacy fields (native/learning) for backward compatibility
@@ -223,10 +280,23 @@ export const updatePhrase = async (phrase: Phrase): Promise<Phrase> => {
   return fePhrase({ ...phrase, ...updated });
 };
 
+/**
+ * Deletes a phrase by its ID.
+ *
+ * @param {string} phraseId - The ID of the phrase to delete.
+ * @returns {Promise<void>}
+ */
 export const deletePhrase = async (phraseId: string): Promise<void> => {
   await handleResponse(await fetchWithRetry(`${API_BASE_URL}/phrases/${phraseId}`, { method: 'DELETE' }));
 };
 
+/**
+ * Creates a new category.
+ * Converts Tailwind color class to Hex for storage.
+ *
+ * @param {Omit<Category, 'id'>} categoryData - The data for the new category.
+ * @returns {Promise<Category>} The created category.
+ */
 export const createCategory = async (categoryData: Omit<Category, 'id'>): Promise<Category> => {
   const hexColor = tailwindToHexMap[categoryData.color] || '#64748b';
 
@@ -245,6 +315,12 @@ export const createCategory = async (categoryData: Omit<Category, 'id'>): Promis
   return feCategory(created);
 };
 
+/**
+ * Updates an existing category.
+ *
+ * @param {Category} category - The category with updated data.
+ * @returns {Promise<Category>} The updated category.
+ */
 export const updateCategory = async (category: Category): Promise<Category> => {
   const hexColor = tailwindToHexMap[category.color] || '#64748b';
   const beData = { name: category.name, color: hexColor };
@@ -258,6 +334,14 @@ export const updateCategory = async (category: Category): Promise<Category> => {
   return feCategory(updated);
 };
 
+/**
+ * Deletes a category.
+ * Optionally migrates phrases to another category before deletion.
+ *
+ * @param {string} categoryId - The ID of the category to delete.
+ * @param {string | null} migrationTargetId - Optional ID of the category to move phrases to.
+ * @returns {Promise<void>}
+ */
 export const deleteCategory = async (categoryId: string, migrationTargetId: string | null): Promise<void> => {
   const body = migrationTargetId ? { migrationTargetId: parseInt(migrationTargetId, 10) } : {};
   const response = await fetchWithRetry(`${API_BASE_URL}/categories/${categoryId}`, {
@@ -268,6 +352,12 @@ export const deleteCategory = async (categoryId: string, migrationTargetId: stri
   await handleResponse(response);
 };
 
+/**
+ * Manually triggers the loading of initial data.
+ * Used when the backend indicates no data exists (404 on fetchInitialData).
+ *
+ * @returns {Promise<void>}
+ */
 export const loadInitialData = async (): Promise<void> => {
   const response = await fetchWithRetry(`${API_BASE_URL}/initial-data`, {
     method: 'POST',
@@ -278,6 +368,12 @@ export const loadInitialData = async (): Promise<void> => {
 // --- User Profile API ---
 import type { LanguageProfile } from '../types.ts';
 
+/**
+ * Fetches the current user's language profile.
+ * Returns null if the user has no profile (e.g. new user).
+ *
+ * @returns {Promise<LanguageProfile | null>} The user profile or null.
+ */
 export const getUserProfile = async (): Promise<LanguageProfile | null> => {
   const response = await fetchWithRetry(`${API_BASE_URL}/user-profile`);
 
@@ -299,6 +395,12 @@ export const getUserProfile = async (): Promise<LanguageProfile | null> => {
   };
 };
 
+/**
+ * Updates the existing user profile.
+ *
+ * @param {LanguageProfile} profile - The updated profile data.
+ * @returns {Promise<void>}
+ */
 export const updateUserProfile = async (profile: LanguageProfile): Promise<void> => {
   const response = await fetchWithRetry(`${API_BASE_URL}/user-profile`, {
     method: 'PUT',
@@ -312,6 +414,13 @@ export const updateUserProfile = async (profile: LanguageProfile): Promise<void>
   await handleResponse(response);
 };
 
+/**
+ * Creates or updates the user profile (Upsert).
+ * Useful for initial profile creation or ensuring it exists.
+ *
+ * @param {LanguageProfile} profile - The profile data to save.
+ * @returns {Promise<void>}
+ */
 export const upsertUserProfile = async (profile: LanguageProfile): Promise<void> => {
   const response = await fetchWithRetry(`${API_BASE_URL}/user-profile`, {
     method: 'POST',

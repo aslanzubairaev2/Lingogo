@@ -4,25 +4,25 @@ import i18n from '../i18n/config.ts';
 import { getLanguageName } from '../i18n/languageMeta';
 import type { TranslationRecord } from '../services/languageService.ts';
 import type {
-    AdjectiveDeclension,
-    CategoryAssistantRequest,
-    CategoryAssistantRequestType,
-    CategoryAssistantResponse,
-    ChatExamplePair,
-    ChatMessage,
-    ChatProactiveSuggestion,
-    ContentPart,
-    DeepDiveAnalysis,
-    LanguageCode,
-    MovieExample,
-    NounDeclension,
-    Phrase,
-    PhraseBuilderOptions,
-    PhraseEvaluation,
-    ProposedCard,
-    SentenceContinuation,
-    VerbConjugation,
-    WordAnalysis,
+  AdjectiveDeclension,
+  CategoryAssistantRequest,
+  CategoryAssistantRequestType,
+  CategoryAssistantResponse,
+  ChatExamplePair,
+  ChatMessage,
+  ChatProactiveSuggestion,
+  ContentPart,
+  DeepDiveAnalysis,
+  LanguageCode,
+  MovieExample,
+  NounDeclension,
+  Phrase,
+  PhraseBuilderOptions,
+  PhraseEvaluation,
+  ProposedCard,
+  SentenceContinuation,
+  VerbConjugation,
+  WordAnalysis,
 } from '../types.ts';
 import { AiService } from './aiService';
 import { currentLanguageProfile } from './currentLanguageProfile';
@@ -31,13 +31,13 @@ import { getGeminiApiKey } from './env';
 let ai: GoogleGenAI | null = null;
 
 const initializeApi = () => {
-    if (ai) return ai;
-    const apiKey = getGeminiApiKey();
-    if (apiKey) {
-        ai = new GoogleGenAI({ apiKey });
-        return ai;
-    }
-    return null;
+  if (ai) return ai;
+  const apiKey = getGeminiApiKey();
+  if (apiKey) {
+    ai = new GoogleGenAI({ apiKey });
+    return ai;
+  }
+  return null;
 };
 
 const model = 'gemini-3-flash-preview';
@@ -53,451 +53,451 @@ const model = 'gemini-3-flash-preview';
  * @throws Last error if all retries fail
  */
 async function retryWithExponentialBackoff<T>(
-    fn: () => Promise<T>,
-    maxRetries: number = 3,
-    initialDelayMs: number = 1000
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  initialDelayMs: number = 1000
 ): Promise<T> {
-    let lastError: Error | null = null;
+  let lastError: Error | null = null;
 
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-            return await fn();
-        } catch (error) {
-            lastError = error as Error;
-            const isLastAttempt = attempt === maxRetries - 1;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      const isLastAttempt = attempt === maxRetries - 1;
 
-            console.warn(
-                `[retryWithExponentialBackoff] Attempt ${attempt + 1}/${maxRetries} failed:`,
-                error instanceof Error ? error.message : error
-            );
+      console.warn(
+        `[retryWithExponentialBackoff] Attempt ${attempt + 1}/${maxRetries} failed:`,
+        error instanceof Error ? error.message : error
+      );
 
-            if (isLastAttempt) {
-                console.error('[retryWithExponentialBackoff] All retries exhausted');
-                break;
-            }
+      if (isLastAttempt) {
+        console.error('[retryWithExponentialBackoff] All retries exhausted');
+        break;
+      }
 
-            // Calculate delay with exponential backoff: 1s, 2s, 4s, etc.
-            const delayMs = initialDelayMs * Math.pow(2, attempt);
-            console.log(`[retryWithExponentialBackoff] Waiting ${delayMs}ms before retry...`);
+      // Calculate delay with exponential backoff: 1s, 2s, 4s, etc.
+      const delayMs = initialDelayMs * Math.pow(2, attempt);
+      console.log(`[retryWithExponentialBackoff] Waiting ${delayMs}ms before retry...`);
 
-            await new Promise((resolve) => setTimeout(resolve, delayMs));
-        }
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
+  }
 
-    throw lastError || new Error('Max retries exceeded');
+  throw lastError || new Error('Max retries exceeded');
 }
 
 /**
  * Helper functions for getting language names in prompts
  */
 const getLang = () => {
-    const profile = currentLanguageProfile.getProfile();
-    return {
-        native: getLanguageName(profile.native),
-        learning: getLanguageName(profile.learning),
-        nativeCode: profile.native,
-        learningCode: profile.learning,
-    };
+  const profile = currentLanguageProfile.getProfile();
+  return {
+    native: getLanguageName(profile.native),
+    learning: getLanguageName(profile.learning),
+    nativeCode: profile.native,
+    learningCode: profile.learning,
+  };
 };
 
 /**
  * Determines if a language requires romanization/transcription
  */
 const requiresRomanization = (languageCode: LanguageCode): boolean => {
-    return ['ar', 'hi', 'zh', 'ja'].includes(languageCode);
+  return ['ar', 'hi', 'zh', 'ja'].includes(languageCode);
 };
 
 const buildLocalePrompt = (languageLabel: string) => [
-    {
-        role: 'user',
-        parts: [
-            {
-                text: `You translate UI text from English to ${languageLabel}. Return valid JSON matching the input structure. Translate string values only. Preserve placeholders like {{count}} or {{name}} exactly. Keep HTML tags and Markdown untouched. Use straight quotes and ASCII ellipsis (...). Do not add explanations.`,
-            },
-        ],
-    },
+  {
+    role: 'user',
+    parts: [
+      {
+        text: `You translate UI text from English to ${languageLabel}. Return valid JSON matching the input structure. Translate string values only. Preserve placeholders like {{count}} or {{name}} exactly. Keep HTML tags and Markdown untouched. Use straight quotes and ASCII ellipsis (...). Do not add explanations.`,
+      },
+    ],
+  },
 ];
 
 const sanitizeJsonResponse = (raw: string) => {
-    const trimmed = raw.trim();
-    if (trimmed.startsWith('```')) {
-        const withoutFence = trimmed.replace(/^```[a-z]*\s*/i, '').replace(/```$/, '');
-        return withoutFence.trim();
-    }
-    return trimmed;
+  const trimmed = raw.trim();
+  if (trimmed.startsWith('```')) {
+    const withoutFence = trimmed.replace(/^```[a-z]*\s*/i, '').replace(/```$/, '');
+    return withoutFence.trim();
+  }
+  return trimmed;
 };
 
 export const translateLocaleTemplate = async (
-    template: TranslationRecord,
-    targetLanguage: LanguageCode
+  template: TranslationRecord,
+  targetLanguage: LanguageCode
 ): Promise<TranslationRecord> => {
-    console.log(`[Gemini] Starting locale translation for ${targetLanguage}`);
+  console.log(`[Gemini] Starting locale translation for ${targetLanguage}`);
 
-    const api = initializeApi();
-    if (!api) {
-        console.error(`[Gemini] API key not configured for ${targetLanguage}`);
-        throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) {
+    console.error(`[Gemini] API key not configured for ${targetLanguage}`);
+    throw new Error('Gemini API key not configured.');
+  }
+
+  const templateJson = JSON.stringify(template, null, 2);
+  console.log(`[Gemini] Template size for ${targetLanguage}: ${templateJson.length} characters`);
+
+  const prompt = buildLocalePrompt(targetLanguage);
+  prompt[0].parts.push({ text: templateJson });
+
+  try {
+    console.log(`[Gemini] Sending request to Gemini API for ${targetLanguage}`);
+    const response = await api.models.generateContent({
+      model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        temperature: 0.2,
+      },
+    });
+
+    console.log(`[Gemini] Received response for ${targetLanguage}`);
+    const raw = (response?.text ?? '').toString();
+    console.log(`[Gemini] Raw response length for ${targetLanguage}: ${raw.length} characters`);
+
+    if (!raw || raw.trim().length === 0) {
+      console.error(`[Gemini] Empty response received for ${targetLanguage}`);
+      throw new Error('Received empty translation response.');
     }
 
-    const templateJson = JSON.stringify(template, null, 2);
-    console.log(`[Gemini] Template size for ${targetLanguage}: ${templateJson.length} characters`);
+    const sanitized = sanitizeJsonResponse(raw);
+    console.log(`[Gemini] Sanitized response length for ${targetLanguage}: ${sanitized.length} characters`);
 
-    const prompt = buildLocalePrompt(targetLanguage);
-    prompt[0].parts.push({ text: templateJson });
-
-    try {
-        console.log(`[Gemini] Sending request to Gemini API for ${targetLanguage}`);
-        const response = await api.models.generateContent({
-            model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                temperature: 0.2,
-            },
-        });
-
-        console.log(`[Gemini] Received response for ${targetLanguage}`);
-        const raw = (response?.text ?? '').toString();
-        console.log(`[Gemini] Raw response length for ${targetLanguage}: ${raw.length} characters`);
-
-        if (!raw || raw.trim().length === 0) {
-            console.error(`[Gemini] Empty response received for ${targetLanguage}`);
-            throw new Error('Received empty translation response.');
-        }
-
-        const sanitized = sanitizeJsonResponse(raw);
-        console.log(`[Gemini] Sanitized response length for ${targetLanguage}: ${sanitized.length} characters`);
-
-        if (!sanitized) {
-            console.error(`[Gemini] Sanitization resulted in empty string for ${targetLanguage}`);
-            throw new Error('Received empty translation response.');
-        }
-
-        console.log(`[Gemini] Parsing JSON response for ${targetLanguage}`);
-        const parsed = JSON.parse(sanitized);
-
-        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-            console.error(`[Gemini] Invalid JSON structure for ${targetLanguage}:`, typeof parsed, Array.isArray(parsed));
-            throw new Error('Translated locale must be a JSON object.');
-        }
-
-        console.log(`[Gemini] Successfully parsed locale for ${targetLanguage}`);
-        return parsed as TranslationRecord;
-    } catch (error) {
-        console.error(`[Gemini] Error translating locale for ${targetLanguage}:`, error);
-
-        // Add more specific error information
-        if (error instanceof Error) {
-            if (error.message.includes('JSON')) {
-                console.error(`[Gemini] JSON parsing error for ${targetLanguage}:`, error.message);
-            } else if (error.message.includes('API')) {
-                console.error(`[Gemini] API error for ${targetLanguage}:`, error.message);
-            } else {
-                console.error(`[Gemini] General error for ${targetLanguage}:`, error.message);
-            }
-        }
-
-        throw error instanceof Error ? error : new Error('Failed to translate locale via Gemini.');
+    if (!sanitized) {
+      console.error(`[Gemini] Sanitization resulted in empty string for ${targetLanguage}`);
+      throw new Error('Received empty translation response.');
     }
+
+    console.log(`[Gemini] Parsing JSON response for ${targetLanguage}`);
+    const parsed = JSON.parse(sanitized);
+
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      console.error(`[Gemini] Invalid JSON structure for ${targetLanguage}:`, typeof parsed, Array.isArray(parsed));
+      throw new Error('Translated locale must be a JSON object.');
+    }
+
+    console.log(`[Gemini] Successfully parsed locale for ${targetLanguage}`);
+    return parsed as TranslationRecord;
+  } catch (error) {
+    console.error(`[Gemini] Error translating locale for ${targetLanguage}:`, error);
+
+    // Add more specific error information
+    if (error instanceof Error) {
+      if (error.message.includes('JSON')) {
+        console.error(`[Gemini] JSON parsing error for ${targetLanguage}:`, error.message);
+      } else if (error.message.includes('API')) {
+        console.error(`[Gemini] API error for ${targetLanguage}:`, error.message);
+      } else {
+        console.error(`[Gemini] General error for ${targetLanguage}:`, error.message);
+      }
+    }
+
+    throw error instanceof Error ? error : new Error('Failed to translate locale via Gemini.');
+  }
 };
 
 const phraseSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.ARRAY,
-        items: {
-            type: Type.OBJECT,
-            properties: {
-                [lang.learningCode]: {
-                    type: Type.STRING,
-                    description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
-                },
-                [lang.nativeCode]: {
-                    type: Type.STRING,
-                    description: `The phrase in ${lang.native}.`,
-                },
-                ...(requiresRomanization(lang.learningCode)
-                    ? {
-                        romanization: {
-                            type: Type.STRING,
-                            description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-                        },
-                    }
-                    : {}),
-            },
-            required: [
-                lang.learningCode,
-                lang.nativeCode,
-                ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
-            ],
+  const lang = getLang();
+  return {
+    type: Type.ARRAY,
+    items: {
+      type: Type.OBJECT,
+      properties: {
+        [lang.learningCode]: {
+          type: Type.STRING,
+          description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
         },
-    };
+        [lang.nativeCode]: {
+          type: Type.STRING,
+          description: `The phrase in ${lang.native}.`,
+        },
+        ...(requiresRomanization(lang.learningCode)
+          ? {
+              romanization: {
+                type: Type.STRING,
+                description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+              },
+            }
+          : {}),
+      },
+      required: [
+        lang.learningCode,
+        lang.nativeCode,
+        ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
+      ],
+    },
+  };
 };
 
 const generatePhrases: AiService['generatePhrases'] = async (prompt) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: phraseSchema(),
-                temperature: 0.7,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: phraseSchema(),
+        temperature: 0.7,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        const parsedPhrases = JSON.parse(jsonText);
+    const jsonText = response.text.trim();
+    const parsedPhrases = JSON.parse(jsonText);
 
-        if (!Array.isArray(parsedPhrases)) {
-            throw new Error('API did not return an array of phrases.');
-        }
-
-        const isValid = parsedPhrases.every(
-            (p) =>
-                typeof p === 'object' &&
-                p !== null &&
-                lang.learningCode in p &&
-                lang.nativeCode in p &&
-                typeof p[lang.learningCode] === 'string' &&
-                typeof p[lang.nativeCode] === 'string'
-        );
-
-        if (!isValid) {
-            throw new Error('Received malformed phrase data from API.');
-        }
-
-        return parsedPhrases.map((p: any) => ({
-            learning: p[lang.learningCode],
-            native: p[lang.nativeCode],
-        }));
-    } catch (error) {
-        console.error('Error generating phrases with Gemini:', error);
-        if (error instanceof Error && error.message.includes('JSON')) {
-            throw new Error('Failed to parse the response from the AI. The format was invalid.');
-        }
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+    if (!Array.isArray(parsedPhrases)) {
+      throw new Error('API did not return an array of phrases.');
     }
+
+    const isValid = parsedPhrases.every(
+      (p) =>
+        typeof p === 'object' &&
+        p !== null &&
+        lang.learningCode in p &&
+        lang.nativeCode in p &&
+        typeof p[lang.learningCode] === 'string' &&
+        typeof p[lang.nativeCode] === 'string'
+    );
+
+    if (!isValid) {
+      throw new Error('Received malformed phrase data from API.');
+    }
+
+    return parsedPhrases.map((p: any) => ({
+      learning: p[lang.learningCode],
+      native: p[lang.nativeCode],
+    }));
+  } catch (error) {
+    console.error('Error generating phrases with Gemini:', error);
+    if (error instanceof Error && error.message.includes('JSON')) {
+      throw new Error('Failed to parse the response from the AI. The format was invalid.');
+    }
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const singlePhraseSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            [lang.learningCode]: {
-                type: Type.STRING,
-                description: `The translated phrase in ${lang.learning}.`,
-            },
-        },
-        required: [lang.learningCode],
-    };
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      [lang.learningCode]: {
+        type: Type.STRING,
+        description: `The translated phrase in ${lang.learning}.`,
+      },
+    },
+    required: [lang.learningCode],
+  };
 };
 
 const generateSinglePhrase: AiService['generateSinglePhrase'] = async (nativePhrase) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
 
-    const lang = getLang();
-    const prompt = `Translate the following ${lang.native} phrase into a common, natural-sounding ${lang.learning} phrase: "${nativePhrase}". Return a single JSON object with one key: "${lang.learningCode}" for the translation.`;
+  const lang = getLang();
+  const prompt = `Translate the following ${lang.native} phrase into a common, natural-sounding ${lang.learning} phrase: "${nativePhrase}". Return a single JSON object with one key: "${lang.learningCode}" for the translation.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: singlePhraseSchema(),
-                temperature: 0.5,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: singlePhraseSchema(),
+        temperature: 0.5,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        const parsedResult = JSON.parse(jsonText);
+    const jsonText = response.text.trim();
+    const parsedResult = JSON.parse(jsonText);
 
-        if (
-            typeof parsedResult !== 'object' ||
-            parsedResult === null ||
-            !(lang.learningCode in parsedResult) ||
-            typeof parsedResult[lang.learningCode] !== 'string'
-        ) {
-            throw new Error('Received malformed translation data from API.');
-        }
-
-        const finalResponse = {
-            learning: parsedResult[lang.learningCode],
-            native: nativePhrase,
-        };
-
-        console.log('[practiceConversation] Final structured response:', finalResponse);
-        return finalResponse;
-    } catch (error) {
-        console.error('Error generating single phrase with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+    if (
+      typeof parsedResult !== 'object' ||
+      parsedResult === null ||
+      !(lang.learningCode in parsedResult) ||
+      typeof parsedResult[lang.learningCode] !== 'string'
+    ) {
+      throw new Error('Received malformed translation data from API.');
     }
+
+    const finalResponse = {
+      learning: parsedResult[lang.learningCode],
+      native: nativePhrase,
+    };
+
+    console.log('[practiceConversation] Final structured response:', finalResponse);
+    return finalResponse;
+  } catch (error) {
+    console.error('Error generating single phrase with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const translatePhrase: AiService['translatePhrase'] = async (nativePhrase) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
 
-    const lang = getLang();
+  const lang = getLang();
 
-    const prompt = `Translate this ${lang.native} phrase to ${lang.learning}: "${nativePhrase}"`;
+  const prompt = `Translate this ${lang.native} phrase to ${lang.learning}: "${nativePhrase}"`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: singlePhraseSchema(),
-                temperature: 0.2,
-            },
-        });
-        const jsonText = response.text.trim();
-        const parsedResult = JSON.parse(jsonText);
-        return { learning: parsedResult[lang.learningCode] };
-    } catch (error) {
-        console.error('Error translating phrase with Gemini:', error);
-        throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
-    }
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: singlePhraseSchema(),
+        temperature: 0.2,
+      },
+    });
+    const jsonText = response.text.trim();
+    const parsedResult = JSON.parse(jsonText);
+    return { learning: parsedResult[lang.learningCode] };
+  } catch (error) {
+    console.error('Error translating phrase with Gemini:', error);
+    throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 const nativeSinglePhraseSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            [lang.nativeCode]: {
-                type: Type.STRING,
-                description: `The translated phrase in ${lang.native}.`,
-            },
-        },
-        required: [lang.nativeCode],
-    };
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      [lang.nativeCode]: {
+        type: Type.STRING,
+        description: `The translated phrase in ${lang.native}.`,
+      },
+    },
+    required: [lang.nativeCode],
+  };
 };
 
 const translateLearningToNative: AiService['translateLearningToNative'] = async (learningPhrase) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const prompt = `Translate this ${lang.learning} phrase to ${lang.native}: "${learningPhrase}"`;
+  const prompt = `Translate this ${lang.learning} phrase to ${lang.native}: "${learningPhrase}"`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: nativeSinglePhraseSchema(),
-                temperature: 0.2,
-            },
-        });
-        const jsonText = response.text.trim();
-        const parsedResult = JSON.parse(jsonText);
-        return { native: parsedResult[lang.nativeCode] };
-    } catch (error) {
-        console.error('Error translating Learning phrase with Gemini:', error);
-        throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
-    }
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: nativeSinglePhraseSchema(),
+        temperature: 0.2,
+      },
+    });
+    const jsonText = response.text.trim();
+    const parsedResult = JSON.parse(jsonText);
+    return { native: parsedResult[lang.nativeCode] };
+  } catch (error) {
+    console.error('Error translating Learning phrase with Gemini:', error);
+    throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 const wordTranslationSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            learningTranslation: {
-                // This key remains for backward compatibility
-                type: Type.STRING,
-                description: `The ${lang.learning} word(s) that correspond to the given ${lang.native} word in the context of the full phrase.`,
-            },
-        },
-        required: ['learningTranslation'],
-    };
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      learningTranslation: {
+        // This key remains for backward compatibility
+        type: Type.STRING,
+        description: `The ${lang.learning} word(s) that correspond to the given ${lang.native} word in the context of the full phrase.`,
+      },
+    },
+    required: ['learningTranslation'],
+  };
 };
 
 const getWordTranslation: AiService['getWordTranslation'] = async (nativePhrase, learningPhrase, nativeWord) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const prompt = `Дана ${lang.native} фраза: "${nativePhrase}".
+  const prompt = `Дана ${lang.native} фраза: "${nativePhrase}".
 Ее ${lang.learning} перевод: "${learningPhrase}".
 Каков точный перевод ${lang.native} слова "${nativeWord}" в этом конкретном контексте?
 Верни ТОЛЬКО JSON-объект с одним ключом "learningTranslation".`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: wordTranslationSchema(),
-                temperature: 0.1,
-            },
-        });
-        const jsonText = response.text.trim();
-        const parsedResult = JSON.parse(jsonText);
-        // The key "learningTranslation" is kept for backward compatibility.
-        // The value will be the learning language translation.
-        return { learningTranslation: parsedResult.learningTranslation };
-    } catch (error) {
-        console.error('Error getting word translation with Gemini:', error);
-        throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
-    }
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: wordTranslationSchema(),
+        temperature: 0.1,
+      },
+    });
+    const jsonText = response.text.trim();
+    const parsedResult = JSON.parse(jsonText);
+    // The key "learningTranslation" is kept for backward compatibility.
+    // The value will be the learning language translation.
+    return { learningTranslation: parsedResult.learningTranslation };
+  } catch (error) {
+    console.error('Error getting word translation with Gemini:', error);
+    throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 const cardsFromTranscriptSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.ARRAY,
-        items: {
-            type: Type.OBJECT,
-            properties: {
-                [lang.learningCode]: {
-                    type: Type.STRING,
-                    description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
-                },
-                [lang.nativeCode]: {
-                    type: Type.STRING,
-                    description: `The phrase in ${lang.native}.`,
-                },
-                ...(requiresRomanization(lang.learningCode)
-                    ? {
-                        romanization: {
-                            type: Type.STRING,
-                            description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-                        },
-                    }
-                    : {}),
-            },
-            required: [
-                lang.learningCode,
-                lang.nativeCode,
-                ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
-            ],
+  const lang = getLang();
+  return {
+    type: Type.ARRAY,
+    items: {
+      type: Type.OBJECT,
+      properties: {
+        [lang.learningCode]: {
+          type: Type.STRING,
+          description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
         },
-    };
+        [lang.nativeCode]: {
+          type: Type.STRING,
+          description: `The phrase in ${lang.native}.`,
+        },
+        ...(requiresRomanization(lang.learningCode)
+          ? {
+              romanization: {
+                type: Type.STRING,
+                description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+              },
+            }
+          : {}),
+      },
+      required: [
+        lang.learningCode,
+        lang.nativeCode,
+        ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
+      ],
+    },
+  };
 };
 
 const generateCardsFromTranscript: AiService['generateCardsFromTranscript'] = async (transcript, sourceLang) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const sourceLanguageName = sourceLang === lang.nativeCode ? lang.native : lang.learning;
-    const targetLanguageName = sourceLang === lang.nativeCode ? lang.learning : lang.native;
+  const sourceLanguageName = sourceLang === lang.nativeCode ? lang.native : lang.learning;
+  const targetLanguageName = sourceLang === lang.nativeCode ? lang.learning : lang.native;
 
-    const prompt = `You are an expert linguist and a methodologist for creating language learning materials. Your task is to analyze a provided text transcript of spoken language and break it down into high-quality, logically complete flashcards for Spaced Repetition System (SRS) learning.
+  const prompt = `You are an expert linguist and a methodologist for creating language learning materials. Your task is to analyze a provided text transcript of spoken language and break it down into high-quality, logically complete flashcards for Spaced Repetition System (SRS) learning.
 
 Analyze the following text, which is a transcript of ${sourceLanguageName} speech:
 """
@@ -520,77 +520,77 @@ Example Output Format:
   { "${lang.nativeCode}": "потому что у меня сильно болит голова", "${lang.learningCode}": "weil ich starke Kopfschmerzen habe" }
 ]`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: cardsFromTranscriptSchema(),
-                temperature: 0.6,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: cardsFromTranscriptSchema(),
+        temperature: 0.6,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        const parsed = JSON.parse(jsonText);
-        return parsed.map((p: any) => ({
-            learning: p[lang.learningCode],
-            native: p[lang.nativeCode],
-            ...(p.romanization ? { romanization: p.romanization } : {}),
-        }));
-    } catch (error) {
-        console.error('Error generating cards from transcript with Gemini:', error);
-        throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
-    }
+    const jsonText = response.text.trim();
+    const parsed = JSON.parse(jsonText);
+    return parsed.map((p: any) => ({
+      learning: p[lang.learningCode],
+      native: p[lang.nativeCode],
+      ...(p.romanization ? { romanization: p.romanization } : {}),
+    }));
+  } catch (error) {
+    console.error('Error generating cards from transcript with Gemini:', error);
+    throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 const imageCardsWithCategorySchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            cards: {
-                type: Type.ARRAY,
-                description: 'An array of generated flashcards.',
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        [lang.learningCode]: {
-                            type: Type.STRING,
-                            description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
-                        },
-                        [lang.nativeCode]: { type: Type.STRING, description: `The phrase in ${lang.native}.` },
-                        ...(requiresRomanization(lang.learningCode)
-                            ? {
-                                romanization: {
-                                    type: Type.STRING,
-                                    description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-                                },
-                            }
-                            : {}),
-                    },
-                    required: [
-                        lang.learningCode,
-                        lang.nativeCode,
-                        ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
-                    ],
-                },
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      cards: {
+        type: Type.ARRAY,
+        description: 'An array of generated flashcards.',
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            [lang.learningCode]: {
+              type: Type.STRING,
+              description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
             },
-            categoryName: {
-                type: Type.STRING,
-                description: `A short, relevant category name in ${lang.native} for these cards based on the image content and user request.`,
-            },
+            [lang.nativeCode]: { type: Type.STRING, description: `The phrase in ${lang.native}.` },
+            ...(requiresRomanization(lang.learningCode)
+              ? {
+                  romanization: {
+                    type: Type.STRING,
+                    description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+                  },
+                }
+              : {}),
+          },
+          required: [
+            lang.learningCode,
+            lang.nativeCode,
+            ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
+          ],
         },
-        required: ['cards', 'categoryName'],
-    };
+      },
+      categoryName: {
+        type: Type.STRING,
+        description: `A short, relevant category name in ${lang.native} for these cards based on the image content and user request.`,
+      },
+    },
+    required: ['cards', 'categoryName'],
+  };
 };
 
 const generateCardsFromImage: AiService['generateCardsFromImage'] = async (imageData, refinement) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const prompt = `You are an AI assistant for learning ${lang.learning}. Your task is to create flashcards from an image.
+  const prompt = `You are an AI assistant for learning ${lang.learning}. Your task is to create flashcards from an image.
 
 **1. HIGHEST PRIORITY: User's Refinement**
 First, check if the user provided a specific instruction. If they did, YOU MUST FOLLOW IT EXACTLY. It overrides all other rules.
@@ -612,55 +612,55 @@ You must return a single JSON object with two keys:
 
 Return EXCLUSIVELY the JSON object matching the provided schema.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: {
-                parts: [{ inlineData: { mimeType: imageData.mimeType, data: imageData.data } }, { text: prompt }],
-            },
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: imageCardsWithCategorySchema(),
-                temperature: 0.5,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: {
+        parts: [{ inlineData: { mimeType: imageData.mimeType, data: imageData.data } }, { text: prompt }],
+      },
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: imageCardsWithCategorySchema(),
+        temperature: 0.5,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        const parsedResult = JSON.parse(jsonText);
+    const jsonText = response.text.trim();
+    const parsedResult = JSON.parse(jsonText);
 
-        if (!parsedResult || !Array.isArray(parsedResult.cards) || typeof parsedResult.categoryName !== 'string') {
-            throw new Error('API did not return the expected structure with cards and categoryName.');
-        }
-
-        return {
-            cards: parsedResult.cards.map((c: any) => ({
-                learning: c[lang.learningCode],
-                native: c[lang.nativeCode],
-                ...(c.romanization ? { romanization: c.romanization } : {}),
-            })),
-            categoryName: parsedResult.categoryName,
-        };
-    } catch (error) {
-        console.error('Error generating cards from image with Gemini:', error);
-        throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+    if (!parsedResult || !Array.isArray(parsedResult.cards) || typeof parsedResult.categoryName !== 'string') {
+      throw new Error('API did not return the expected structure with cards and categoryName.');
     }
+
+    return {
+      cards: parsedResult.cards.map((c: any) => ({
+        learning: c[lang.learningCode],
+        native: c[lang.nativeCode],
+        ...(c.romanization ? { romanization: c.romanization } : {}),
+      })),
+      categoryName: parsedResult.categoryName,
+    };
+  } catch (error) {
+    console.error('Error generating cards from image with Gemini:', error);
+    throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 const generateTopicCards: AiService['generateTopicCards'] = async (topic, refinement, existingPhrases) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const refinementPrompt = refinement
-        ? `\n\nПользователь был не удовлетворен предыдущими результатами и дал следующее уточнение: "${refinement}". Пожалуйста, сгенерируй новый список, строго следуя этому уточнению.`
-        : '';
+  const refinementPrompt = refinement
+    ? `\n\nПользователь был не удовлетворен предыдущими результатами и дал следующее уточнение: "${refinement}". Пожалуйста, сгенерируй новый список, строго следуя этому уточнению.`
+    : '';
 
-    const existingPhrasesPrompt =
-        existingPhrases && existingPhrases.length > 0
-            ? `\n\nВажно: В категории уже есть следующие фразы: "${existingPhrases.join('; ')}". Не повторяй их. Придумай новые, уникальные и полезные слова/фразы по этой теме.`
-            : '';
+  const existingPhrasesPrompt =
+    existingPhrases && existingPhrases.length > 0
+      ? `\n\nВажно: В категории уже есть следующие фразы: "${existingPhrases.join('; ')}". Не повторяй их. Придумай новые, уникальные и полезные слова/фразы по этой теме.`
+      : '';
 
-    const prompt = `Ты — AI-ассистент для изучения ${lang.learning} языка. Пользователь хочет получить набор карточек на определенную тему.
+  const prompt = `Ты — AI-ассистент для изучения ${lang.learning} языка. Пользователь хочет получить набор карточек на определенную тему.
 Тема запроса: "${topic}"${refinementPrompt}${existingPhrasesPrompt}
 
 Твоя задача:
@@ -668,101 +668,101 @@ const generateTopicCards: AiService['generateTopicCards'] = async (topic, refine
 2.  Сгенерируй список из 10-15 полезных, разнообразных ${lang.learning} слов и фраз с ${lang.native} переводом по этой теме. Фразы должны быть естественными и часто употребимыми.
 3.  Верни результат ТОЛЬКО как JSON-массив объектов. Каждый объект должен иметь два ключа: '${lang.nativeCode}' и '${lang.learningCode}'.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: phraseSchema(),
-                temperature: 0.6,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: phraseSchema(),
+        temperature: 0.6,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        const parsedCards = JSON.parse(jsonText);
+    const jsonText = response.text.trim();
+    const parsedCards = JSON.parse(jsonText);
 
-        if (!Array.isArray(parsedCards)) {
-            throw new Error('API did not return an array of cards.');
-        }
-
-        return parsedCards.map((card: any) => ({
-            learning: card[lang.learningCode],
-            native: card[lang.nativeCode],
-            ...(card.romanization ? { romanization: card.romanization } : {}),
-        }));
-    } catch (error) {
-        console.error('Error generating topic cards with Gemini:', error);
-        throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+    if (!Array.isArray(parsedCards)) {
+      throw new Error('API did not return an array of cards.');
     }
+
+    return parsedCards.map((card: any) => ({
+      learning: card[lang.learningCode],
+      native: card[lang.nativeCode],
+      ...(card.romanization ? { romanization: card.romanization } : {}),
+    }));
+  } catch (error) {
+    console.error('Error generating topic cards with Gemini:', error);
+    throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 const topicClassificationSchema = {
-    type: Type.OBJECT,
-    properties: {
-        isCategory: {
-            type: Type.BOOLEAN,
-            description:
-                "True if the topic is a closed, well-defined set of concepts suitable for a dedicated category (e.g., 'Days of the week', 'Colors', 'Family members'). False otherwise (e.g., 'How to apologize').",
-        },
-        categoryName: {
-            type: Type.STRING,
-            description:
-                "A short, suitable name for the category if isCategory is true. Should be in Native. E.g., 'Дни недели', 'Цвета'. Empty string if isCategory is false.",
-        },
+  type: Type.OBJECT,
+  properties: {
+    isCategory: {
+      type: Type.BOOLEAN,
+      description:
+        "True if the topic is a closed, well-defined set of concepts suitable for a dedicated category (e.g., 'Days of the week', 'Colors', 'Family members'). False otherwise (e.g., 'How to apologize').",
     },
-    required: ['isCategory', 'categoryName'],
+    categoryName: {
+      type: Type.STRING,
+      description:
+        "A short, suitable name for the category if isCategory is true. Should be in Native. E.g., 'Дни недели', 'Цвета'. Empty string if isCategory is false.",
+    },
+  },
+  required: ['isCategory', 'categoryName'],
 };
 
 const classifyTopic: AiService['classifyTopic'] = async (topic) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
 
-    const prompt = `Пользователь ввел тему для изучения: "${topic}". Является ли эта тема замкнутым, четко определенным набором понятий (например, дни недели, месяцы, цвета, члены семьи, города страны, пальцы рук)? Ответь 'да' или 'нет' и предложи короткое, подходящее название для категории на русском языке.`;
+  const prompt = `Пользователь ввел тему для изучения: "${topic}". Является ли эта тема замкнутым, четко определенным набором понятий (например, дни недели, месяцы, цвета, члены семьи, города страны, пальцы рук)? Ответь 'да' или 'нет' и предложи короткое, подходящее название для категории на русском языке.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: topicClassificationSchema,
-                temperature: 0.3,
-            },
-        });
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText);
-    } catch (error) {
-        console.error('Error classifying topic with Gemini:', error);
-        throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
-    }
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: topicClassificationSchema,
+        temperature: 0.3,
+      },
+    });
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error('Error classifying topic with Gemini:', error);
+    throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 const improvePhraseSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            suggestedLearning: {
-                // Backward compatibility: key remains 'suggestedLearning'
-                type: Type.STRING,
-                description: `The improved, more natural, or grammatically correct ${lang.learning} phrase.`,
-            },
-            explanation: {
-                type: Type.STRING,
-                description: `A concise explanation in ${lang.native} about why the suggestion is better, or why the original was already correct.`,
-            },
-        },
-        required: ['suggestedLearning', 'explanation'],
-    };
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      suggestedLearning: {
+        // Backward compatibility: key remains 'suggestedLearning'
+        type: Type.STRING,
+        description: `The improved, more natural, or grammatically correct ${lang.learning} phrase.`,
+      },
+      explanation: {
+        type: Type.STRING,
+        description: `A concise explanation in ${lang.native} about why the suggestion is better, or why the original was already correct.`,
+      },
+    },
+    required: ['suggestedLearning', 'explanation'],
+  };
 };
 
 const improvePhrase: AiService['improvePhrase'] = async (originalNative, currentLearning) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const prompt = `Ты — эксперт по ${lang.learning} языку. Пользователь хочет выучить правильный и естественный ${lang.learning}.
+  const prompt = `Ты — эксперт по ${lang.learning} языку. Пользователь хочет выучить правильный и естественный ${lang.learning}.
 Исходная фраза на ${lang.native}: "${originalNative}"
 Текущий перевод на ${lang.learning}: "${currentLearning}"
 
@@ -774,118 +774,118 @@ const improvePhrase: AiService['improvePhrase'] = async (originalNative, current
 
 Верни результат в виде JSON-объекта.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: improvePhraseSchema(),
-                temperature: 0.4,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: improvePhraseSchema(),
+        temperature: 0.4,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        const parsedResult = JSON.parse(jsonText);
-        // The key "suggestedLearning" is kept for backward compatibility.
-        return {
-            suggestedLearning: parsedResult.suggestedLearning,
-            explanation: parsedResult.explanation,
-        };
-    } catch (error) {
-        console.error('Error improving phrase with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    const jsonText = response.text.trim();
+    const parsedResult = JSON.parse(jsonText);
+    // The key "suggestedLearning" is kept for backward compatibility.
+    return {
+      suggestedLearning: parsedResult.suggestedLearning,
+      explanation: parsedResult.explanation,
+    };
+  } catch (error) {
+    console.error('Error improving phrase with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const initialResponseSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            grammarParts: {
-                type: Type.ARRAY,
-                description: `REQUIRED. A CONCISE grammar analysis broken into segments. Include: 1) Word breakdown (parts of speech), 2) Word order comparison with ${lang.native}, 3) Key grammar point. Keep SHORT - max 150 words total. When mentioning ${lang.learning} words/phrases, use type 'learning' with translation.`,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        type: {
-                            type: Type.STRING,
-                            enum: ['text', 'learning'],
-                            description: `Use 'text' for ${lang.native} explanatory text, 'learning' for ${lang.learning} words/phrases.`,
-                        },
-                        text: { type: Type.STRING, description: 'The segment content.' },
-                        translation: {
-                            type: Type.STRING,
-                            description: `${lang.native} translation, REQUIRED when type is 'learning'.`,
-                        },
-                    },
-                    required: ['type', 'text'],
-                },
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      grammarParts: {
+        type: Type.ARRAY,
+        description: `REQUIRED. A CONCISE grammar analysis broken into segments. Include: 1) Word breakdown (parts of speech), 2) Word order comparison with ${lang.native}, 3) Key grammar point. Keep SHORT - max 150 words total. When mentioning ${lang.learning} words/phrases, use type 'learning' with translation.`,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            type: {
+              type: Type.STRING,
+              enum: ['text', 'learning'],
+              description: `Use 'text' for ${lang.native} explanatory text, 'learning' for ${lang.learning} words/phrases.`,
             },
-            examples: {
-                type: Type.ARRAY,
-                description: 'List of 3-5 practical example sentences using the phrase.',
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        [lang.learningCode]: { type: Type.STRING, description: `The example sentence in ${lang.learning}.` },
-                        [lang.nativeCode]: { type: Type.STRING, description: `The ${lang.native} translation.` },
-                    },
-                    required: [lang.learningCode, lang.nativeCode],
-                },
+            text: { type: Type.STRING, description: 'The segment content.' },
+            translation: {
+              type: Type.STRING,
+              description: `${lang.native} translation, REQUIRED when type is 'learning'.`,
             },
-            proactiveSuggestions: {
-                type: Type.ARRAY,
-                description:
-                    "List of 1-2 proactive, unique suggestions for the user based on the phrase's context, like alternative phrasings or common related questions.",
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        title: { type: Type.STRING, description: 'A short, engaging title for the suggestion.' },
-                        contentParts: {
-                            type: Type.ARRAY,
-                            description: `The suggestion content, broken into segments of plain text and ${lang.learning} text.`,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    type: {
-                                        type: Type.STRING,
-                                        enum: ['text', 'learning'],
-                                        description: `Should be 'text' for plain ${lang.native} text or 'learning' for a ${lang.learning} word/phrase.`,
-                                    },
-                                    text: { type: Type.STRING, description: 'The segment of text. Do not use Markdown here.' },
-                                    translation: {
-                                        type: Type.STRING,
-                                        description: `${lang.native} translation of the text, ONLY if type is 'learning'.`,
-                                    },
-                                },
-                                required: ['type', 'text'],
-                            },
-                        },
-                    },
-                    required: ['title', 'contentParts'],
-                },
-            },
-            promptSuggestions: {
-                type: Type.ARRAY,
-                description: `A list of 2-4 short, context-aware follow-up questions in ${lang.native} that the user might ask. Only suggest pronoun variations if there's a verb. Only suggest asking a question if the phrase isn't one already.`,
-                items: {
-                    type: Type.STRING,
-                },
-            },
+          },
+          required: ['type', 'text'],
         },
-        required: ['grammarParts', 'examples', 'proactiveSuggestions', 'promptSuggestions'],
-    };
+      },
+      examples: {
+        type: Type.ARRAY,
+        description: 'List of 3-5 practical example sentences using the phrase.',
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            [lang.learningCode]: { type: Type.STRING, description: `The example sentence in ${lang.learning}.` },
+            [lang.nativeCode]: { type: Type.STRING, description: `The ${lang.native} translation.` },
+          },
+          required: [lang.learningCode, lang.nativeCode],
+        },
+      },
+      proactiveSuggestions: {
+        type: Type.ARRAY,
+        description:
+          "List of 1-2 proactive, unique suggestions for the user based on the phrase's context, like alternative phrasings or common related questions.",
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING, description: 'A short, engaging title for the suggestion.' },
+            contentParts: {
+              type: Type.ARRAY,
+              description: `The suggestion content, broken into segments of plain text and ${lang.learning} text.`,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  type: {
+                    type: Type.STRING,
+                    enum: ['text', 'learning'],
+                    description: `Should be 'text' for plain ${lang.native} text or 'learning' for a ${lang.learning} word/phrase.`,
+                  },
+                  text: { type: Type.STRING, description: 'The segment of text. Do not use Markdown here.' },
+                  translation: {
+                    type: Type.STRING,
+                    description: `${lang.native} translation of the text, ONLY if type is 'learning'.`,
+                  },
+                },
+                required: ['type', 'text'],
+              },
+            },
+          },
+          required: ['title', 'contentParts'],
+        },
+      },
+      promptSuggestions: {
+        type: Type.ARRAY,
+        description: `A list of 2-4 short, context-aware follow-up questions in ${lang.native} that the user might ask. Only suggest pronoun variations if there's a verb. Only suggest asking a question if the phrase isn't one already.`,
+        items: {
+          type: Type.STRING,
+        },
+      },
+    },
+    required: ['grammarParts', 'examples', 'proactiveSuggestions', 'promptSuggestions'],
+  };
 };
 
 const generateInitialExamples: AiService['generateInitialExamples'] = async (phrase) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const prompt = `User is learning the ${lang.learning} phrase: "${phrase.text.learning}" (translation: "${phrase.text.native}").
+  const prompt = `User is learning the ${lang.learning} phrase: "${phrase.text.learning}" (translation: "${phrase.text.native}").
 
 Your task is to create a useful card for detailed analysis of this phrase.
 Return JSON according to the schema. IMPORTANT: Use the 'grammarParts' field (ARRAY of segments) for grammar analysis.
@@ -910,181 +910,181 @@ Return JSON according to the schema. IMPORTANT: Use the 'grammarParts' field (AR
 
 CRITICAL: The grammar analysis MUST go into 'grammarParts' as an array of {type, text, translation?} objects. Do NOT use a plain 'text' string.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: initialResponseSchema(),
-                temperature: 0.7,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: initialResponseSchema(),
+        temperature: 0.7,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        const parsedResponse = JSON.parse(jsonText);
+    const jsonText = response.text.trim();
+    const parsedResponse = JSON.parse(jsonText);
 
-        const examples: ChatExamplePair[] = (parsedResponse.examples || []).map((ex: any) => ({
-            learning: ex[lang.learningCode],
-            native: ex[lang.nativeCode],
-        }));
-        const suggestions: ChatProactiveSuggestion[] = parsedResponse.proactiveSuggestions || [];
-        const promptSuggestions: string[] = parsedResponse.promptSuggestions || [];
+    const examples: ChatExamplePair[] = (parsedResponse.examples || []).map((ex: any) => ({
+      learning: ex[lang.learningCode],
+      native: ex[lang.nativeCode],
+    }));
+    const suggestions: ChatProactiveSuggestion[] = parsedResponse.proactiveSuggestions || [];
+    const promptSuggestions: string[] = parsedResponse.promptSuggestions || [];
 
-        // Use AI-generated grammarParts array for interactive grammar analysis
-        const grammarParts: ContentPart[] = parsedResponse.grammarParts || [];
+    // Use AI-generated grammarParts array for interactive grammar analysis
+    const grammarParts: ContentPart[] = parsedResponse.grammarParts || [];
 
-        return {
-            role: 'model' as const,
-            grammarParts,
-            examples,
-            suggestions,
-            promptSuggestions,
-        };
-    } catch (error) {
-        console.error('Error generating initial examples with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    return {
+      role: 'model' as const,
+      grammarParts,
+      examples,
+      suggestions,
+      promptSuggestions,
+    };
+  } catch (error) {
+    console.error('Error generating initial examples with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const chatResponseSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            contentParts: {
-                type: Type.ARRAY,
-                description: `The response broken down into segments of plain text and ${lang.learning} text.`,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        type: {
-                            type: Type.STRING,
-                            enum: ['text', 'learning'],
-                            description: `Should be 'text' for plain ${lang.native} text or 'learning' for a ${lang.learning} word/phrase.`,
-                        },
-                        text: { type: Type.STRING, description: 'The segment of text. Do not use Markdown here.' },
-                        translation: {
-                            type: Type.STRING,
-                            description: `${lang.native} translation of the text, ONLY if type is 'learning'.`,
-                        },
-                    },
-                    required: ['type', 'text'],
-                },
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      contentParts: {
+        type: Type.ARRAY,
+        description: `The response broken down into segments of plain text and ${lang.learning} text.`,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            type: {
+              type: Type.STRING,
+              enum: ['text', 'learning'],
+              description: `Should be 'text' for plain ${lang.native} text or 'learning' for a ${lang.learning} word/phrase.`,
             },
-            promptSuggestions: {
-                type: Type.ARRAY,
-                description: `A list of 2-4 new, context-aware follow-up questions in ${lang.native} that the user might ask next, based on the current conversation. Only suggest pronoun variations if there's a verb. Only suggest asking a question if the phrase isn't one already.`,
-                items: {
-                    type: Type.STRING,
-                },
+            text: { type: Type.STRING, description: 'The segment of text. Do not use Markdown here.' },
+            translation: {
+              type: Type.STRING,
+              description: `${lang.native} translation of the text, ONLY if type is 'learning'.`,
             },
+          },
+          required: ['type', 'text'],
         },
-        required: ['contentParts', 'promptSuggestions'],
-    };
+      },
+      promptSuggestions: {
+        type: Type.ARRAY,
+        description: `A list of 2-4 new, context-aware follow-up questions in ${lang.native} that the user might ask next, based on the current conversation. Only suggest pronoun variations if there's a verb. Only suggest asking a question if the phrase isn't one already.`,
+        items: {
+          type: Type.STRING,
+        },
+      },
+    },
+    required: ['contentParts', 'promptSuggestions'],
+  };
 };
 
 const continueChat: AiService['continueChat'] = async (phrase, history, newMessage) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const formattedHistory = history.map((msg) => {
-        let fullText = '';
-        if (msg.contentParts) {
-            fullText = msg.contentParts.map((p) => p.text).join('');
-        } else if (msg.text) {
-            fullText = msg.text;
-            if (msg.examples && msg.examples.length > 0) {
-                const examplesText = msg.examples.map((ex) => `- ${ex.learning} (${ex.native})`).join('\n');
-                fullText += '\n\nПримеры:\n' + examplesText;
-            }
-            if (msg.suggestions && msg.suggestions.length > 0) {
-                // We don't have detailed structure for suggestions in the type definition
-                const suggestionsText = msg.suggestions.map((s) => `- ${s.title}`).join('\n');
-                fullText += '\n\nСоветы:\n' + suggestionsText;
-            }
-        }
-        return {
-            role: msg.role,
-            parts: [{ text: fullText }],
-        };
-    });
+  const formattedHistory = history.map((msg) => {
+    let fullText = '';
+    if (msg.contentParts) {
+      fullText = msg.contentParts.map((p) => p.text).join('');
+    } else if (msg.text) {
+      fullText = msg.text;
+      if (msg.examples && msg.examples.length > 0) {
+        const examplesText = msg.examples.map((ex) => `- ${ex.learning} (${ex.native})`).join('\n');
+        fullText += '\n\nПримеры:\n' + examplesText;
+      }
+      if (msg.suggestions && msg.suggestions.length > 0) {
+        // We don't have detailed structure for suggestions in the type definition
+        const suggestionsText = msg.suggestions.map((s) => `- ${s.title}`).join('\n');
+        fullText += '\n\nСоветы:\n' + suggestionsText;
+      }
+    }
+    return {
+      role: msg.role,
+      parts: [{ text: fullText }],
+    };
+  });
 
-    const systemInstruction = `Ты AI-помощник для изучения ${lang.learning} языка. Пользователь изучает фразу "${phrase.text.learning}" (${phrase.text.native}).
+  const systemInstruction = `Ты AI-помощник для изучения ${lang.learning} языка. Пользователь изучает фразу "${phrase.text.learning}" (${phrase.text.native}).
 1. Отвечай на вопросы пользователя. В своем ответе ОБЯЗАТЕЛЬНО используй предоставленную JSON-схему. Разбей свой ответ на массив 'contentParts'. Каждый элемент массива должен быть объектом с ключами 'type' и 'text'. Если часть ответа - это обычный текст на ${lang.native}, используй 'type': 'text'. Если это ${lang.learning} слово или фраза, используй 'type': 'learning'. Если 'type' равен 'learning', ОБЯЗАТЕЛЬНО предоставь перевод в поле 'translation'. Не используй Markdown в JSON. Сохраняй форматирование с помощью переносов строк (\\n) в текстовых блоках.
 2. После ответа, сгенерируй от 2 до 4 новых, контекстно-зависимых вопросов для продолжения диалога в поле 'promptSuggestions'. Эти вопросы должны быть основаны на последнем сообщении пользователя и общем контексте диалога.
    - Предлагай "Покажи варианты с местоимениями" только если во фразе есть глагол для спряжения и это релевантно.
    - Предлагай "Как это использовать в вопросе?" только если фраза не является вопросом и это релевантно.
    - Предлагай новые, креативные вопросы, которые помогут пользователю глубже понять тему.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: [...formattedHistory, { role: 'user', parts: [{ text: newMessage }] }],
-            config: {
-                systemInstruction,
-                responseMimeType: 'application/json',
-                responseSchema: chatResponseSchema(),
-                temperature: 0.5,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: [...formattedHistory, { role: 'user', parts: [{ text: newMessage }] }],
+      config: {
+        systemInstruction,
+        responseMimeType: 'application/json',
+        responseSchema: chatResponseSchema(),
+        temperature: 0.5,
+      },
+    });
 
-        const jsonText = response.text.trim();
+    const jsonText = response.text.trim();
 
-        // Try to extract valid JSON from response (handles cases where AI adds extra text)
-        let cleanedJson = jsonText;
-        const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            cleanedJson = jsonMatch[0];
-        }
-
-        let parsedResponse;
-        try {
-            parsedResponse = JSON.parse(cleanedJson);
-        } catch (parseError) {
-            console.error('JSON Parse error, raw response:', jsonText);
-            // Fallback: return a generic response
-            return {
-                role: 'model',
-                contentParts: [{ type: 'text', text: 'Sorry, I had trouble processing that. Please try again.' }],
-                promptSuggestions: [],
-            };
-        }
-
-        const contentParts: ContentPart[] =
-            parsedResponse.contentParts && parsedResponse.contentParts.length > 0
-                ? parsedResponse.contentParts
-                : [{ type: 'text', text: 'Received empty response from AI.' }];
-
-        const promptSuggestions: string[] = parsedResponse.promptSuggestions || [];
-
-        return {
-            role: 'model',
-            contentParts,
-            promptSuggestions,
-        };
-    } catch (error) {
-        console.error('Error continuing chat with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+    // Try to extract valid JSON from response (handles cases where AI adds extra text)
+    let cleanedJson = jsonText;
+    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedJson = jsonMatch[0];
     }
+
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(cleanedJson);
+    } catch (parseError) {
+      console.error('JSON Parse error, raw response:', jsonText);
+      // Fallback: return a generic response
+      return {
+        role: 'model',
+        contentParts: [{ type: 'text', text: 'Sorry, I had trouble processing that. Please try again.' }],
+        promptSuggestions: [],
+      };
+    }
+
+    const contentParts: ContentPart[] =
+      parsedResponse.contentParts && parsedResponse.contentParts.length > 0
+        ? parsedResponse.contentParts
+        : [{ type: 'text', text: 'Received empty response from AI.' }];
+
+    const promptSuggestions: string[] = parsedResponse.promptSuggestions || [];
+
+    return {
+      role: 'model',
+      contentParts,
+      promptSuggestions,
+    };
+  } catch (error) {
+    console.error('Error continuing chat with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const practiceConversation: AiService['practiceConversation'] = async (history, newMessage, allPhrases) => {
-    return retryWithExponentialBackoff(
-        async () => {
-            const api = initializeApi();
-            if (!api) throw new Error('Gemini API key not configured.');
+  return retryWithExponentialBackoff(
+    async () => {
+      const api = initializeApi();
+      if (!api) throw new Error('Gemini API key not configured.');
 
-            const formattedHistory = history.map((msg) => ({
-                role: msg.role,
-                parts: [{ text: msg.text || msg.contentParts?.map((p) => p.text).join('') || '' }],
-            }));
+      const formattedHistory = history.map((msg) => ({
+        role: msg.role,
+        parts: [{ text: msg.text || msg.contentParts?.map((p) => p.text).join('') || '' }],
+      }));
 
-            const lang = getLang();
-            const systemInstruction = `You are a friendly and patient ${lang.learning} language tutor named 'Alex'.
+      const lang = getLang();
+      const systemInstruction = `You are a friendly and patient ${lang.learning} language tutor named 'Alex'.
 
 **CRITICAL: Your response MUST be valid JSON matching the schema below. Do NOT add any text outside the JSON.**
 
@@ -1144,186 +1144,186 @@ Your response MUST be a JSON object with this EXACT structure:
 - Do NOT add text outside JSON
 - Do NOT use markdown code blocks`;
 
-            const userMessage = { role: 'user', parts: [{ text: newMessage || '(Start the conversation)' }] };
+      const userMessage = { role: 'user', parts: [{ text: newMessage || '(Start the conversation)' }] };
 
-            try {
-                const response = await api.models.generateContent({
-                    model: model,
-                    contents: [...formattedHistory, userMessage],
-                    config: {
-                        systemInstruction,
-                        responseMimeType: 'application/json',
-                        responseSchema: chatResponseSchema(),
-                        temperature: 0.7,
-                    },
-                });
+      try {
+        const response = await api.models.generateContent({
+          model: model,
+          contents: [...formattedHistory, userMessage],
+          config: {
+            systemInstruction,
+            responseMimeType: 'application/json',
+            responseSchema: chatResponseSchema(),
+            temperature: 0.7,
+          },
+        });
 
-                const jsonText = response.text.trim();
+        const jsonText = response.text.trim();
 
-                // 🔍 LOGGING for debugging
-                console.log('[practiceConversation] Raw response (first 300 chars):', jsonText.substring(0, 300));
+        // 🔍 LOGGING for debugging
+        console.log('[practiceConversation] Raw response (first 300 chars):', jsonText.substring(0, 300));
 
-                // 🛡️ CHECK that response is not empty
-                if (!jsonText) {
-                    console.error('[practiceConversation] Empty response from Gemini API');
-                    return {
-                        role: 'model',
-                        contentParts: [
-                            {
-                                type: 'text',
-                                text: 'I apologize, but I received an empty response. Please try again.',
-                            },
-                        ],
-                        promptSuggestions: [],
-                    };
-                }
+        // 🛡️ CHECK that response is not empty
+        if (!jsonText) {
+          console.error('[practiceConversation] Empty response from Gemini API');
+          return {
+            role: 'model',
+            contentParts: [
+              {
+                type: 'text',
+                text: 'I apologize, but I received an empty response. Please try again.',
+              },
+            ],
+            promptSuggestions: [],
+          };
+        }
 
-                // 🛡️ ROBUST PARSING with try-catch
-                let parsedResponse;
-                try {
-                    parsedResponse = JSON.parse(jsonText);
-                } catch (parseError) {
-                    console.error('[practiceConversation] JSON parse failed:', parseError);
-                    console.error('[practiceConversation] Raw text:', jsonText);
+        // 🛡️ ROBUST PARSING with try-catch
+        let parsedResponse;
+        try {
+          parsedResponse = JSON.parse(jsonText);
+        } catch (parseError) {
+          console.error('[practiceConversation] JSON parse failed:', parseError);
+          console.error('[practiceConversation] Raw text:', jsonText);
 
-                    // 🔄 FALLBACK: Try to extract text content
-                    const fallbackResponse = {
-                        responseParts: [
-                            {
-                                type: 'text',
-                                text:
-                                    jsonText.substring(0, 500) + (jsonText.length > 500 ? '...' : '') ||
-                                    'I apologize, but I had trouble generating a proper response. Could you try again?',
-                            },
-                        ],
-                        promptSuggestions: [],
-                    };
-                    parsedResponse = fallbackResponse;
-                }
+          // 🔄 FALLBACK: Try to extract text content
+          const fallbackResponse = {
+            responseParts: [
+              {
+                type: 'text',
+                text:
+                  jsonText.substring(0, 500) + (jsonText.length > 500 ? '...' : '') ||
+                  'I apologize, but I had trouble generating a proper response. Could you try again?',
+              },
+            ],
+            promptSuggestions: [],
+          };
+          parsedResponse = fallbackResponse;
+        }
 
-                // 🛡️ VALIDATE structure
-                if (!parsedResponse.contentParts || !Array.isArray(parsedResponse.contentParts)) {
-                    console.warn('[practiceConversation] Invalid response structure (missing contentParts), using fallback');
-                    parsedResponse.contentParts = [
-                        {
-                            type: 'text',
-                            text: 'Response structure invalid. Please try again.',
-                        },
-                    ];
-                }
+        // 🛡️ VALIDATE structure
+        if (!parsedResponse.contentParts || !Array.isArray(parsedResponse.contentParts)) {
+          console.warn('[practiceConversation] Invalid response structure (missing contentParts), using fallback');
+          parsedResponse.contentParts = [
+            {
+              type: 'text',
+              text: 'Response structure invalid. Please try again.',
+            },
+          ];
+        }
 
-                // 🛡️ ENSURE promptSuggestions is array
-                if (!parsedResponse.promptSuggestions || !Array.isArray(parsedResponse.promptSuggestions)) {
-                    parsedResponse.promptSuggestions = [];
-                }
+        // 🛡️ ENSURE promptSuggestions is array
+        if (!parsedResponse.promptSuggestions || !Array.isArray(parsedResponse.promptSuggestions)) {
+          parsedResponse.promptSuggestions = [];
+        }
 
-                return {
-                    role: 'model',
-                    contentParts: parsedResponse.contentParts,
-                    promptSuggestions: parsedResponse.promptSuggestions,
-                };
-            } catch (error) {
-                console.error('Error in practice conversation with Gemini:', error);
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+          role: 'model',
+          contentParts: parsedResponse.contentParts,
+          promptSuggestions: parsedResponse.promptSuggestions,
+        };
+      } catch (error) {
+        console.error('Error in practice conversation with Gemini:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-                // 🎯 RETURN fallback instead of throw
-                return {
-                    role: 'model',
-                    contentParts: [
-                        {
-                            type: 'text',
-                            text: `I apologize, but I encountered an error: ${errorMessage}. Please try again or refresh the page.`,
-                        },
-                    ],
-                    promptSuggestions: [],
-                };
-            }
-        },
-        3,
-        1000
-    ); // 3 retries with 1-2-4 seconds delay
+        // 🎯 RETURN fallback instead of throw
+        return {
+          role: 'model',
+          contentParts: [
+            {
+              type: 'text',
+              text: `I apologize, but I encountered an error: ${errorMessage}. Please try again or refresh the page.`,
+            },
+          ],
+          promptSuggestions: [],
+        };
+      }
+    },
+    3,
+    1000
+  ); // 3 retries with 1-2-4 seconds delay
 };
 
 const learningAssistantResponseSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            responseParts: {
-                type: Type.ARRAY,
-                description: `The response broken down into segments of plain text and ${lang.learning} text.`,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        type: {
-                            type: Type.STRING,
-                            enum: ['text', 'learning'],
-                            description: `Should be 'text' for plain ${lang.native} text or 'learning' for a ${lang.learning} word/phrase.`,
-                        },
-                        text: { type: Type.STRING, description: 'The segment of text. Do not use Markdown here.' },
-                        translation: {
-                            type: Type.STRING,
-                            description: `${lang.native} translation of the text, ONLY if type is 'learning'.`,
-                        },
-                    },
-                    required: ['type', 'text'],
-                },
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      responseParts: {
+        type: Type.ARRAY,
+        description: `The response broken down into segments of plain text and ${lang.learning} text.`,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            type: {
+              type: Type.STRING,
+              enum: ['text', 'learning'],
+              description: `Should be 'text' for plain ${lang.native} text or 'learning' for a ${lang.learning} word/phrase.`,
             },
-            isCorrect: {
-                type: Type.BOOLEAN,
-                description:
-                    "Set to true ONLY if the user's answer is a correct and complete translation of the target phrase.",
+            text: { type: Type.STRING, description: 'The segment of text. Do not use Markdown here.' },
+            translation: {
+              type: Type.STRING,
+              description: `${lang.native} translation of the text, ONLY if type is 'learning'.`,
             },
-            promptSuggestions: {
-                type: Type.ARRAY,
-                description: `A list of 2-4 new, context-aware follow-up questions in ${lang.native} that the user might ask next, based on the current conversation. Only suggest pronoun variations if there's a verb. Only suggest asking a question if the phrase isn't one already.`,
-                items: {
-                    type: Type.STRING,
-                },
-            },
-            wordOptions: {
-                type: Type.ARRAY,
-                description:
-                    'A list of 7-10 shuffled word choices (correct words and distractors) to help the user construct their next response. Should be an empty array if isCorrect is true.',
-                items: {
-                    type: Type.STRING,
-                },
-            },
-            cheatSheetOptions: {
-                type: Type.ARRAY,
-                description: 'An optional list of cheat sheet buttons to show the user based on the current question.',
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        type: { type: Type.STRING, enum: ['verbConjugation', 'nounDeclension', 'pronouns', 'wFragen'] },
-                        label: { type: Type.STRING, description: "The button text, e.g., 'Спряжение глагола'" },
-                        data: {
-                            type: Type.STRING,
-                            description:
-                                'Data for the cheat sheet. Verb infinitive, or a JSON string for nouns like \'{"noun":"Tisch","article":"der"}\'.',
-                        },
-                    },
-                    required: ['type', 'label', 'data'],
-                },
-            },
+          },
+          required: ['type', 'text'],
         },
-        required: ['responseParts', 'isCorrect', 'promptSuggestions', 'wordOptions'],
-    };
+      },
+      isCorrect: {
+        type: Type.BOOLEAN,
+        description:
+          "Set to true ONLY if the user's answer is a correct and complete translation of the target phrase.",
+      },
+      promptSuggestions: {
+        type: Type.ARRAY,
+        description: `A list of 2-4 new, context-aware follow-up questions in ${lang.native} that the user might ask next, based on the current conversation. Only suggest pronoun variations if there's a verb. Only suggest asking a question if the phrase isn't one already.`,
+        items: {
+          type: Type.STRING,
+        },
+      },
+      wordOptions: {
+        type: Type.ARRAY,
+        description:
+          'A list of 7-10 shuffled word choices (correct words and distractors) to help the user construct their next response. Should be an empty array if isCorrect is true.',
+        items: {
+          type: Type.STRING,
+        },
+      },
+      cheatSheetOptions: {
+        type: Type.ARRAY,
+        description: 'An optional list of cheat sheet buttons to show the user based on the current question.',
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            type: { type: Type.STRING, enum: ['verbConjugation', 'nounDeclension', 'pronouns', 'wFragen'] },
+            label: { type: Type.STRING, description: "The button text, e.g., 'Спряжение глагола'" },
+            data: {
+              type: Type.STRING,
+              description:
+                'Data for the cheat sheet. Verb infinitive, or a JSON string for nouns like \'{"noun":"Tisch","article":"der"}\'.',
+            },
+          },
+          required: ['type', 'label', 'data'],
+        },
+      },
+    },
+    required: ['responseParts', 'isCorrect', 'promptSuggestions', 'wordOptions'],
+  };
 };
 
 const guideToTranslation: AiService['guideToTranslation'] = async (phrase, history, userAnswer) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
 
-    const formattedHistory = history.map((msg) => {
-        const role = msg.role === 'user' ? 'user' : 'model';
-        const text = msg.contentParts ? msg.contentParts.map((p) => p.text).join('') : msg.text || '';
-        return { role, parts: [{ text }] };
-    });
+  const formattedHistory = history.map((msg) => {
+    const role = msg.role === 'user' ? 'user' : 'model';
+    const text = msg.contentParts ? msg.contentParts.map((p) => p.text).join('') : msg.text || '';
+    return { role, parts: [{ text }] };
+  });
 
-    // FIX: Use phrase.text.native and phrase.text.learning
-    const lang = getLang();
-    const systemInstruction = `Ты — опытный преподаватель-методист ${lang.learning} языка. Твоя задача — провести пользователя через интерактивное упражнение, чтобы он понял и запомнил перевод фразы. Используй метод наводящих вопросов и подсказок.
+  // FIX: Use phrase.text.native and phrase.text.learning
+  const lang = getLang();
+  const systemInstruction = `Ты — опытный преподаватель-методист ${lang.learning} языка. Твоя задача — провести пользователя через интерактивное упражнение, чтобы он понял и запомнил перевод фразы. Используй метод наводящих вопросов и подсказок.
 
 Исходная фраза: "${phrase.text.native}"
 Правильный ${lang.learning} перевод: "${phrase.text.learning}"
@@ -1370,64 +1370,64 @@ const guideToTranslation: AiService['guideToTranslation'] = async (phrase, histo
     - Всегда отвечай на ${lang.native}.
     - Используй JSON-формат со всеми полями из схемы. Поле \`cheatSheetOptions\` является необязательным.`;
 
-    const userMessage = userAnswer || '(Начало сессии, дай первую подсказку)';
+  const userMessage = userAnswer || '(Начало сессии, дай первую подсказку)';
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: [...formattedHistory, { role: 'user', parts: [{ text: userMessage }] }],
-            config: {
-                systemInstruction,
-                responseMimeType: 'application/json',
-                responseSchema: learningAssistantResponseSchema(),
-                temperature: 0.6,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: [...formattedHistory, { role: 'user', parts: [{ text: userMessage }] }],
+      config: {
+        systemInstruction,
+        responseMimeType: 'application/json',
+        responseSchema: learningAssistantResponseSchema(),
+        temperature: 0.6,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        const parsedResponse = JSON.parse(jsonText);
+    const jsonText = response.text.trim();
+    const parsedResponse = JSON.parse(jsonText);
 
-        return {
-            role: 'model',
-            contentParts: parsedResponse.responseParts || [{ type: 'text', text: 'Произошла ошибка.' }],
-            isCorrect: parsedResponse.isCorrect || false,
-            promptSuggestions: parsedResponse.promptSuggestions || [],
-            wordOptions: parsedResponse.wordOptions || [],
-            cheatSheetOptions: parsedResponse.cheatSheetOptions || [],
-        };
-    } catch (error) {
-        console.error('Error in guideToTranslation with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    return {
+      role: 'model',
+      contentParts: parsedResponse.responseParts || [{ type: 'text', text: 'Произошла ошибка.' }],
+      isCorrect: parsedResponse.isCorrect || false,
+      promptSuggestions: parsedResponse.promptSuggestions || [],
+      wordOptions: parsedResponse.wordOptions || [],
+      cheatSheetOptions: parsedResponse.cheatSheetOptions || [],
+    };
+  } catch (error) {
+    console.error('Error in guideToTranslation with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const translationChatResponseSchema = () => {
-    const lang = getLang();
-    return {
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      ...chatResponseSchema().properties, // Inherit contentParts and promptSuggestions
+      suggestion: {
         type: Type.OBJECT,
+        description: `An optional suggested improvement for the ${lang.native} and ${lang.learning} phrases.`,
         properties: {
-            ...chatResponseSchema().properties, // Inherit contentParts and promptSuggestions
-            suggestion: {
-                type: Type.OBJECT,
-                description: `An optional suggested improvement for the ${lang.native} and ${lang.learning} phrases.`,
-                properties: {
-                    [lang.nativeCode]: { type: Type.STRING, description: `The suggested new ${lang.native} phrase.` },
-                    [lang.learningCode]: { type: Type.STRING, description: `The suggested new ${lang.learning} phrase.` },
-                },
-                required: [lang.nativeCode, lang.learningCode],
-            },
+          [lang.nativeCode]: { type: Type.STRING, description: `The suggested new ${lang.native} phrase.` },
+          [lang.learningCode]: { type: Type.STRING, description: `The suggested new ${lang.learning} phrase.` },
         },
-        required: ['contentParts', 'promptSuggestions'],
-    };
+        required: [lang.nativeCode, lang.learningCode],
+      },
+    },
+    required: ['contentParts', 'promptSuggestions'],
+  };
 };
 
 const discussTranslation: AiService['discussTranslation'] = async (request) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const systemInstruction = `Ты AI-помощник и эксперт по ${lang.learning} языку. Пользователь недоволен переводом и хочет его улучшить.
+  const systemInstruction = `Ты AI-помощник и эксперт по ${lang.learning} языку. Пользователь недоволен переводом и хочет его улучшить.
 Исходная ${lang.native} фраза: "${request.originalNative}"
 Текущий ${lang.learning} перевод: "${request.currentLearning}"
 
@@ -1438,121 +1438,121 @@ const discussTranslation: AiService['discussTranslation'] = async (request) => {
 4.  Твой ответ ДОЛЖЕН быть ТОЛЬКО в формате JSON, строго соответствующем предоставленной схеме. Не добавляй никакого текста до или после JSON. Всегда разбивай свой текстовый ответ на массив \`contentParts\` и предлагай новые вопросы в \`promptSuggestions\`. В массиве \`contentParts\` используй 'type': 'text' для обычного текста и 'type': 'learning' для ${lang.learning} слов/фраз (с обязательным полем 'translation').
 5.  Будь краток и по делу.`;
 
-    const formattedHistory = request.history.map((msg) => ({
-        role: msg.role,
-        parts: [{ text: msg.text || msg.contentParts?.map((p) => p.text).join('') || '' }],
-    }));
+  const formattedHistory = request.history.map((msg) => ({
+    role: msg.role,
+    parts: [{ text: msg.text || msg.contentParts?.map((p) => p.text).join('') || '' }],
+  }));
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: formattedHistory,
-            config: {
-                systemInstruction,
-                responseMimeType: 'application/json',
-                responseSchema: translationChatResponseSchema(),
-                temperature: 0.6,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: formattedHistory,
+      config: {
+        systemInstruction,
+        responseMimeType: 'application/json',
+        responseSchema: translationChatResponseSchema(),
+        temperature: 0.6,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        const parsedResponse = JSON.parse(jsonText);
+    const jsonText = response.text.trim();
+    const parsedResponse = JSON.parse(jsonText);
 
-        if (
-            !parsedResponse ||
-            !Array.isArray(parsedResponse.contentParts) ||
-            !Array.isArray(parsedResponse.promptSuggestions)
-        ) {
-            console.error('Invalid response structure from Gemini discussTranslation:', parsedResponse);
-            const textFallback =
-                parsedResponse && typeof parsedResponse === 'object' ? JSON.stringify(parsedResponse) : 'Invalid response';
-            throw new Error(`AI returned an unexpected response format. Raw: ${textFallback}`);
-        }
-
-        return {
-            role: 'model',
-            contentParts:
-                parsedResponse.contentParts.length > 0
-                    ? parsedResponse.contentParts
-                    : [{ type: 'text', text: 'AI не предоставил текстовый ответ.' }],
-            suggestion: parsedResponse.suggestion
-                ? { learning: parsedResponse.suggestion[lang.learningCode], native: parsedResponse.suggestion[lang.nativeCode] }
-                : undefined,
-            promptSuggestions: parsedResponse.promptSuggestions || [],
-        };
-    } catch (error) {
-        console.error('Error discussing translation with Gemini:', error);
-        if (error instanceof Error && error.message.includes('JSON')) {
-            throw new Error('Не удалось разобрать JSON-ответ от AI. Неверный формат.');
-        }
-        throw new Error(`Ошибка вызова Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+    if (
+      !parsedResponse ||
+      !Array.isArray(parsedResponse.contentParts) ||
+      !Array.isArray(parsedResponse.promptSuggestions)
+    ) {
+      console.error('Invalid response structure from Gemini discussTranslation:', parsedResponse);
+      const textFallback =
+        parsedResponse && typeof parsedResponse === 'object' ? JSON.stringify(parsedResponse) : 'Invalid response';
+      throw new Error(`AI returned an unexpected response format. Raw: ${textFallback}`);
     }
+
+    return {
+      role: 'model',
+      contentParts:
+        parsedResponse.contentParts.length > 0
+          ? parsedResponse.contentParts
+          : [{ type: 'text', text: 'AI не предоставил текстовый ответ.' }],
+      suggestion: parsedResponse.suggestion
+        ? { learning: parsedResponse.suggestion[lang.learningCode], native: parsedResponse.suggestion[lang.nativeCode] }
+        : undefined,
+      promptSuggestions: parsedResponse.promptSuggestions || [],
+    };
+  } catch (error) {
+    console.error('Error discussing translation with Gemini:', error);
+    if (error instanceof Error && error.message.includes('JSON')) {
+      throw new Error('Не удалось разобрать JSON-ответ от AI. Неверный формат.');
+    }
+    throw new Error(`Ошибка вызова Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 const deepDiveAnalysisSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            chunks: {
-                type: Type.ARRAY,
-                description: `The ${lang.learning} phrase broken down into grammatical chunks.`,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        text: { type: Type.STRING },
-                        type: {
-                            type: Type.STRING,
-                            description:
-                                "Grammatical type, e.g., 'Noun', 'Verb', 'Article', 'Adjective', 'Adverb', 'Preposition', 'Pronoun', 'Conjunction', 'Particle'.",
-                        },
-                        explanation: {
-                            type: Type.STRING,
-                            description: `A brief explanation of the chunk's role in ${lang.native}.`,
-                        },
-                    },
-                    required: ['text', 'type', 'explanation'],
-                },
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      chunks: {
+        type: Type.ARRAY,
+        description: `The ${lang.learning} phrase broken down into grammatical chunks.`,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            text: { type: Type.STRING },
+            type: {
+              type: Type.STRING,
+              description:
+                "Grammatical type, e.g., 'Noun', 'Verb', 'Article', 'Adjective', 'Adverb', 'Preposition', 'Pronoun', 'Conjunction', 'Particle'.",
             },
-            keyConcepts: {
-                type: Type.ARRAY,
-                description: 'A list of key semantic concepts within the phrase.',
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        concept: { type: Type.STRING, description: `The key concept in ${lang.learning}.` },
-                        explanation: { type: Type.STRING, description: `A brief explanation in ${lang.native}.` },
-                    },
-                    required: ['concept', 'explanation'],
-                },
+            explanation: {
+              type: Type.STRING,
+              description: `A brief explanation of the chunk's role in ${lang.native}.`,
             },
-            personalizationQuestion: {
-                type: Type.STRING,
-                description: `A thought-provoking question in ${lang.native} to help the user connect the phrase to their own life (Self-Reference Effect).`,
-            },
-            mnemonicImage: {
-                type: Type.OBJECT,
-                description: 'A vivid, memorable, and slightly absurd mnemonic image to help encode the phrase.',
-                properties: {
-                    description: {
-                        type: Type.STRING,
-                        description: `A detailed description of the memorable scene in ${lang.native}.`,
-                    },
-                    keywords: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'Keywords from the scene.' },
-                },
-                required: ['description', 'keywords'],
-            },
+          },
+          required: ['text', 'type', 'explanation'],
         },
-        required: ['chunks', 'keyConcepts', 'personalizationQuestion', 'mnemonicImage'],
-    };
+      },
+      keyConcepts: {
+        type: Type.ARRAY,
+        description: 'A list of key semantic concepts within the phrase.',
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            concept: { type: Type.STRING, description: `The key concept in ${lang.learning}.` },
+            explanation: { type: Type.STRING, description: `A brief explanation in ${lang.native}.` },
+          },
+          required: ['concept', 'explanation'],
+        },
+      },
+      personalizationQuestion: {
+        type: Type.STRING,
+        description: `A thought-provoking question in ${lang.native} to help the user connect the phrase to their own life (Self-Reference Effect).`,
+      },
+      mnemonicImage: {
+        type: Type.OBJECT,
+        description: 'A vivid, memorable, and slightly absurd mnemonic image to help encode the phrase.',
+        properties: {
+          description: {
+            type: Type.STRING,
+            description: `A detailed description of the memorable scene in ${lang.native}.`,
+          },
+          keywords: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'Keywords from the scene.' },
+        },
+        required: ['description', 'keywords'],
+      },
+    },
+    required: ['chunks', 'keyConcepts', 'personalizationQuestion', 'mnemonicImage'],
+  };
 };
 
 const generateDeepDiveAnalysis: AiService['generateDeepDiveAnalysis'] = async (phrase) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const prompt = `Ты — AI-ассистент, специализирующийся на когнитивных техниках запоминания. Пользователь изучает ${lang.learning} фразу: "${phrase.text.learning}" (перевод: "${phrase.text.native}").
+  const prompt = `Ты — AI-ассистент, специализирующийся на когнитивных техниках запоминания. Пользователь изучает ${lang.learning} фразу: "${phrase.text.learning}" (перевод: "${phrase.text.native}").
 Проведи глубокий когнитивный анализ этой фразы, следуя трём этапам, и верни результат в виде JSON-объекта.
 
 **Этап 1: Деконструкция (Анализ)**
@@ -1569,76 +1569,76 @@ const generateDeepDiveAnalysis: AiService['generateDeepDiveAnalysis'] = async (p
 
 Верни только JSON-объект, соответствующий предоставленной схеме.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: deepDiveAnalysisSchema(),
-                temperature: 0.8,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: deepDiveAnalysisSchema(),
+        temperature: 0.8,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as DeepDiveAnalysis;
-    } catch (error) {
-        console.error('Error generating deep dive analysis with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText) as DeepDiveAnalysis;
+  } catch (error) {
+    console.error('Error generating deep dive analysis with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const movieExamplesSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.ARRAY,
-        items: {
-            type: Type.OBJECT,
-            properties: {
-                title: { type: Type.STRING, description: 'The original title of the movie.' },
-                titleNative: { type: Type.STRING, description: `The ${lang.native} translation of the movie title.` },
-                dialogueLearning: {
-                    type: Type.STRING,
-                    description: `The exact dialogue snippet in the ${lang.learning} language containing the phrase.`,
-                },
-                dialogueNative: { type: Type.STRING, description: `The ${lang.native} translation of the dialogue snippet.` },
-            },
-            required: ['title', 'titleNative', 'dialogueLearning', 'dialogueNative'],
+  const lang = getLang();
+  return {
+    type: Type.ARRAY,
+    items: {
+      type: Type.OBJECT,
+      properties: {
+        title: { type: Type.STRING, description: 'The original title of the movie.' },
+        titleNative: { type: Type.STRING, description: `The ${lang.native} translation of the movie title.` },
+        dialogueLearning: {
+          type: Type.STRING,
+          description: `The exact dialogue snippet in the ${lang.learning} language containing the phrase.`,
         },
-    };
+        dialogueNative: { type: Type.STRING, description: `The ${lang.native} translation of the dialogue snippet.` },
+      },
+      required: ['title', 'titleNative', 'dialogueLearning', 'dialogueNative'],
+    },
+  };
 };
 
 const generateMovieExamples: AiService['generateMovieExamples'] = async (phrase) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const prompt = `Найди до 5 примеров из диалогов популярных фильмов, где используется ${lang.learning} фраза "${phrase.text.learning}". Фильмы могут быть как ${lang.learning} производства, так и популярные международные фильмы с качественным ${lang.learning} дубляжом. Для каждого примера укажи:
+  const prompt = `Найди до 5 примеров из диалогов популярных фильмов, где используется ${lang.learning} фраза "${phrase.text.learning}". Фильмы могут быть как ${lang.learning} производства, так и популярные международные фильмы с качественным ${lang.learning} дубляжом. Для каждого примера укажи:
 1. Оригинальное название фильма ('title').
 2. Название фильма на ${lang.native} языке ('titleNative').
 3. Фрагмент диалога на ${lang.learning} языке ('dialogueLearning').
 4. Перевод этого фрагмента на ${lang.native} язык ('dialogueNative').
 Верни результат в виде JSON-массива объектов, соответствующего схеме.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: movieExamplesSchema(),
-                temperature: 0.7,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: movieExamplesSchema(),
+        temperature: 0.7,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as MovieExample[];
-    } catch (error) {
-        console.error('Error generating movie examples with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText) as MovieExample[];
+  } catch (error) {
+    console.error('Error generating movie examples with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 // FIX: Update schema to match WordAnalysis type in types.ts
@@ -1646,62 +1646,62 @@ const generateMovieExamples: AiService['generateMovieExamples'] = async (phrase)
  * Returns person/number example based on language code
  */
 const getPersonNumberExample = (languageCode: LanguageCode): string => {
-    return i18n.t('gemini.personNumberExample', { lng: languageCode });
+  return i18n.t('gemini.personNumberExample', { lng: languageCode });
 };
 
 const wordAnalysisSchema = () => {
-    const lang = getLang();
-    const personExample = getPersonNumberExample(lang.nativeCode);
-    return {
+  const lang = getLang();
+  const personExample = getPersonNumberExample(lang.nativeCode);
+  return {
+    type: Type.OBJECT,
+    properties: {
+      word: { type: Type.STRING },
+      partOfSpeech: { type: Type.STRING, description: `The part of speech in ${lang.native}.` },
+      nativeTranslation: { type: Type.STRING, description: `The ${lang.native} translation of the word.` },
+      baseForm: {
+        type: Type.STRING,
+        description: 'The base form, especially for adjectives (e.g., "gut" for "guten").',
+      },
+      nounDetails: {
         type: Type.OBJECT,
         properties: {
-            word: { type: Type.STRING },
-            partOfSpeech: { type: Type.STRING, description: `The part of speech in ${lang.native}.` },
-            nativeTranslation: { type: Type.STRING, description: `The ${lang.native} translation of the word.` },
-            baseForm: {
-                type: Type.STRING,
-                description: 'The base form, especially for adjectives (e.g., "gut" for "guten").',
-            },
-            nounDetails: {
-                type: Type.OBJECT,
-                properties: {
-                    article: { type: Type.STRING, description: 'The article (der, die, das).' },
-                    plural: { type: Type.STRING, description: 'The plural form.' },
-                },
-            },
-            verbDetails: {
-                type: Type.OBJECT,
-                properties: {
-                    infinitive: { type: Type.STRING, description: 'The infinitive form.' },
-                    tense: { type: Type.STRING, description: 'The tense (e.g., "Präsens").' },
-                    person: {
-                        type: Type.STRING,
-                        description: `The person and number (e.g., "${personExample}") in ${lang.native}.`,
-                    },
-                },
-            },
-            exampleSentence: { type: Type.STRING, description: `A new example sentence in ${lang.learning} using the word.` },
-            exampleSentenceNative: {
-                type: Type.STRING,
-                description: `The ${lang.native} translation of the example sentence.`,
-            },
+          article: { type: Type.STRING, description: 'The article (der, die, das).' },
+          plural: { type: Type.STRING, description: 'The plural form.' },
         },
-        required: ['word', 'partOfSpeech', 'nativeTranslation', 'exampleSentence', 'exampleSentenceNative'],
-    };
+      },
+      verbDetails: {
+        type: Type.OBJECT,
+        properties: {
+          infinitive: { type: Type.STRING, description: 'The infinitive form.' },
+          tense: { type: Type.STRING, description: 'The tense (e.g., "Präsens").' },
+          person: {
+            type: Type.STRING,
+            description: `The person and number (e.g., "${personExample}") in ${lang.native}.`,
+          },
+        },
+      },
+      exampleSentence: { type: Type.STRING, description: `A new example sentence in ${lang.learning} using the word.` },
+      exampleSentenceNative: {
+        type: Type.STRING,
+        description: `The ${lang.native} translation of the example sentence.`,
+      },
+    },
+    required: ['word', 'partOfSpeech', 'nativeTranslation', 'exampleSentence', 'exampleSentenceNative'],
+  };
 };
 
 /**
  * Returns word analysis prompt in the appropriate language
  */
 const getWordAnalysisPrompt = (
-    languageCode: LanguageCode,
-    learningLang: string,
-    nativeLang: string,
-    word: string,
-    phraseText: string
+  languageCode: LanguageCode,
+  learningLang: string,
+  nativeLang: string,
+  word: string,
+  phraseText: string
 ): string => {
-    const prompts: Record<LanguageCode, string> = {
-        ru: `Проведи лингвистический анализ ${learningLang} слова "${word}" в контексте фразы "${phraseText}".
+  const prompts: Record<LanguageCode, string> = {
+    ru: `Проведи лингвистический анализ ${learningLang} слова "${word}" в контексте фразы "${phraseText}".
 Верни JSON-объект со следующей информацией:
 1.  **word**: анализируемое слово.
 2.  **partOfSpeech**: часть речи на ${nativeLang}.
@@ -1712,7 +1712,7 @@ const getWordAnalysisPrompt = (
 7.  **exampleSentence**: новое предложение-пример на ${learningLang}, использующее это слово.
 8.  **exampleSentenceNative**: перевод предложения-примера на ${nativeLang}.`,
 
-        en: `Perform a linguistic analysis of the ${learningLang} word "${word}" in the context of the phrase "${phraseText}".
+    en: `Perform a linguistic analysis of the ${learningLang} word "${word}" in the context of the phrase "${phraseText}".
 Return a JSON object with the following information:
 1.  **word**: the analyzed word.
 2.  **partOfSpeech**: part of speech in ${nativeLang}.
@@ -1723,7 +1723,7 @@ Return a JSON object with the following information:
 7.  **exampleSentence**: a new example sentence in ${learningLang} using this word.
 8.  **exampleSentenceNative**: translation of the example sentence to ${nativeLang}.`,
 
-        de: `Führe eine linguistische Analyse des ${learningLang} Wortes "${word}" im Kontext des Satzes "${phraseText}" durch.
+    de: `Führe eine linguistische Analyse des ${learningLang} Wortes "${word}" im Kontext des Satzes "${phraseText}" durch.
 Gib ein JSON-Objekt mit den folgenden Informationen zurück:
 1.  **word**: das analysierte Wort.
 2.  **partOfSpeech**: Wortart auf ${nativeLang}.
@@ -1734,7 +1734,7 @@ Gib ein JSON-Objekt mit den folgenden Informationen zurück:
 7.  **exampleSentence**: ein neuer Beispielsatz auf ${learningLang} mit diesem Wort.
 8.  **exampleSentenceNative**: Übersetzung des Beispielsatzes ins ${nativeLang}.`,
 
-        es: `Realiza un análisis lingüístico de la palabra "${word}" en ${learningLang} en el contexto de la frase "${phraseText}".
+    es: `Realiza un análisis lingüístico de la palabra "${word}" en ${learningLang} en el contexto de la frase "${phraseText}".
 Devuelve un objeto JSON con la siguiente información:
 1.  **word**: la palabra analizada.
 2.  **partOfSpeech**: parte del discurso en ${nativeLang}.
@@ -1745,7 +1745,7 @@ Devuelve un objeto JSON con la siguiente información:
 7.  **exampleSentence**: una nueva oración de ejemplo en ${learningLang} usando esta palabra.
 8.  **exampleSentenceNative**: traducción de la oración de ejemplo al ${nativeLang}.`,
 
-        fr: `Effectue une analyse linguistique du mot "${word}" en ${learningLang} dans le contexte de la phrase "${phraseText}".
+    fr: `Effectue une analyse linguistique du mot "${word}" en ${learningLang} dans le contexte de la phrase "${phraseText}".
 Renvoie un objet JSON avec les informations suivantes:
 1.  **word**: le mot analysé.
 2.  **partOfSpeech**: partie du discours en ${nativeLang}.
@@ -1756,7 +1756,7 @@ Renvoie un objet JSON avec les informations suivantes:
 7.  **exampleSentence**: une nouvelle phrase d'exemple en ${learningLang} utilisant ce mot.
 8.  **exampleSentenceNative**: traduction de la phrase d'exemple en ${nativeLang}.`,
 
-        it: `Esegui un'analisi linguistica della parola "${word}" in ${learningLang} nel contesto della frase "${phraseText}".
+    it: `Esegui un'analisi linguistica della parola "${word}" in ${learningLang} nel contesto della frase "${phraseText}".
 Restituisci un oggetto JSON con le seguenti informazioni:
 1.  **word**: la parola analizzata.
 2.  **partOfSpeech**: parte del discorso in ${nativeLang}.
@@ -1767,7 +1767,7 @@ Restituisci un oggetto JSON con le seguenti informazioni:
 7.  **exampleSentence**: una nuova frase di esempio in ${learningLang} usando questa parola.
 8.  **exampleSentenceNative**: traduzione della frase di esempio in ${nativeLang}.`,
 
-        pt: `Realize uma análise linguística da palavra "${word}" em ${learningLang} no contexto da frase "${phraseText}".
+    pt: `Realize uma análise linguística da palavra "${word}" em ${learningLang} no contexto da frase "${phraseText}".
 Retorne um objeto JSON com as seguintes informações:
 1.  **word**: a palavra analisada.
 2.  **partOfSpeech**: classe gramatical em ${nativeLang}.
@@ -1778,7 +1778,7 @@ Retorne um objeto JSON com as seguintes informações:
 7.  **exampleSentence**: uma nova frase de exemplo em ${learningLang} usando esta palavra.
 8.  **exampleSentenceNative**: tradução da frase de exemplo para ${nativeLang}.`,
 
-        pl: `Przeprowadź analizę lingwistyczną słowa "${word}" w języku ${learningLang} w kontekście zdania "${phraseText}".
+    pl: `Przeprowadź analizę lingwistyczną słowa "${word}" w języku ${learningLang} w kontekście zdania "${phraseText}".
 Zwróć obiekt JSON z następującymi informacjami:
 1.  **word**: analizowane słowo.
 2.  **partOfSpeech**: część mowy w języku ${nativeLang}.
@@ -1789,7 +1789,7 @@ Zwróć obiekt JSON z następującymi informacjami:
 7.  **exampleSentence**: nowe zdanie przykładowe w języku ${learningLang} używające tego słowa.
 8.  **exampleSentenceNative**: tłumaczenie zdania przykładowego na język ${nativeLang}.`,
 
-        zh: `对短语"${phraseText}"中的${learningLang}单词"${word}"进行语言分析。
+    zh: `对短语"${phraseText}"中的${learningLang}单词"${word}"进行语言分析。
 返回一个包含以下信息的JSON对象：
 1.  **word**：分析的单词。
 2.  **partOfSpeech**：${nativeLang}中的词性。
@@ -1800,7 +1800,7 @@ Zwróć obiekt JSON z następującymi informacjami:
 7.  **exampleSentence**：使用此单词的${learningLang}新例句。
 8.  **exampleSentenceNative**：例句的${nativeLang}翻译。`,
 
-        ja: `フレーズ「${phraseText}」における${learningLang}の単語「${word}」の言語分析を行ってください。
+    ja: `フレーズ「${phraseText}」における${learningLang}の単語「${word}」の言語分析を行ってください。
 次の情報を含むJSONオブジェクトを返してください：
 1.  **word**：分析された単語。
 2.  **partOfSpeech**：${nativeLang}での品詞。
@@ -1811,7 +1811,7 @@ Zwróć obiekt JSON z następującymi informacjami:
 7.  **exampleSentence**：この単語を使った${learningLang}の新しい例文。
 8.  **exampleSentenceNative**：例文の${nativeLang}訳。`,
 
-        ar: `قم بإجراء تحليل لغوي للكلمة "${word}" بلغة ${learningLang} في سياق العبارة "${phraseText}".
+    ar: `قم بإجراء تحليل لغوي للكلمة "${word}" بلغة ${learningLang} في سياق العبارة "${phraseText}".
 قم بإرجاع كائن JSON بالمعلومات التالية:
 1.  **word**: الكلمة المحللة.
 2.  **partOfSpeech**: نوع الكلمة بلغة ${nativeLang}.
@@ -1822,7 +1822,7 @@ Zwróć obiekt JSON z następującymi informacjami:
 7.  **exampleSentence**: جملة مثال جديدة بلغة ${learningLang} باستخدام هذه الكلمة.
 8.  **exampleSentenceNative**: ترجمة جملة المثال إلى ${nativeLang}.`,
 
-        hi: `वाक्यांश "${phraseText}" के संदर्भ में ${learningLang} शब्द "${word}" का भाषाई विश्लेषण करें।
+    hi: `वाक्यांश "${phraseText}" के संदर्भ में ${learningLang} शब्द "${word}" का भाषाई विश्लेषण करें।
 निम्नलिखित जानकारी के साथ एक JSON ऑब्जेक्ट लौटाएं:
 1.  **word**: विश्लेषण किया गया शब्द।
 2.  **partOfSpeech**: ${nativeLang} में शब्द भेद।
@@ -1832,104 +1832,104 @@ Zwróć obiekt JSON z następującymi informacjami:
 6.  **verbDetails**: यदि शब्द क्रिया है, तो इसका मूल रूप ('infinitive'), काल ('tense') और पुरुष/वचन ('person') प्रदान करें। यदि नहीं, तो इस फ़ील्ड को छोड़ दें।
 7.  **exampleSentence**: इस शब्द का उपयोग करते हुए ${learningLang} में एक नया उदाहरण वाक्य।
 8.  **exampleSentenceNative**: उदाहरण वाक्य का ${nativeLang} में अनुवाद।`,
-    };
+  };
 
-    return prompts[languageCode] || prompts['en'];
+  return prompts[languageCode] || prompts['en'];
 };
 
 const analyzeWordInPhrase: AiService['analyzeWordInPhrase'] = async (phrase, word) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const prompt = getWordAnalysisPrompt(lang.nativeCode, lang.learning, lang.native, word, phrase.text.learning);
+  const prompt = getWordAnalysisPrompt(lang.nativeCode, lang.learning, lang.native, word, phrase.text.learning);
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: wordAnalysisSchema(),
-                temperature: 0.5,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: wordAnalysisSchema(),
+        temperature: 0.5,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as WordAnalysis;
-    } catch (error) {
-        console.error('Error analyzing word with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText) as WordAnalysis;
+  } catch (error) {
+    console.error('Error analyzing word with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const pronounConjugationSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            pronoun: {
-                type: Type.STRING,
-                description: `The personal pronoun in ${lang.learning} (e.g., for Spanish: "yo", "tú"; for Hindi: "मैं", "तुम").`,
-            },
-            pronounNative: { type: Type.STRING, description: `The same pronoun translated to ${lang.native}.` },
-            // Canonical keys (language-agnostic)
-            learning: { type: Type.STRING, description: `Full sentence in the learning language (${lang.learning}).` },
-            native: { type: Type.STRING, description: `Translation in the native language (${lang.native}).` },
-            // Dynamic keys (backward compatibility)
-            [lang.learningCode]: {
-                type: Type.STRING,
-                description: `The full example sentence in ${lang.learning} for this pronoun.`,
-            },
-            [lang.nativeCode]: {
-                type: Type.STRING,
-                description: `The ${lang.native} translation of the ${lang.learning} sentence.`,
-            },
-        },
-        required: ['pronoun', 'pronounNative', 'learning', 'native'],
-    };
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      pronoun: {
+        type: Type.STRING,
+        description: `The personal pronoun in ${lang.learning} (e.g., for Spanish: "yo", "tú"; for Hindi: "मैं", "तुम").`,
+      },
+      pronounNative: { type: Type.STRING, description: `The same pronoun translated to ${lang.native}.` },
+      // Canonical keys (language-agnostic)
+      learning: { type: Type.STRING, description: `Full sentence in the learning language (${lang.learning}).` },
+      native: { type: Type.STRING, description: `Translation in the native language (${lang.native}).` },
+      // Dynamic keys (backward compatibility)
+      [lang.learningCode]: {
+        type: Type.STRING,
+        description: `The full example sentence in ${lang.learning} for this pronoun.`,
+      },
+      [lang.nativeCode]: {
+        type: Type.STRING,
+        description: `The ${lang.native} translation of the ${lang.learning} sentence.`,
+      },
+    },
+    required: ['pronoun', 'pronounNative', 'learning', 'native'],
+  };
 };
 
 const tenseFormsSchema = {
-    type: Type.OBJECT,
-    properties: {
-        statement: {
-            type: Type.ARRAY,
-            items: pronounConjugationSchema(),
-            description: 'An array of declarative statements for all pronouns.',
-        },
-        question: {
-            type: Type.ARRAY,
-            items: pronounConjugationSchema(),
-            description: 'An array of interrogative sentences for all pronouns.',
-        },
-        negative: {
-            type: Type.ARRAY,
-            items: pronounConjugationSchema(),
-            description: 'An array of negative sentences for all pronouns.',
-        },
+  type: Type.OBJECT,
+  properties: {
+    statement: {
+      type: Type.ARRAY,
+      items: pronounConjugationSchema(),
+      description: 'An array of declarative statements for all pronouns.',
     },
-    required: ['statement', 'question', 'negative'],
+    question: {
+      type: Type.ARRAY,
+      items: pronounConjugationSchema(),
+      description: 'An array of interrogative sentences for all pronouns.',
+    },
+    negative: {
+      type: Type.ARRAY,
+      items: pronounConjugationSchema(),
+      description: 'An array of negative sentences for all pronouns.',
+    },
+  },
+  required: ['statement', 'question', 'negative'],
 };
 
 const verbConjugationSchema = {
-    type: Type.OBJECT,
-    properties: {
-        infinitive: { type: Type.STRING },
-        past: { ...tenseFormsSchema, description: 'Forms for the Past (Perfekt) tense.' },
-        present: { ...tenseFormsSchema, description: 'Forms for the Present (Präsens) tense.' },
-        future: { ...tenseFormsSchema, description: 'Forms for the Future (Futur I) tense.' },
-    },
-    required: ['infinitive', 'past', 'present', 'future'],
+  type: Type.OBJECT,
+  properties: {
+    infinitive: { type: Type.STRING },
+    past: { ...tenseFormsSchema, description: 'Forms for the Past (Perfekt) tense.' },
+    present: { ...tenseFormsSchema, description: 'Forms for the Present (Präsens) tense.' },
+    future: { ...tenseFormsSchema, description: 'Forms for the Future (Futur I) tense.' },
+  },
+  required: ['infinitive', 'past', 'present', 'future'],
 };
 
 const conjugateVerb: AiService['conjugateVerb'] = async (infinitive) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
 
-    const lang = getLang();
-    const prompt = `You are an expert in ${lang.learning} grammar. Provide a complete conjugation matrix for the verb "${infinitive}".
+  const lang = getLang();
+  const prompt = `You are an expert in ${lang.learning} grammar. Provide a complete conjugation matrix for the verb "${infinitive}".
 
 The matrix should include three tenses (past, present, future) and three forms (statement, question, negative).
 
@@ -1951,83 +1951,83 @@ IMPORTANT: Do NOT use Learning tense names (Präsens, Perfekt, Futur). Use gramm
 
 Return the result as a JSON object matching the provided schema.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: verbConjugationSchema,
-                temperature: 0.3,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: verbConjugationSchema,
+        temperature: 0.3,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        const parsed = JSON.parse(jsonText);
+    const jsonText = response.text.trim();
+    const parsed = JSON.parse(jsonText);
 
-        // Helper to pick first non-empty value by keys
-        const pickFirst = (obj: any, keys: string[]) => {
-            for (const k of keys) {
-                const v = obj?.[k];
-                if (typeof v === 'string' && v.trim().length > 0) return v;
-            }
-            return undefined;
-        };
+    // Helper to pick first non-empty value by keys
+    const pickFirst = (obj: any, keys: string[]) => {
+      for (const k of keys) {
+        const v = obj?.[k];
+        if (typeof v === 'string' && v.trim().length > 0) return v;
+      }
+      return undefined;
+    };
 
-        // Mapper: include both canonical (learning/native) and legacy (learning/native) keys
-        const mapConjugation = (item: any) => {
-            const learningVal = pickFirst(item, [lang.learningCode, 'de', 'learning', 'learning']);
-            const nativeVal = pickFirst(item, [lang.nativeCode, 'ru', 'native', 'native']);
-            return {
-                pronoun: item.pronoun,
-                pronounNative: item.pronounNative,
-                // canonical
-                learning: learningVal,
-                native: nativeVal,
-            };
-        };
+    // Mapper: include both canonical (learning/native) and legacy (learning/native) keys
+    const mapConjugation = (item: any) => {
+      const learningVal = pickFirst(item, [lang.learningCode, 'de', 'learning', 'learning']);
+      const nativeVal = pickFirst(item, [lang.nativeCode, 'ru', 'native', 'native']);
+      return {
+        pronoun: item.pronoun,
+        pronounNative: item.pronounNative,
+        // canonical
+        learning: learningVal,
+        native: nativeVal,
+      };
+    };
 
-        const mapTenseForms = (tense: any) => ({
-            statement: tense.statement.map(mapConjugation),
-            question: tense.question.map(mapConjugation),
-            negative: tense.negative.map(mapConjugation),
-        });
+    const mapTenseForms = (tense: any) => ({
+      statement: tense.statement.map(mapConjugation),
+      question: tense.question.map(mapConjugation),
+      negative: tense.negative.map(mapConjugation),
+    });
 
-        return {
-            infinitive: parsed.infinitive,
-            past: mapTenseForms(parsed.past),
-            present: mapTenseForms(parsed.present),
-            future: mapTenseForms(parsed.future),
-        } as VerbConjugation;
-    } catch (error) {
-        console.error('Error conjugating verb with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    return {
+      infinitive: parsed.infinitive,
+      past: mapTenseForms(parsed.past),
+      present: mapTenseForms(parsed.present),
+      future: mapTenseForms(parsed.future),
+    } as VerbConjugation;
+  } catch (error) {
+    console.error('Error conjugating verb with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const simpleVerbConjugationSchema = {
-    type: Type.ARRAY,
-    items: {
-        type: Type.OBJECT,
-        properties: {
-            pronoun: { type: Type.STRING, description: 'Pronoun in the learning language.' },
-            pronounNative: { type: Type.STRING, description: 'Pronoun in the native language.' },
-            form: {
-                type: Type.STRING,
-                description: 'Conjugated verb form in the learning language (present/simple present).',
-            },
-        },
-        required: ['pronoun', 'pronounNative', 'form'],
+  type: Type.ARRAY,
+  items: {
+    type: Type.OBJECT,
+    properties: {
+      pronoun: { type: Type.STRING, description: 'Pronoun in the learning language.' },
+      pronounNative: { type: Type.STRING, description: 'Pronoun in the native language.' },
+      form: {
+        type: Type.STRING,
+        description: 'Conjugated verb form in the learning language (present/simple present).',
+      },
     },
+    required: ['pronoun', 'pronounNative', 'form'],
+  },
 };
 
 const conjugateVerbSimple: AiService['conjugateVerbSimple'] = async (infinitive) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
 
-    const lang = getLang();
-    const prompt = `You are an expert in ${lang.learning} grammar. Conjugate the verb "${infinitive}" in the present tense for all personal pronouns used in ${lang.learning}.
+  const lang = getLang();
+  const prompt = `You are an expert in ${lang.learning} grammar. Conjugate the verb "${infinitive}" in the present tense for all personal pronouns used in ${lang.learning}.
 
 Return a JSON array of objects, where each object contains three keys:
 - "pronoun": the pronoun in ${lang.learning} (e.g., for Spanish: "yo", "tú", "él/ella", etc.; for Hindi: "मैं", "तुम", "वह", etc.)
@@ -2036,44 +2036,44 @@ Return a JSON array of objects, where each object contains three keys:
 
 IMPORTANT: Do NOT use Learning pronouns (ich, du, er/sie/es, wir, ihr, sie/Sie). Use pronouns appropriate for ${lang.learning}.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: simpleVerbConjugationSchema,
-                temperature: 0.1,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: simpleVerbConjugationSchema,
+        temperature: 0.1,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText);
-    } catch (error) {
-        console.error('Error conjugating verb simply with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error('Error conjugating verb simply with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const pronounsSchema = {
-    type: Type.ARRAY,
-    items: {
-        type: Type.OBJECT,
-        properties: {
-            learning: { type: Type.STRING, description: 'Personal pronoun in the learning language' },
-            native: { type: Type.STRING, description: 'Translation of the pronoun in the native language' },
-        },
-        required: ['learning', 'native'],
+  type: Type.ARRAY,
+  items: {
+    type: Type.OBJECT,
+    properties: {
+      learning: { type: Type.STRING, description: 'Personal pronoun in the learning language' },
+      native: { type: Type.STRING, description: 'Translation of the pronoun in the native language' },
     },
+    required: ['learning', 'native'],
+  },
 };
 
 const generatePronouns: AiService['generatePronouns'] = async () => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
 
-    const lang = getLang();
-    const prompt = `You are an expert in ${lang.learning} grammar. Provide a complete list of personal pronouns used in ${lang.learning}.
+  const lang = getLang();
+  const prompt = `You are an expert in ${lang.learning} grammar. Provide a complete list of personal pronouns used in ${lang.learning}.
 
 Return a JSON array of objects, where each object contains:
 - "learning": the personal pronoun in ${lang.learning} (e.g., for Spanish: "yo", "tú", "él", "ella", "nosotros", "vosotros", "ellos", "ellas"; for Hindi: "मैं", "तुम", "वह", "हम", "आप", "वे")
@@ -2082,182 +2082,182 @@ Return a JSON array of objects, where each object contains:
 IMPORTANT: Include ALL personal pronouns commonly used in ${lang.learning}, including variations (like él/ella for Spanish, or formal/informal forms).
 IMPORTANT: Do NOT use Learning pronouns (ich, du, er/sie/es). Use pronouns appropriate for ${lang.learning}.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: pronounsSchema,
-                temperature: 0.1,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: pronounsSchema,
+        temperature: 0.1,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText);
-    } catch (error) {
-        console.error('Error generating pronouns with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error('Error generating pronouns with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const nounDeclensionSchema = {
-    type: Type.OBJECT,
-    properties: {
-        noun: { type: Type.STRING },
-        singular: {
-            type: Type.OBJECT,
-            properties: {
-                nominativ: { type: Type.STRING, description: "Singular Nominativ (e.g., 'der Tisch')" },
-                akkusativ: { type: Type.STRING, description: "Singular Akkusativ (e.g., 'den Tisch')" },
-                dativ: { type: Type.STRING, description: "Singular Dativ (e.g., 'dem Tisch')" },
-                genitiv: { type: Type.STRING, description: "Singular Genitiv (e.g., 'des Tisches')" },
-            },
-            required: ['nominativ', 'akkusativ', 'dativ', 'genitiv'],
-        },
-        plural: {
-            type: Type.OBJECT,
-            properties: {
-                nominativ: { type: Type.STRING, description: "Plural Nominativ (e.g., 'die Tische')" },
-                akkusativ: { type: Type.STRING, description: "Plural Akkusativ (e.g., 'die Tische')" },
-                dativ: { type: Type.STRING, description: "Plural Dativ (e.g., 'den Tischen')" },
-                genitiv: { type: Type.STRING, description: "Plural Genitiv (e.g., 'der Tische')" },
-            },
-            required: ['nominativ', 'akkusativ', 'dativ', 'genitiv'],
-        },
+  type: Type.OBJECT,
+  properties: {
+    noun: { type: Type.STRING },
+    singular: {
+      type: Type.OBJECT,
+      properties: {
+        nominativ: { type: Type.STRING, description: "Singular Nominativ (e.g., 'der Tisch')" },
+        akkusativ: { type: Type.STRING, description: "Singular Akkusativ (e.g., 'den Tisch')" },
+        dativ: { type: Type.STRING, description: "Singular Dativ (e.g., 'dem Tisch')" },
+        genitiv: { type: Type.STRING, description: "Singular Genitiv (e.g., 'des Tisches')" },
+      },
+      required: ['nominativ', 'akkusativ', 'dativ', 'genitiv'],
     },
-    required: ['noun', 'singular', 'plural'],
+    plural: {
+      type: Type.OBJECT,
+      properties: {
+        nominativ: { type: Type.STRING, description: "Plural Nominativ (e.g., 'die Tische')" },
+        akkusativ: { type: Type.STRING, description: "Plural Akkusativ (e.g., 'die Tische')" },
+        dativ: { type: Type.STRING, description: "Plural Dativ (e.g., 'den Tischen')" },
+        genitiv: { type: Type.STRING, description: "Plural Genitiv (e.g., 'der Tische')" },
+      },
+      required: ['nominativ', 'akkusativ', 'dativ', 'genitiv'],
+    },
+  },
+  required: ['noun', 'singular', 'plural'],
 };
 
 const declineNoun: AiService['declineNoun'] = async (noun, article) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
 
-    const lang = getLang();
-    const prompt = `Предоставь склонение ${lang.learning} существительного "${noun}" с артиклем "${article}" по всем 4 падежам (Nominativ, Akkusativ, Dativ, Genitiv) для единственного (singular) и множественного (plural) числа. Включи определенный артикль в каждую форму. Верни JSON-объект.`;
+  const lang = getLang();
+  const prompt = `Предоставь склонение ${lang.learning} существительного "${noun}" с артиклем "${article}" по всем 4 падежам (Nominativ, Akkusativ, Dativ, Genitiv) для единственного (singular) и множественного (plural) числа. Включи определенный артикль в каждую форму. Верни JSON-объект.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: nounDeclensionSchema,
-                temperature: 0.2,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: nounDeclensionSchema,
+        temperature: 0.2,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as NounDeclension;
-    } catch (error) {
-        console.error('Error declining noun with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText) as NounDeclension;
+  } catch (error) {
+    console.error('Error declining noun with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const caseSchema = {
-    type: Type.OBJECT,
-    properties: {
-        nominativ: { type: Type.STRING },
-        akkusativ: { type: Type.STRING },
-        dativ: { type: Type.STRING },
-        genitiv: { type: Type.STRING },
-    },
-    required: ['nominativ', 'akkusativ', 'dativ', 'genitiv'],
+  type: Type.OBJECT,
+  properties: {
+    nominativ: { type: Type.STRING },
+    akkusativ: { type: Type.STRING },
+    dativ: { type: Type.STRING },
+    genitiv: { type: Type.STRING },
+  },
+  required: ['nominativ', 'akkusativ', 'dativ', 'genitiv'],
 };
 
 const adjectiveDeclensionTableSchema = {
-    type: Type.OBJECT,
-    properties: {
-        masculine: caseSchema,
-        feminine: caseSchema,
-        neuter: caseSchema,
-        plural: caseSchema,
-    },
-    required: ['masculine', 'feminine', 'neuter', 'plural'],
+  type: Type.OBJECT,
+  properties: {
+    masculine: caseSchema,
+    feminine: caseSchema,
+    neuter: caseSchema,
+    plural: caseSchema,
+  },
+  required: ['masculine', 'feminine', 'neuter', 'plural'],
 };
 
 const adjectiveDeclensionSchema = {
-    type: Type.OBJECT,
-    properties: {
-        adjective: { type: Type.STRING },
-        comparison: {
-            type: Type.OBJECT,
-            properties: {
-                positive: { type: Type.STRING },
-                comparative: { type: Type.STRING },
-                superlative: { type: Type.STRING },
-            },
-            required: ['positive', 'comparative', 'superlative'],
-        },
-        weak: adjectiveDeclensionTableSchema,
-        mixed: adjectiveDeclensionTableSchema,
-        strong: adjectiveDeclensionTableSchema,
+  type: Type.OBJECT,
+  properties: {
+    adjective: { type: Type.STRING },
+    comparison: {
+      type: Type.OBJECT,
+      properties: {
+        positive: { type: Type.STRING },
+        comparative: { type: Type.STRING },
+        superlative: { type: Type.STRING },
+      },
+      required: ['positive', 'comparative', 'superlative'],
     },
-    required: ['adjective', 'comparison', 'weak', 'mixed', 'strong'],
+    weak: adjectiveDeclensionTableSchema,
+    mixed: adjectiveDeclensionTableSchema,
+    strong: adjectiveDeclensionTableSchema,
+  },
+  required: ['adjective', 'comparison', 'weak', 'mixed', 'strong'],
 };
 
 const declineAdjective: AiService['declineAdjective'] = async (adjective) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
 
-    const lang = getLang();
-    const prompt = `Ты — эксперт по грамматике ${lang.learning} языка. Предоставь полную информацию о прилагательном "${adjective}".
+  const lang = getLang();
+  const prompt = `Ты — эксперт по грамматике ${lang.learning} языка. Предоставь полную информацию о прилагательном "${adjective}".
 1.  **Comparison**: Укажи три степени сравнения: положительную (positive), сравнительную (comparative) и превосходную (superlative).
 2.  **Declension**: Предоставь три полные таблицы склонения (слабое - weak, смешанное - mixed, сильное - strong).
     - Каждая таблица должна включать все падежи (nominativ, akkusativ, dativ, genitiv) для всех родов (masculine, feminine, neuter) и множественного числа (plural).
     - ВАЖНО: В каждой форме прилагательного выдели окончание с помощью Markdown bold, например: "schön**en**".
 Верни результат в виде единого JSON-объект.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: adjectiveDeclensionSchema,
-                temperature: 0.2,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: adjectiveDeclensionSchema,
+        temperature: 0.2,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as AdjectiveDeclension;
-    } catch (error) {
-        console.error('Error declining adjective with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText) as AdjectiveDeclension;
+  } catch (error) {
+    console.error('Error declining adjective with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const sentenceContinuationSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            learning: {
-                type: Type.STRING,
-                description: `The correct ${lang.learning} translation of the provided ${lang.native} phrase.`,
-            },
-            continuations: {
-                type: Type.ARRAY,
-                description: `An array of 7 to 10 short, logical, and diverse continuation options in ${lang.native}. These should be clean words or phrases without any leading punctuation or connectors.`,
-                items: {
-                    type: Type.STRING,
-                },
-            },
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      learning: {
+        type: Type.STRING,
+        description: `The correct ${lang.learning} translation of the provided ${lang.native} phrase.`,
+      },
+      continuations: {
+        type: Type.ARRAY,
+        description: `An array of 7 to 10 short, logical, and diverse continuation options in ${lang.native}. These should be clean words or phrases without any leading punctuation or connectors.`,
+        items: {
+          type: Type.STRING,
         },
-        required: ['learning', 'continuations'],
-    };
+      },
+    },
+    required: ['learning', 'continuations'],
+  };
 };
 
 const generateSentenceContinuations: AiService['generateSentenceContinuations'] = async (nativePhrase) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const prompt = `Ты — AI-помощник для изучения языка, который помогает пользователю строить фразы по частям.
+  const prompt = `Ты — AI-помощник для изучения языка, который помогает пользователю строить фразы по частям.
 Текущая фраза пользователя на ${lang.native}: "${nativePhrase}"
 
 Твоя задача — проанализировать фразу и предложить логичные продолжения.
@@ -2276,92 +2276,92 @@ const generateSentenceContinuations: AiService['generateSentenceContinuations'] 
 
 Верни результат в виде JSON-объекта, соответствующего схеме.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: sentenceContinuationSchema(),
-                temperature: 0.8,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: sentenceContinuationSchema(),
+        temperature: 0.8,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as SentenceContinuation;
-    } catch (error) {
-        console.error('Error generating sentence continuations with Gemini:', error);
-        const errorMessage = (error as any)?.message || 'Unknown error';
-        throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
-    }
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText) as SentenceContinuation;
+  } catch (error) {
+    console.error('Error generating sentence continuations with Gemini:', error);
+    const errorMessage = (error as any)?.message || 'Unknown error';
+    throw new Error(`Failed to call the Gemini API: ${errorMessage}`);
+  }
 };
 
 const duplicateSchema = {
-    type: Type.OBJECT,
-    properties: {
-        duplicateGroups: {
-            type: Type.ARRAY,
-            description: 'An array of groups. Each group is an array of phrase IDs that are semantically duplicates.',
-            items: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-            },
-        },
+  type: Type.OBJECT,
+  properties: {
+    duplicateGroups: {
+      type: Type.ARRAY,
+      description: 'An array of groups. Each group is an array of phrase IDs that are semantically duplicates.',
+      items: {
+        type: Type.ARRAY,
+        items: { type: Type.STRING },
+      },
     },
-    required: ['duplicateGroups'],
+  },
+  required: ['duplicateGroups'],
 };
 
 const findDuplicatePhrases: AiService['findDuplicatePhrases'] = async (phrases) => {
-    // Local, deterministic implementation to avoid AI hallucinations.
-    const normalizePhrase = (text: string): string => {
-        return text
-            .toLowerCase()
-            .replace(/^[аи]\s+/, '') // Remove leading 'а ' or 'и '
-            .replace(/[.,!?]/g, '') // Remove punctuation
-            .trim();
-    };
+  // Local, deterministic implementation to avoid AI hallucinations.
+  const normalizePhrase = (text: string): string => {
+    return text
+      .toLowerCase()
+      .replace(/^[аи]\s+/, '') // Remove leading 'а ' or 'и '
+      .replace(/[.,!?]/g, '') // Remove punctuation
+      .trim();
+  };
 
-    const phraseMap = new Map<string, string[]>();
+  const phraseMap = new Map<string, string[]>();
 
-    phrases.forEach((phrase) => {
-        const normalizedNative = normalizePhrase(phrase.text.native);
-        if (normalizedNative) {
-            if (!phraseMap.has(normalizedNative)) {
-                phraseMap.set(normalizedNative, []);
-            }
-            phraseMap.get(normalizedNative)!.push(phrase.id);
-        }
-    });
-
-    const duplicateGroups: string[][] = [];
-    for (const ids of phraseMap.values()) {
-        if (ids.length > 1) {
-            duplicateGroups.push(ids);
-        }
+  phrases.forEach((phrase) => {
+    const normalizedNative = normalizePhrase(phrase.text.native);
+    if (normalizedNative) {
+      if (!phraseMap.has(normalizedNative)) {
+        phraseMap.set(normalizedNative, []);
+      }
+      phraseMap.get(normalizedNative)!.push(phrase.id);
     }
+  });
 
-    return Promise.resolve({ duplicateGroups });
+  const duplicateGroups: string[][] = [];
+  for (const ids of phraseMap.values()) {
+    if (ids.length > 1) {
+      duplicateGroups.push(ids);
+    }
+  }
+
+  return Promise.resolve({ duplicateGroups });
 };
 
 const phraseBuilderOptionsSchema = {
-    type: Type.OBJECT,
-    properties: {
-        words: {
-            type: Type.ARRAY,
-            description: 'An array of shuffled word blocks including correct words and distractors.',
-            items: { type: Type.STRING },
-        },
+  type: Type.OBJECT,
+  properties: {
+    words: {
+      type: Type.ARRAY,
+      description: 'An array of shuffled word blocks including correct words and distractors.',
+      items: { type: Type.STRING },
     },
-    required: ['words'],
+  },
+  required: ['words'],
 };
 
 const generatePhraseBuilderOptions: AiService['generatePhraseBuilderOptions'] = async (phrase) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
 
-    // FIX: Use phrase.text.learning and phrase.text.native
-    const lang = getLang();
-    const prompt = `Создай набор слов для упражнения "собери фразу".
+  // FIX: Use phrase.text.learning and phrase.text.native
+  const lang = getLang();
+  const prompt = `Создай набор слов для упражнения "собери фразу".
 ${lang.learning} фраза: "${phrase.text.learning}" (${lang.native} перевод: "${phrase.text.native}").
 
 Правила:
@@ -2370,44 +2370,44 @@ ${lang.learning} фраза: "${phrase.text.learning}" (${lang.native} пере�
 3. Перемешай все слова случайным образом.
 4. Верни JSON-объект с одним ключом "words", который содержит массив всех слов.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: phraseBuilderOptionsSchema,
-                temperature: 0.9,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: phraseBuilderOptionsSchema,
+        temperature: 0.9,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as PhraseBuilderOptions;
-    } catch (error) {
-        console.error('Error generating phrase builder options with Gemini:', error);
-        throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
-    }
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText) as PhraseBuilderOptions;
+  } catch (error) {
+    console.error('Error generating phrase builder options with Gemini:', error);
+    throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 const phraseEvaluationSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            isCorrect: { type: Type.BOOLEAN },
-            feedback: { type: Type.STRING, description: `Constructive feedback in ${lang.native}.` },
-            correctedPhrase: { type: Type.STRING, description: "The correct phrase, if the user's attempt was wrong." },
-        },
-        required: ['isCorrect', 'feedback'],
-    };
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      isCorrect: { type: Type.BOOLEAN },
+      feedback: { type: Type.STRING, description: `Constructive feedback in ${lang.native}.` },
+      correctedPhrase: { type: Type.STRING, description: "The correct phrase, if the user's attempt was wrong." },
+    },
+    required: ['isCorrect', 'feedback'],
+  };
 };
 
 const evaluatePhraseAttempt: AiService['evaluatePhraseAttempt'] = async (phrase, userAttempt) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const prompt = `Ты — опытный и доброжелательный преподаватель ${lang.learning} языка.
+  const prompt = `Ты — опытный и доброжелательный преподаватель ${lang.learning} языка.
 Ученик изучает фразу: "${phrase.text.native}".
 Правильный перевод: "${phrase.text.learning}".
 Ответ ученика: "${userAttempt}".
@@ -2427,32 +2427,32 @@ const evaluatePhraseAttempt: AiService['evaluatePhraseAttempt'] = async (phrase,
 
 Верни JSON-объект.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: phraseEvaluationSchema(),
-                temperature: 0.5,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: phraseEvaluationSchema(),
+        temperature: 0.5,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as PhraseEvaluation;
-    } catch (error) {
-        console.error('Error evaluating phrase attempt with Gemini:', error);
-        throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
-    }
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText) as PhraseEvaluation;
+  } catch (error) {
+    console.error('Error evaluating phrase attempt with Gemini:', error);
+    throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 const evaluateSpokenPhraseAttempt: AiService['evaluateSpokenPhraseAttempt'] = async (phrase, userAttempt) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
 
-    // FIX: Use phrase.text.native and phrase.text.learning
-    const lang = getLang();
-    const prompt = `Ты — опытный и доброжелательный преподаватель ${lang.learning} языка, оценивающий УСТНЫЙ ответ ученика.
+  // FIX: Use phrase.text.native and phrase.text.learning
+  const lang = getLang();
+  const prompt = `Ты — опытный и доброжелательный преподаватель ${lang.learning} языка, оценивающий УСТНЫЙ ответ ученика.
 Ученик изучает фразу: "${phrase.text.native}".
 Правильный письменный перевод: "${phrase.text.learning}".
 Устный ответ ученика (транскрипция): "${userAttempt}".
@@ -2479,169 +2479,169 @@ const evaluateSpokenPhraseAttempt: AiService['evaluateSpokenPhraseAttempt'] = as
 
 Верни JSON-объект.`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: phraseEvaluationSchema(),
-                temperature: 0.4,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: phraseEvaluationSchema(),
+        temperature: 0.4,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as PhraseEvaluation;
-    } catch (error) {
-        console.error('Error evaluating spoken phrase attempt with Gemini:', error);
-        throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
-    }
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText) as PhraseEvaluation;
+  } catch (error) {
+    console.error('Error evaluating spoken phrase attempt with Gemini:', error);
+    throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 const healthCheck: AiService['healthCheck'] = async () => {
-    const api = initializeApi();
-    if (!api) return false;
-    try {
-        // Using a very simple, low-token prompt for the check
-        await api.models.generateContent({ model, contents: 'Hi' });
-        return true;
-    } catch (error) {
-        const message = (error as any)?.message || 'Unknown error';
-        console.error('Gemini health check failed:', message);
-        return false;
-    }
+  const api = initializeApi();
+  if (!api) return false;
+  try {
+    // Using a very simple, low-token prompt for the check
+    await api.models.generateContent({ model, contents: 'Hi' });
+    return true;
+  } catch (error) {
+    const message = (error as any)?.message || 'Unknown error';
+    console.error('Gemini health check failed:', message);
+    return false;
+  }
 };
 
 const categoryAssistantResponseSchema = () => {
-    const lang = getLang();
-    return {
-        type: Type.OBJECT,
-        properties: {
-            responseType: { type: Type.STRING, enum: ['text', 'proposed_cards', 'phrases_to_review', 'phrases_to_delete'] },
-            responseParts: {
-                type: Type.ARRAY,
-                description: `The main text response, broken into segments of plain text and ${lang.learning} text. Use Markdown for formatting like lists or bold text within 'text' type parts. Format dialogues using Markdown like '**Person A:** '.`,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        type: { type: Type.STRING, enum: ['text', 'learning'] },
-                        text: { type: Type.STRING },
-                        translation: { type: Type.STRING, description: `${lang.native} translation ONLY if type is 'learning'.` },
-                    },
-                    required: ['type', 'text'],
-                },
-            },
-            promptSuggestions: {
-                type: Type.ARRAY,
-                description: `A list of 2-4 new, context-aware follow-up questions in ${lang.native} that the user might ask next.`,
-                items: {
-                    type: Type.STRING,
-                },
-            },
-            proposedCards: {
-                type: Type.ARRAY,
-                description: `A list of new cards. Only for responseType "proposed_cards". ${requiresRomanization(lang.learningCode) ? `Each card MUST include romanization (transcription) for ${lang.learning} text.` : ''}`,
-                maxItems: 30,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        [lang.learningCode]: {
-                            type: Type.STRING,
-                            description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
-                        },
-                        [lang.nativeCode]: { type: Type.STRING, description: `The ${lang.native} translation.` },
-                        ...(requiresRomanization(lang.learningCode)
-                            ? {
-                                romanization: {
-                                    type: Type.STRING,
-                                    description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-                                },
-                            }
-                            : {}),
-                    },
-                    required: [
-                        lang.learningCode,
-                        lang.nativeCode,
-                        ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
-                    ],
-                },
-            },
-            phrasesToReview: {
-                type: Type.ARRAY,
-                description: 'A list of inconsistent phrases. Only for responseType "phrases_to_review".',
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        [lang.learningCode]: { type: Type.STRING },
-                        reason: { type: Type.STRING, description: `Reason in ${lang.native}.` },
-                    },
-                    required: [lang.learningCode, 'reason'],
-                },
-            },
-            phrasesForDeletion: {
-                type: Type.ARRAY,
-                description: 'A list of phrases to delete. Only for responseType "phrases_to_delete".',
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        [lang.learningCode]: { type: Type.STRING },
-                        reason: { type: Type.STRING, description: `Reason in ${lang.native}.` },
-                    },
-                    required: [lang.learningCode, 'reason'],
-                },
-            },
+  const lang = getLang();
+  return {
+    type: Type.OBJECT,
+    properties: {
+      responseType: { type: Type.STRING, enum: ['text', 'proposed_cards', 'phrases_to_review', 'phrases_to_delete'] },
+      responseParts: {
+        type: Type.ARRAY,
+        description: `The main text response, broken into segments of plain text and ${lang.learning} text. Use Markdown for formatting like lists or bold text within 'text' type parts. Format dialogues using Markdown like '**Person A:** '.`,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            type: { type: Type.STRING, enum: ['text', 'learning'] },
+            text: { type: Type.STRING },
+            translation: { type: Type.STRING, description: `${lang.native} translation ONLY if type is 'learning'.` },
+          },
+          required: ['type', 'text'],
         },
-        required: ['responseType', 'responseParts', 'promptSuggestions'],
-    };
+      },
+      promptSuggestions: {
+        type: Type.ARRAY,
+        description: `A list of 2-4 new, context-aware follow-up questions in ${lang.native} that the user might ask next.`,
+        items: {
+          type: Type.STRING,
+        },
+      },
+      proposedCards: {
+        type: Type.ARRAY,
+        description: `A list of new cards. Only for responseType "proposed_cards". ${requiresRomanization(lang.learningCode) ? `Each card MUST include romanization (transcription) for ${lang.learning} text.` : ''}`,
+        maxItems: 30,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            [lang.learningCode]: {
+              type: Type.STRING,
+              description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
+            },
+            [lang.nativeCode]: { type: Type.STRING, description: `The ${lang.native} translation.` },
+            ...(requiresRomanization(lang.learningCode)
+              ? {
+                  romanization: {
+                    type: Type.STRING,
+                    description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+                  },
+                }
+              : {}),
+          },
+          required: [
+            lang.learningCode,
+            lang.nativeCode,
+            ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
+          ],
+        },
+      },
+      phrasesToReview: {
+        type: Type.ARRAY,
+        description: 'A list of inconsistent phrases. Only for responseType "phrases_to_review".',
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            [lang.learningCode]: { type: Type.STRING },
+            reason: { type: Type.STRING, description: `Reason in ${lang.native}.` },
+          },
+          required: [lang.learningCode, 'reason'],
+        },
+      },
+      phrasesForDeletion: {
+        type: Type.ARRAY,
+        description: 'A list of phrases to delete. Only for responseType "phrases_to_delete".',
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            [lang.learningCode]: { type: Type.STRING },
+            reason: { type: Type.STRING, description: `Reason in ${lang.native}.` },
+          },
+          required: [lang.learningCode, 'reason'],
+        },
+      },
+    },
+    required: ['responseType', 'responseParts', 'promptSuggestions'],
+  };
 };
 
 const getCategoryAssistantResponse: AiService['getCategoryAssistantResponse'] = async (
-    categoryName,
-    existingPhrases,
-    request,
-    history = []
+  categoryName,
+  existingPhrases,
+  request,
+  history = []
 ) => {
-    const api = initializeApi();
-    if (!api) throw new Error('Gemini API key not configured.');
-    const lang = getLang();
+  const api = initializeApi();
+  if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-    const existingPhrasesText = existingPhrases.map((p) => `"${p.text.learning}"`).join(', ');
+  const existingPhrasesText = existingPhrases.map((p) => `"${p.text.learning}"`).join(', ');
 
-    const requestTextMap: Record<CategoryAssistantRequestType, string> = {
-        initial: 'Это первое открытие. Поприветствуй пользователя и предложи основные действия.',
-        add_similar: 'Проанализируй существующие фразы и сгенерируй 25 новых, похожих по теме. Не повторяй существующие.',
-        check_homogeneity:
-            'Проанализируй все фразы на тематическое единство. Укажи те, что не подходят, и объясни почему. Если все хорошо, так и скажи.',
-        create_dialogue: `Создай короткий диалог, используя как можно больше фраз из списка. Предоставь ${lang.learning} вариант с переводом в скобках после каждой реплики и отформатируй его с помощью Markdown.`,
-        user_text: `Пользователь написал: "${request.text}". Ответь на его запрос.`,
-    };
+  const requestTextMap: Record<CategoryAssistantRequestType, string> = {
+    initial: 'Это первое открытие. Поприветствуй пользователя и предложи основные действия.',
+    add_similar: 'Проанализируй существующие фразы и сгенерируй 25 новых, похожих по теме. Не повторяй существующие.',
+    check_homogeneity:
+      'Проанализируй все фразы на тематическое единство. Укажи те, что не подходят, и объясни почему. Если все хорошо, так и скажи.',
+    create_dialogue: `Создай короткий диалог, используя как можно больше фраз из списка. Предоставь ${lang.learning} вариант с переводом в скобках после каждой реплики и отформатируй его с помощью Markdown.`,
+    user_text: `Пользователь написал: "${request.text}". Ответь на его запрос.`,
+  };
 
-    const romanizationRule = requiresRomanization(lang.learningCode)
-        ? `\n- **ТРАНСКРИПЦИЯ**: Для языка ${lang.learning} ОБЯЗАТЕЛЬНО предоставляй отдельное поле "romanization" с транскрипцией (Pinyin для китайского, Romaji для японского, транслитерацию для хинди/арабского). НИКОГДА не включай транскрипцию в скобках в само поле "${lang.learningCode}" - используй отдельное поле "romanization".`
-        : '';
+  const romanizationRule = requiresRomanization(lang.learningCode)
+    ? `\n- **ТРАНСКРИПЦИЯ**: Для языка ${lang.learning} ОБЯЗАТЕЛЬНО предоставляй отдельное поле "romanization" с транскрипцией (Pinyin для китайского, Romaji для японского, транслитерацию для хинди/арабского). НИКОГДА не включай транскрипцию в скобках в само поле "${lang.learningCode}" - используй отдельное поле "romanization".`
+    : '';
 
-    // Построить контекст из истории
-    const conversationContext =
-        history.length > 0
-            ? `\n\n**ИСТОРИЯ РАЗГОВОРА:**\n${history
-                .map((msg) => {
-                    if (msg.role === 'user') {
-                        return `Пользователь: ${msg.text || ''}`;
-                    } else if (msg.assistantResponse) {
-                        const summary =
-                            msg.assistantResponse.responseParts
-                                ?.filter((p) => p.type === 'text')
-                                .map((p) => p.text.substring(0, 150))
-                                .join(' ') || '';
-                        return `Ассистент: ${summary}${summary.length >= 150 ? '...' : ''}`;
-                    }
-                    return '';
-                })
-                .filter(Boolean)
-                .join('\n')}\n\n**ТЕКУЩИЙ ЗАПРОС** (учитывай весь предыдущий контекст):`
-            : '';
+  // Построить контекст из истории
+  const conversationContext =
+    history.length > 0
+      ? `\n\n**ИСТОРИЯ РАЗГОВОРА:**\n${history
+          .map((msg) => {
+            if (msg.role === 'user') {
+              return `Пользователь: ${msg.text || ''}`;
+            } else if (msg.assistantResponse) {
+              const summary =
+                msg.assistantResponse.responseParts
+                  ?.filter((p) => p.type === 'text')
+                  .map((p) => p.text.substring(0, 150))
+                  .join(' ') || '';
+              return `Ассистент: ${summary}${summary.length >= 150 ? '...' : ''}`;
+            }
+            return '';
+          })
+          .filter(Boolean)
+          .join('\n')}\n\n**ТЕКУЩИЙ ЗАПРОС** (учитывай весь предыдущий контекст):`
+      : '';
 
-    const prompt = `Ты — AI-ассистент в приложении для изучения ${lang.learning}. Ты находишься внутри категории "${categoryName}".
+  const prompt = `Ты — AI-ассистент в приложении для изучения ${lang.learning}. Ты находишься внутри категории "${categoryName}".
 Существующие фразы в категории: ${existingPhrasesText || 'пока нет'}.${conversationContext}
 
 Запрос пользователя: ${requestTextMap[request.type]}
@@ -2659,74 +2659,74 @@ const getCategoryAssistantResponse: AiService['getCategoryAssistantResponse'] = 
   3. В поле \`phrasesForDeletion\` верни массив объектов с ключами \`${lang.learningCode}\` (точный текст фразы для удаления) и \`reason\` (краткое объяснение на ${lang.native}, почему эта фраза удаляется).
   4. В \`responseParts\` напиши сопроводительное сообщение, например: "Хорошо, я предлагаю удалить следующие фразы, так как они не соответствуют вашему запросу:".`;
 
-    try {
-        const response = await api.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: categoryAssistantResponseSchema(),
-                temperature: 0.7,
-            },
-        });
+  try {
+    const response = await api.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: categoryAssistantResponseSchema(),
+        temperature: 0.7,
+      },
+    });
 
-        const jsonText = response.text.trim();
-        const parsedResult = JSON.parse(jsonText);
+    const jsonText = response.text.trim();
+    const parsedResult = JSON.parse(jsonText);
 
-        const assistantResponse: CategoryAssistantResponse = {
-            ...parsedResult,
-            proposedCards: parsedResult.proposedCards?.map((c: any) => ({
-                native: c[lang.nativeCode],
-                learning: c[lang.learningCode],
-                ...(c.romanization ? { romanization: c.romanization } : {}),
-            })),
-            phrasesToReview: parsedResult.phrasesToReview?.map((p: any) => ({
-                learning: p[lang.learningCode],
-                reason: p.reason,
-            })),
-            phrasesForDeletion: parsedResult.phrasesForDeletion?.map((p: any) => ({
-                learning: p[lang.learningCode],
-                reason: p.reason,
-            })),
-        };
+    const assistantResponse: CategoryAssistantResponse = {
+      ...parsedResult,
+      proposedCards: parsedResult.proposedCards?.map((c: any) => ({
+        native: c[lang.nativeCode],
+        learning: c[lang.learningCode],
+        ...(c.romanization ? { romanization: c.romanization } : {}),
+      })),
+      phrasesToReview: parsedResult.phrasesToReview?.map((p: any) => ({
+        learning: p[lang.learningCode],
+        reason: p.reason,
+      })),
+      phrasesForDeletion: parsedResult.phrasesForDeletion?.map((p: any) => ({
+        learning: p[lang.learningCode],
+        reason: p.reason,
+      })),
+    };
 
-        return assistantResponse;
-    } catch (error) {
-        console.error('Error with Category Assistant:', error);
-        throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
-    }
+    return assistantResponse;
+  } catch (error) {
+    console.error('Error with Category Assistant:', error);
+    throw new Error(`Failed to call the Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+  }
 };
 
 export const geminiService: AiService = {
-    generatePhrases,
-    generateSinglePhrase,
-    translatePhrase,
-    translateLearningToNative,
-    getWordTranslation,
-    improvePhrase,
-    generateInitialExamples,
-    continueChat,
-    practiceConversation,
-    guideToTranslation,
-    discussTranslation,
-    generateDeepDiveAnalysis,
-    generateMovieExamples,
-    analyzeWordInPhrase,
-    conjugateVerb,
-    conjugateVerbSimple,
-    generatePronouns,
-    declineNoun,
-    declineAdjective,
-    generateSentenceContinuations,
-    findDuplicatePhrases,
-    generatePhraseBuilderOptions,
-    evaluatePhraseAttempt,
-    evaluateSpokenPhraseAttempt,
-    healthCheck,
-    getProviderName: () => 'Google Gemini',
-    generateCardsFromTranscript,
-    generateCardsFromImage,
-    generateTopicCards,
-    classifyTopic,
-    getCategoryAssistantResponse,
+  generatePhrases,
+  generateSinglePhrase,
+  translatePhrase,
+  translateLearningToNative,
+  getWordTranslation,
+  improvePhrase,
+  generateInitialExamples,
+  continueChat,
+  practiceConversation,
+  guideToTranslation,
+  discussTranslation,
+  generateDeepDiveAnalysis,
+  generateMovieExamples,
+  analyzeWordInPhrase,
+  conjugateVerb,
+  conjugateVerbSimple,
+  generatePronouns,
+  declineNoun,
+  declineAdjective,
+  generateSentenceContinuations,
+  findDuplicatePhrases,
+  generatePhraseBuilderOptions,
+  evaluatePhraseAttempt,
+  evaluateSpokenPhraseAttempt,
+  healthCheck,
+  getProviderName: () => 'Google Gemini',
+  generateCardsFromTranscript,
+  generateCardsFromImage,
+  generateTopicCards,
+  classifyTopic,
+  getCategoryAssistantResponse,
 };

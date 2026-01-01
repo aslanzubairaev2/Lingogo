@@ -794,3 +794,5 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     </div>
   );
 };
+
+export default PhraseListPage;

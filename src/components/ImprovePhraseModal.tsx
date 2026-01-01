@@ -1,24 +1,49 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
+/**
+ * ImprovePhraseModal.tsx
+ *
+ * This component provides an interface for users to refine the "learning" language translation
+ * of a phrase. It uses an AI service to generate better or alternative translations
+ * based on the original native text.
+ *
+ * Key features:
+ * - Displays the current translation.
+ * - calls an AI service to get a suggestion.
+ * - Allows the user to accept the new suggestion or request another improvement.
+ * - detailed explanation for why the suggestion is better.
+ */
 import { useTranslation } from '../hooks/useTranslation';
+import { AiService } from '../services/aiService.ts';
 import type { Phrase } from '../types.ts';
 import CheckIcon from './icons/CheckIcon';
 import CloseIcon from './icons/CloseIcon';
 import MessageQuestionIcon from './icons/MessageQuestionIcon';
 import RefreshIcon from './icons/RefreshIcon';
 
+/**
+ * Represents the structure of an AI-generated suggestion.
+ */
 interface Suggestion {
+  /** The suggested improved translation in the target language. */
   suggestedLearning: string;
+  /** An explanation of why this translation is an improvement or what nuance it adds. */
   explanation: string;
 }
 
 interface ImprovePhraseModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  phrase: Phrase;
-  onGenerateImprovement: (originalNative: string, currentLearning: string) => Promise<Suggestion>;
-  onPhraseImproved: (phraseId: string, newLearning: string) => void;
-  onOpenDiscussion: (phrase: Phrase) => void;
+  /** The phrase object currently being improved. */
+  phraseToImprove: Phrase;
+  /** Controls the visibility of the modal. */
+  isImproveModalOpen: boolean;
+  /** Callback to close the modal. */
+  handleCloseImproveModal: () => void;
+  /** Callback executed when a new improvement is accepted. Updates the phrase in the parent state. */
+  handlePhraseImproved: (phraseId: string, newLearning: string) => void;
+  /** Callback to switch to the discussion modal if the user wants to ask questions instead. */
+  handleOpenDiscussion: (phrase: Phrase) => void;
+  /** Utility to call AI APIs with fallback support (e.g. trying different models/providers). */
+  callApiWithFallback: <T>(apiCall: (provider: AiService) => Promise<T>) => Promise<T>;
 }
 
 const ImprovePhraseSkeleton: React.FC = () => (
@@ -34,36 +59,59 @@ const ImprovePhraseSkeleton: React.FC = () => (
   </div>
 );
 
+/**
+ * ImprovePhraseModal Component
+ *
+ * Modal that allows users to iteratively improve the translation of a phrase.
+ * It manages the state of the current suggestion, loading status, and interaction with the AI service.
+ */
 const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({
-  isOpen,
-  onClose,
-  phrase,
-  onGenerateImprovement,
-  onPhraseImproved,
-  onOpenDiscussion,
+  phraseToImprove,
+  isImproveModalOpen,
+  handleCloseImproveModal,
+  handlePhraseImproved,
+  handleOpenDiscussion,
+  callApiWithFallback,
 }) => {
   const { t } = useTranslation();
   const [currentSuggestion, setCurrentSuggestion] = useState<Suggestion | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentLearning, setCurrentLearning] = useState(phrase.text.learning);
+  const [currentLearning, setCurrentLearning] = useState(phraseToImprove.text.learning);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isImproveModalOpen) {
       // Reset state when modal opens
       setCurrentSuggestion(null);
       setIsLoading(false);
       setError(null);
-      setCurrentLearning(phrase.text.learning);
+      setCurrentLearning(phraseToImprove.text.learning);
     }
-  }, [isOpen, phrase]);
+  }, [isImproveModalOpen, phraseToImprove]);
 
+  // -- Handlers --
+
+  /**
+   * Wraps the API call to generate an improvement.
+   */
+  const handleGenerateImprovement = useCallback(
+    (originalNative: string, currentLearning: string) =>
+      callApiWithFallback<Suggestion>((provider) => provider.improvePhrase(originalNative, currentLearning)),
+    [callApiWithFallback]
+  );
+
+  /**
+   * Triggers the generation process.
+   * Updates state to loading, calls the API, and handles success/error.
+   *
+   * @param learningToImprove The current version of the translation to improve upon.
+   */
   const handleGenerate = useCallback(
     async (learningToImprove: string) => {
       setIsLoading(true);
       setError(null);
       try {
-        const result = await onGenerateImprovement(phrase.text.native, learningToImprove);
+        const result = await handleGenerateImprovement(phraseToImprove.text.native, learningToImprove);
         setCurrentSuggestion(result);
         setCurrentLearning(result.suggestedLearning); // Update current Learning for iterative improvement
       } catch (err) {
@@ -72,16 +120,24 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({
         setIsLoading(false);
       }
     },
-    [onGenerateImprovement, phrase.text.native]
+    [handleGenerateImprovement, phraseToImprove.text.native]
   );
 
+  /**
+   * Accepts the current suggestion.
+   * Updates the parent state with the new translation and closes the modal.
+   */
   const handleUse = () => {
     if (currentSuggestion) {
-      onPhraseImproved(phrase.id, currentSuggestion.suggestedLearning);
-      onClose();
+      handlePhraseImproved(phraseToImprove.id, currentSuggestion.suggestedLearning);
+      handleCloseImproveModal();
     }
   };
 
+  /**
+   * Requests another improvement based on the *currently suggested* translation.
+   * This allows for iterative refinement.
+   */
   const handleImprove = () => {
     if (currentSuggestion) {
       handleGenerate(currentSuggestion.suggestedLearning);
@@ -91,7 +147,7 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({
   const renderInitialState = () => (
     <>
       <div className="w-full text-center">
-        <p className="text-sm text-slate-400 mb-1">{phrase.text.native}</p>
+        <p className="text-sm text-slate-400 mb-1">{phraseToImprove.text.native}</p>
         <p className="text-2xl font-bold text-slate-100">{currentLearning}</p>
       </div>
       <div className="w-full flex flex-col space-y-3">
@@ -102,7 +158,10 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({
           {t('modals.improvePhrase.actions.suggest')}
         </button>
         <button
-          onClick={() => onOpenDiscussion(phrase)}
+          onClick={() => {
+            handleCloseImproveModal();
+            handleOpenDiscussion(phraseToImprove);
+          }}
           className="flex items-center justify-center w-full px-6 py-2 rounded-lg bg-slate-600 hover:bg-slate-700 transition-colors font-semibold text-white text-sm"
         >
           <MessageQuestionIcon className="w-4 h-4 mr-2" />
@@ -128,7 +187,7 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({
       )}
       <div className="grid grid-cols-5 gap-3 w-full">
         <button
-          onClick={onClose}
+          onClick={handleCloseImproveModal}
           className="flex items-center justify-center px-4 py-2 rounded-lg bg-slate-600 hover:bg-slate-700 transition-colors font-semibold text-white shadow-md text-sm"
           aria-label="Отмена"
         >
@@ -152,19 +211,19 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({
     </>
   );
 
-  if (!isOpen) return null;
+  if (!isImproveModalOpen) return null;
 
   return (
     <div
       className="fixed inset-0 bg-black/70 z-[60] flex justify-center items-center backdrop-blur-sm p-4"
-      onClick={isLoading ? undefined : onClose}
+      onClick={isLoading ? undefined : handleCloseImproveModal}
     >
       <div
         className="relative w-full max-w-md bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl shadow-2xl flex flex-col items-center justify-center p-6 space-y-5"
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          onClick={onClose}
+          onClick={handleCloseImproveModal}
           className="absolute top-3 right-3 p-2 rounded-full hover:bg-slate-700/80 disabled:opacity-50"
           disabled={isLoading}
         >
