@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { FiCopy, FiZap } from 'react-icons/fi';
 
 import CategoryFilterContextMenu from '../components/CategoryFilterContextMenu';
@@ -131,22 +131,19 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);
 
-  const updateSearchValue = useCallback(
-    (value: string, options?: { immediate?: boolean }) => {
-      const immediate = options?.immediate ?? (isListening || value.length <= 2);
+  const updateSearchValue = (value: string, options?: { immediate?: boolean }) => {
+    const immediate = options?.immediate ?? (isListening || value.length <= 2);
 
-      setSearchTerm(value);
+    setSearchTerm(value);
 
-      if (immediate) {
+    if (immediate) {
+      setFilterTerm(value);
+    } else {
+      startTransition(() => {
         setFilterTerm(value);
-      } else {
-        startTransition(() => {
-          setFilterTerm(value);
-        });
-      }
-    },
-    [isListening, startTransition]
-  );
+      });
+    }
+  };
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -196,7 +193,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
       nativeRecognitionRef.current = setupRecognizer(profile.native);
       learningRecognitionRef.current = setupRecognizer(profile.learning);
     }
-  }, [profile.native, profile.learning, updateSearchValue]);
+  }, [profile.native, profile.learning]);
 
   const handleLangChange = (lang: LanguageCode) => {
     if (lang === recognitionLang) return; // No change
@@ -239,14 +236,14 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     }
   };
 
-  const handleClearSearch = useCallback(() => {
+  const handleClearSearch = () => {
     updateSearchValue('', { immediate: true });
     if (isListening) {
       nativeRecognitionRef.current?.stop();
       learningRecognitionRef.current?.stop();
       setIsListening(false);
     }
-  }, [isListening, updateSearchValue]);
+  };
 
   const handleContextMenuClose = () => {
     setContextMenu(null);
@@ -380,7 +377,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     return map;
   }, [categories]);
 
-  const initializeVirtualMetrics = useCallback(() => {
+  const initializeVirtualMetrics = () => {
     const estimates = listItems.map((item) => (item.type === 'header' ? HEADER_ESTIMATE : PHRASE_ESTIMATE));
     heightsRef.current = estimates;
     offsetsRef.current = new Array(estimates.length);
@@ -391,7 +388,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     }
     totalHeightRef.current = runningOffset;
     forceVirtualUpdate((v) => v + 1);
-  }, [listItems, forceVirtualUpdate]);
+  };
 
   useEffect(() => {
     initializeVirtualMetrics();
@@ -400,7 +397,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
       container.scrollTop = 0;
     }
     setScrollTop(0);
-  }, [initializeVirtualMetrics]);
+  }, []);
 
   useLayoutEffect(() => {
     const container = listWrapperRef.current;
@@ -434,42 +431,36 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     };
   }, []);
 
-  const updateItemSize = useCallback(
-    (index: number, measuredSize: number) => {
-      const heights = heightsRef.current;
-      if (index < 0 || index >= heights.length) {
-        return;
-      }
-      if (!Number.isFinite(measuredSize) || measuredSize <= 0) {
-        return;
-      }
-      const previous = heights[index];
-      if (Math.abs(previous - measuredSize) < 1) {
-        return;
-      }
-      const delta = measuredSize - previous;
-      heights[index] = measuredSize;
-      totalHeightRef.current += delta;
-      const offsets = offsetsRef.current;
-      for (let i = index + 1; i < offsets.length; i += 1) {
-        offsets[i] += delta;
-      }
-      forceVirtualUpdate((v) => v + 1);
-    },
-    [forceVirtualUpdate]
-  );
+  const updateItemSize = (index: number, measuredSize: number) => {
+    const heights = heightsRef.current;
+    if (index < 0 || index >= heights.length) {
+      return;
+    }
+    if (!Number.isFinite(measuredSize) || measuredSize <= 0) {
+      return;
+    }
+    const previous = heights[index];
+    if (Math.abs(previous - measuredSize) < 1) {
+      return;
+    }
+    const delta = measuredSize - previous;
+    heights[index] = measuredSize;
+    totalHeightRef.current += delta;
+    const offsets = offsetsRef.current;
+    for (let i = index + 1; i < offsets.length; i += 1) {
+      offsets[i] += delta;
+    }
+    forceVirtualUpdate((v) => v + 1);
+  };
 
-  const handleItemMeasurement = useCallback(
-    (index: number, node: HTMLDivElement | null) => {
-      if (!node) {
-        return;
-      }
-      updateItemSize(index, node.getBoundingClientRect().height);
-    },
-    [updateItemSize]
-  );
+  const handleItemMeasurement = (index: number, node: HTMLDivElement | null) => {
+    if (!node) {
+      return;
+    }
+    updateItemSize(index, node.getBoundingClientRect().height);
+  };
 
-  const findStartIndex = useCallback((offset: number) => {
+  const findStartIndex = (offset: number) => {
     const offsets = offsetsRef.current;
     const heights = heightsRef.current;
     if (offsets.length === 0) {
@@ -490,9 +481,9 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
       }
     }
     return answer;
-  }, []);
+  };
 
-  const findEndIndex = useCallback((offset: number) => {
+  const findEndIndex = (offset: number) => {
     const offsets = offsetsRef.current;
     if (offsets.length === 0) {
       return -1;
@@ -511,9 +502,9 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
       }
     }
     return answer;
-  }, []);
+  };
 
-  const handleScroll = useCallback(() => {
+  const handleScroll = () => {
     const container = listWrapperRef.current;
     if (!container) {
       return;
@@ -524,27 +515,24 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     scrollRafRef.current = window.requestAnimationFrame(() => {
       setScrollTop(container.scrollTop);
     });
-  }, []);
+  };
 
-  const scrollToIndex = useCallback(
-    (index: number) => {
-      const container = listWrapperRef.current;
-      if (!container) {
-        return;
-      }
-      const offsets = offsetsRef.current;
-      const heights = heightsRef.current;
-      if (index < 0 || index >= offsets.length) {
-        return;
-      }
-      const itemStart = offsets[index];
-      const itemHeight = heights[index];
-      const available = viewportHeight > 0 ? viewportHeight : container.clientHeight;
-      const target = Math.max(itemStart - Math.max((available - itemHeight) / 2, 0), 0);
-      container.scrollTo({ top: target, behavior: 'smooth' });
-    },
-    [viewportHeight]
-  );
+  const scrollToIndex = (index: number) => {
+    const container = listWrapperRef.current;
+    if (!container) {
+      return;
+    }
+    const offsets = offsetsRef.current;
+    const heights = heightsRef.current;
+    if (index < 0 || index >= offsets.length) {
+      return;
+    }
+    const itemStart = offsets[index];
+    const itemHeight = heights[index];
+    const available = viewportHeight > 0 ? viewportHeight : container.clientHeight;
+    const target = Math.max(itemStart - Math.max((available - itemHeight) / 2, 0), 0);
+    container.scrollTo({ top: target, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     if (!highlightedPhraseId) {
@@ -559,7 +547,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
       onClearHighlight();
     }, 3000);
     return () => window.clearTimeout(timer);
-  }, [highlightedPhraseId, listItems, onClearHighlight, scrollToIndex]);
+  }, [highlightedPhraseId, listItems]);
 
   // ????????????? ???????? ?????? ???????
   useEffect(() => {

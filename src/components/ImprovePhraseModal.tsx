@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 /**
  * ImprovePhraseModal.tsx
@@ -94,11 +94,8 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({
   /**
    * Wraps the API call to generate an improvement.
    */
-  const handleGenerateImprovement = useCallback(
-    (originalNative: string, currentLearning: string) =>
-      callApiWithFallback<Suggestion>((provider) => provider.improvePhrase(originalNative, currentLearning)),
-    [callApiWithFallback]
-  );
+  const handleGenerateImprovement = (originalNative: string, currentLearning: string) =>
+    callApiWithFallback<Suggestion>((provider) => provider.improvePhrase(originalNative, currentLearning));
 
   /**
    * Triggers the generation process.
@@ -106,22 +103,19 @@ const ImprovePhraseModal: React.FC<ImprovePhraseModalProps> = ({
    *
    * @param learningToImprove The current version of the translation to improve upon.
    */
-  const handleGenerate = useCallback(
-    async (learningToImprove: string) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const result = await handleGenerateImprovement(phraseToImprove.text.native, learningToImprove);
-        setCurrentSuggestion(result);
-        setCurrentLearning(result.suggestedLearning); // Update current Learning for iterative improvement
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Не удалось получить улучшение.');
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [handleGenerateImprovement, phraseToImprove.text.native]
-  );
+  const handleGenerate = async (learningToImprove: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await handleGenerateImprovement(phraseToImprove.text.native, learningToImprove);
+      setCurrentSuggestion(result);
+      setCurrentLearning(result.suggestedLearning); // Update current Learning for iterative improvement
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Не удалось получить улучшение.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   /**
    * Accepts the current suggestion.

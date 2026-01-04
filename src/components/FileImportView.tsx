@@ -1,5 +1,5 @@
 import Cropper from 'cropperjs';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -134,7 +134,7 @@ const FileImportView: React.FC<FileImportViewProps> = ({ onProcessFile }) => {
     }
   }, []);
 
-  const clearFile = useCallback((e?: React.MouseEvent) => {
+  const clearFile = (e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
       e.preventDefault();
@@ -149,7 +149,7 @@ const FileImportView: React.FC<FileImportViewProps> = ({ onProcessFile }) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  }, []);
+  };
 
   const handleFileChange = (selectedFile: File | null) => {
     clearFile();

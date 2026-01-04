@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useLanguage } from '@/src/contexts/languageContext';
 
@@ -78,7 +78,7 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
     };
   }, [word, sentence.learning, onAnalyzeWord]);
 
-  const handleTranslate = useCallback(async () => {
+  const handleTranslate = async () => {
     if (isTranslating) return;
     setIsTranslating(true);
     try {
@@ -90,14 +90,14 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
     } finally {
       setIsTranslating(false);
     }
-  }, [sentence.learning, onTranslateLearningToNative, isTranslating]);
+  };
 
-  const getCanonicalWordLearning = useCallback(() => {
+  const getCanonicalWordLearning = () => {
     if (!analysis) return word;
     if (analysis.verbDetails?.infinitive) return analysis.verbDetails.infinitive;
     if (analysis.nounDetails?.article) return `${analysis.nounDetails.article} ${analysis.word}`;
     return analysis.baseForm || analysis.word;
-  }, [analysis, word]);
+  };
 
   const phraseCardExists =
     !!sentence.native &&

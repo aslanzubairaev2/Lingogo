@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useTranslation } from '../hooks/useTranslation';
 import * as backendService from '../services/backendService';
@@ -26,7 +26,7 @@ const FindDuplicatesModal: React.FC<FindDuplicatesModalProps> = ({
   const [duplicateGroups, setDuplicateGroups] = useState<string[][]>([]);
   const [searchCompleted, setSearchCompleted] = useState(false);
 
-  const handleFindDuplicates = useCallback(async () => {
+  const handleFindDuplicates = async () => {
     setIsProcessing(true);
     setDuplicateGroups([]);
     setSearchCompleted(false);
@@ -39,13 +39,13 @@ const FindDuplicatesModal: React.FC<FindDuplicatesModalProps> = ({
       setIsProcessing(false);
       setSearchCompleted(true);
     }
-  }, [onFindDuplicates]);
+  };
 
   useEffect(() => {
     handleFindDuplicates();
-  }, [handleFindDuplicates]);
+  }, []);
 
-  const handleCleanDuplicates = useCallback(async () => {
+  const handleCleanDuplicates = async () => {
     if (duplicateGroups.length === 0) return;
 
     const idsToDelete = new Set<string>();
@@ -83,7 +83,7 @@ const FindDuplicatesModal: React.FC<FindDuplicatesModalProps> = ({
 
     await Promise.all(deletionPromises);
     // Optionally, show a final toast when all deletions are done.
-  }, [duplicateGroups, phrases, updateAndSavePhrases, onClose, backendService]);
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">

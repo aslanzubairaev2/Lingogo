@@ -1,11 +1,10 @@
 import ePub, { Rendition } from 'epubjs';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import ArrowLeftIcon from '../components/icons/ArrowLeftIcon';
 import ArrowRightIcon from '../components/icons/ArrowRightIcon';
 import CloseIcon from '../components/icons/CloseIcon';
 import * as dbService from '../services/dbService';
-import { Book } from '../types.ts';
 
 const SWIPE_THRESHOLD = 50;
 
@@ -130,8 +129,8 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ bookId, onClose }) => {
     };
   }, [bookId]);
 
-  const goPrev = useCallback(() => rendition?.prev(), [rendition]);
-  const goNext = useCallback(() => rendition?.next(), [rendition]);
+  const goPrev = () => rendition?.prev();
+  const goNext = () => rendition?.next();
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = e.targetTouches[0].clientX;
@@ -152,7 +151,7 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ bookId, onClose }) => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [goPrev, goNext]);
+  }, []);
 
   return (
     <div className="w-full h-full fixed inset-0 bg-slate-900 z-40 flex flex-col font-serif animate-fade-in">

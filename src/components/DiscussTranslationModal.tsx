@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -122,52 +122,49 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({
     lapses: 0,
   };
 
-  const handleSendMessage = useCallback(
-    async (messageText: string) => {
-      if (!messageText.trim() || isLoading) return;
+  const handleSendMessage = async (messageText: string) => {
+    if (!messageText.trim() || isLoading) return;
 
-      const userMessage: ChatMessage = { role: 'user', text: messageText };
-      setInput('');
-      setIsLoading(true);
-      setLatestSuggestion(null);
+    const userMessage: ChatMessage = { role: 'user', text: messageText };
+    setInput('');
+    setIsLoading(true);
+    setLatestSuggestion(null);
 
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
 
-      try {
-        const response = await onDiscuss({
-          originalNative: originalNative,
-          currentLearning: currentLearning,
-          history: newMessages,
-          userRequest: messageText,
-        });
-        setMessages((prev) => [...prev, response]);
-        if (response.suggestion) {
-          setLatestSuggestion({ native: response.suggestion.native, learning: response.suggestion.learning });
-        }
-        if (onUpdateHistory) {
-          onUpdateHistory([...newMessages, response]);
-        }
-      } catch (error) {
-        const errorMsg = {
-          role: 'model' as const,
-          contentParts: [
-            {
-              type: 'text' as const,
-              text: t('modals.discussTranslation.errors.generic', { message: (error as Error).message }),
-            },
-          ],
-        };
-        setMessages((prev) => [...prev, errorMsg]);
-        if (onUpdateHistory) {
-          onUpdateHistory([...newMessages, errorMsg]);
-        }
-      } finally {
-        setIsLoading(false);
+    try {
+      const response = await onDiscuss({
+        originalNative: originalNative,
+        currentLearning: currentLearning,
+        history: newMessages,
+        userRequest: messageText,
+      });
+      setMessages((prev) => [...prev, response]);
+      if (response.suggestion) {
+        setLatestSuggestion({ native: response.suggestion.native, learning: response.suggestion.learning });
       }
-    },
-    [isLoading, messages, originalNative, currentLearning, onDiscuss]
-  );
+      if (onUpdateHistory) {
+        onUpdateHistory([...newMessages, response]);
+      }
+    } catch (error) {
+      const errorMsg = {
+        role: 'model' as const,
+        contentParts: [
+          {
+            type: 'text' as const,
+            text: t('modals.discussTranslation.errors.generic', { message: (error as Error).message }),
+          },
+        ],
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+      if (onUpdateHistory) {
+        onUpdateHistory([...newMessages, errorMsg]);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {

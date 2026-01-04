@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { Profiler, useState } from 'react';
 
 import App from './App.tsx';
 import { useAuth } from './contexts/authContext.tsx';
@@ -34,7 +34,22 @@ const AppRoot: React.FC = () => {
     return <SignUpPage onSwitchToLogin={() => setMode('login')} />;
   }
 
-  return <App />;
+  const onRender = (
+    id: string,
+    phase: string,
+    actualDuration: number,
+    baseDuration: number,
+    startTime: number,
+    commitTime: number
+  ) => {
+    console.log('onRender', id, phase, actualDuration, baseDuration, startTime, commitTime);
+  };
+
+  return (
+    <Profiler id="App" onRender={onRender}>
+      <App />
+    </Profiler>
+  );
 };
 
 export default AppRoot;

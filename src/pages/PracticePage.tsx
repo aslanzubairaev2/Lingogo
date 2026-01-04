@@ -7,7 +7,7 @@
  */
 
 import { t } from 'i18next';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import ArrowLeftIcon from '../components/icons/ArrowLeftIcon';
 import ArrowRightIcon from '../components/icons/ArrowRightIcon';
@@ -325,7 +325,7 @@ const PracticePage: React.FC<PracticePageProps> = (props) => {
    * Updates mastery, shows visual feedback, and proceeds to the next card.
    * Checks if a "leech" modal was shown to avoid conflicting transitions.
    */
-  const handleKnowClick = useCallback(async () => {
+  const handleKnowClick = async () => {
     if (isExiting || !currentPhrase) return;
 
     setFlashState('green');
@@ -336,7 +336,7 @@ const PracticePage: React.FC<PracticePageProps> = (props) => {
     if (!leechModalShown) {
       onContinue();
     }
-  }, [isExiting, currentPhrase, onUpdateMastery, onContinue]);
+  };
 
   /**
    * Renders the main content of the practice page based on the current state.

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useTranslation } from '../hooks/useTranslation';
 import type { Phrase, WordAnalysis } from '../types.ts';
@@ -66,14 +66,14 @@ const PracticePageContextMenu: React.FC<PracticePageContextMenuProps> = ({
     setTimeout(action, 100);
   };
 
-  const getCanonicalLearning = useCallback((): string | null => {
+  const getCanonicalLearning = (): string | null => {
     if (!analysis) return null;
     if (analysis.verbDetails?.infinitive) return analysis.verbDetails.infinitive;
     if (analysis.nounDetails?.article) return `${analysis.nounDetails.article} ${analysis.word}`;
     return analysis.baseForm || analysis.word;
-  }, [analysis]);
+  };
 
-  const handleCreateCard = useCallback(async () => {
+  const handleCreateCard = async () => {
     if (!analysis) return;
     setIsCreatingCard(true);
     const canonicalLearning = getCanonicalLearning();
@@ -83,7 +83,7 @@ const PracticePageContextMenu: React.FC<PracticePageContextMenuProps> = ({
     // No need to set isCreatingCard to false, the modal will close.
     // However, if the action is quick, we can keep it for visual feedback.
     setTimeout(() => setIsCreatingCard(false), 1000);
-  }, [analysis, getCanonicalLearning, onCreateCard]);
+  };
 
   const renderMenuItems = () => {
     const wordSpecificItems = word

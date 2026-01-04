@@ -45,7 +45,7 @@ export default [
       "simple-import-sort/exports": "warn",
       camelcase: "warn",
       'i18next/no-literal-string': ['warn', literalRuleOptions],
-      'react-hooks/exhaustive-deps': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
 ];

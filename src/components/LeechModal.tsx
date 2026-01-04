@@ -1,5 +1,5 @@
 import { t } from 'i18next';
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 
 import * as backendService from '../services/backendService';
 /**
@@ -65,50 +65,47 @@ export const LeechModal: React.FC<LeechModalProps> = ({
    *  - 'reset': Resets mastery, streaks, and review times to zero/initial.
    *  - 'postpone': Pushes the next review to 24 hours later.
    */
-  const handleLeechAction = useCallback(
-    async (phrase: Phrase, action: 'continue' | 'reset' | 'postpone') => {
-      let updatedPhrase = { ...phrase };
-      const now = Date.now();
+  const handleLeechAction = async (phrase: Phrase, action: 'continue' | 'reset' | 'postpone') => {
+    let updatedPhrase = { ...phrase };
+    const now = Date.now();
 
-      if (action === 'continue') {
-        // Schedule strictly for 10 minutes from now
-        updatedPhrase.nextReviewAt = now + 10 * 60 * 1000;
-      } else if (action === 'reset') {
-        // Reset all progress metrics
-        updatedPhrase = {
-          ...phrase,
-          masteryLevel: 0,
-          lastReviewedAt: null,
-          nextReviewAt: now,
-          knowCount: 0,
-          knowStreak: 0,
-          lapses: 0,
-          isMastered: false,
-        };
-      } else {
-        // 'postpone': Schedule for 24 hours from now
-        updatedPhrase.nextReviewAt = now + 24 * 60 * 60 * 1000;
-      }
+    if (action === 'continue') {
+      // Schedule strictly for 10 minutes from now
+      updatedPhrase.nextReviewAt = now + 10 * 60 * 1000;
+    } else if (action === 'reset') {
+      // Reset all progress metrics
+      updatedPhrase = {
+        ...phrase,
+        masteryLevel: 0,
+        lastReviewedAt: null,
+        nextReviewAt: now,
+        knowCount: 0,
+        knowStreak: 0,
+        lapses: 0,
+        isMastered: false,
+      };
+    } else {
+      // 'postpone': Schedule for 24 hours from now
+      updatedPhrase.nextReviewAt = now + 24 * 60 * 60 * 1000;
+    }
 
-      try {
-        // Persist changes to backend
-        await backendService.updatePhrase(updatedPhrase);
-        // Update local state
-        updateAndSavePhrases((prev) => prev.map((p) => (p.id === updatedPhrase.id ? updatedPhrase : p)));
-      } catch (err) {
-        showToast({
-          message: t('notifications.genericError', {
-            // Note: ensure translation key exists or is handled
-            message: (err as Error).message,
-          }),
-        });
-      }
+    try {
+      // Persist changes to backend
+      await backendService.updatePhrase(updatedPhrase);
+      // Update local state
+      updateAndSavePhrases((prev) => prev.map((p) => (p.id === updatedPhrase.id ? updatedPhrase : p)));
+    } catch (err) {
+      showToast({
+        message: t('notifications.genericError', {
+          // Note: ensure translation key exists or is handled
+          message: (err as Error).message,
+        }),
+      });
+    }
 
-      handleCloseLeechModal();
-      transitionToNext();
-    },
-    [updateAndSavePhrases, transitionToNext, showToast]
-  );
+    handleCloseLeechModal();
+    transitionToNext();
+  };
 
   // Action Handlers
 

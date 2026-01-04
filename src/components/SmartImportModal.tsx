@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -92,7 +92,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
 
   const generalCategory = categories.find((c) => c.name.toLowerCase() === 'general');
 
-  const reset = useCallback(() => {
+  const reset = () => {
     setView('assistant');
     setSpeechStatus('idle');
     setTranscript('');
@@ -120,7 +120,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     if (refineRecognitionRef.current) {
       refineRecognitionRef.current.abort();
     }
-  }, []);
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -130,7 +130,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
         setAssistantInput(initialTopic);
       }
     }
-  }, [isOpen, reset, initialTopic]);
+  }, [isOpen, initialTopic]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -168,35 +168,35 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   }, [isOpen]);
 
-  const generateAndPreview = useCallback(
-    async (options: { source: 'topic'; categoryOptions?: { categoryId?: string; createCategoryName?: string } }) => {
-      setView('processing');
-      setGenerationOptions(options.categoryOptions);
-      setOriginalFileData(null);
-      setGenerationSource('topic');
-      try {
-        let cards: ProposedCard[] = [];
-        if (options.source === 'topic' && options.categoryOptions) {
-          const topic = categorySuggestion?.name || assistantInput;
-          setCurrentTopic(topic);
-          let existingPhrases: string[] = [];
-          if (options.categoryOptions.categoryId) {
-            existingPhrases = allPhrases
-              .filter((p) => p.category === options.categoryOptions?.categoryId)
-              .map((p) => p.text.learning);
-          }
-          cards = await onGenerateTopicCards(topic, undefined, existingPhrases);
+  const generateAndPreview = async (options: {
+    source: 'topic';
+    categoryOptions?: { categoryId?: string; createCategoryName?: string };
+  }) => {
+    setView('processing');
+    setGenerationOptions(options.categoryOptions);
+    setOriginalFileData(null);
+    setGenerationSource('topic');
+    try {
+      let cards: ProposedCard[] = [];
+      if (options.source === 'topic' && options.categoryOptions) {
+        const topic = categorySuggestion?.name || assistantInput;
+        setCurrentTopic(topic);
+        let existingPhrases: string[] = [];
+        if (options.categoryOptions.categoryId) {
+          existingPhrases = allPhrases
+            .filter((p) => p.category === options.categoryOptions?.categoryId)
+            .map((p) => p.text.learning);
         }
-        setProposedCards(cards);
-        setSelectedIndices(new Set(cards.map((_, i) => i)));
-        setView('preview');
-      } catch (e) {
-        console.error('Failed to generate cards:', e);
-        onClose();
+        cards = await onGenerateTopicCards(topic, undefined, existingPhrases);
       }
-    },
-    [allPhrases, onGenerateTopicCards, assistantInput, categorySuggestion, onClose]
-  );
+      setProposedCards(cards);
+      setSelectedIndices(new Set(cards.map((_, i) => i)));
+      setView('preview');
+    } catch (e) {
+      console.error('Failed to generate cards:', e);
+      onClose();
+    }
+  };
 
   const handleImageUpload = async (fileData: { mimeType: string; data: string }, refinement?: string) => {
     setView('processing');
@@ -250,7 +250,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     setPendingCards(null);
   };
 
-  const handleProcessAssistantRequest = useCallback(async () => {
+  const handleProcessAssistantRequest = async () => {
     if (!assistantInput.trim()) return;
     setView('classifying');
 
@@ -260,7 +260,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     setCategorySuggestion({ name: proposedCategoryName, existingCategory });
     setEditableCategoryName(proposedCategoryName);
     setView('suggestion');
-  }, [assistantInput, categories]);
+  };
 
   useEffect(() => {
     if (isOpen && initialTopic && assistantInput === initialTopic && view === 'assistant') {
@@ -269,7 +269,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, initialTopic, assistantInput, view, handleProcessAssistantRequest]);
+  }, [isOpen, initialTopic, assistantInput, view]);
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;

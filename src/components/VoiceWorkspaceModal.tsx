@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -130,7 +130,7 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
     [allWordOptions, constructedWordIds]
   );
 
-  const resetState = useCallback(() => {
+  const resetState = () => {
     setConstructedWords([]);
     setAllWordOptions([]);
     setEvaluation(null);
@@ -154,9 +154,9 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
     setHintCount(0);
     setShowPostHintButtons(false);
     if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-  }, []);
+  };
 
-  const loadWordOptions = useCallback(async () => {
+  const loadWordOptions = async () => {
     if (!phrase) return;
     setIsLoadingOptions(true);
     setOptionsError(null);
@@ -190,7 +190,7 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
     } finally {
       setIsLoadingOptions(false);
     }
-  }, [phrase, onGeneratePhraseBuilderOptions]);
+  };
 
   // Effect to handle modal opening and closing.
   useEffect(() => {
@@ -202,7 +202,7 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
     return () => {
       recognitionRef.current?.abort();
     };
-  }, [isOpen, phrase, resetState, loadWordOptions]);
+  }, [isOpen, phrase]);
 
   // Effect for transient feedback visibility
   useEffect(() => {
@@ -295,7 +295,7 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
     availableWords,
   ]);
 
-  const handleCheck = useCallback(async () => {
+  const handleCheck = async () => {
     if (!phrase) return;
     const userAttempt = constructedWords.map((w) => w.text).join(' ');
     if (!userAttempt) return;
@@ -350,19 +350,7 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
         setIsChecking(false);
       }
     }
-  }, [
-    phrase,
-    constructedWords,
-    onSuccess,
-    onFailure,
-    onEvaluate,
-    attemptNumber,
-    habitTracker.quickBuilderNextCount,
-    settings.automation.learnNextPhraseHabit,
-    hasUserPausedInSession,
-    onPracticeNext,
-    showToast,
-  ]);
+  };
 
   // Effect for intelligent auto-checking
   useEffect(() => {
@@ -404,7 +392,6 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
     isChecking,
     evaluation,
     isListening,
-    handleCheck,
     settings.automation.autoCheckShortPhrases,
   ]);
 
@@ -539,22 +526,19 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
     setGhostPosition(null);
   };
 
-  const handleActionButtonClick = useCallback(
-    (key: 'close' | 'continue' | 'next', action: () => void) => {
-      onLogButtonUsage(key);
-      if (successTimestamp) {
-        const timeSinceSuccess = Date.now() - successTimestamp;
-        if (timeSinceSuccess < 2000) {
-          // 2 seconds threshold
-          onHabitTrackerChange((prev) => ({ ...prev, quickBuilderNextCount: (prev.quickBuilderNextCount || 0) + 1 }));
-        } else {
-          onHabitTrackerChange((prev) => ({ ...prev, quickBuilderNextCount: 0 }));
-        }
+  const handleActionButtonClick = (key: 'close' | 'continue' | 'next', action: () => void) => {
+    onLogButtonUsage(key);
+    if (successTimestamp) {
+      const timeSinceSuccess = Date.now() - successTimestamp;
+      if (timeSinceSuccess < 2000) {
+        // 2 seconds threshold
+        onHabitTrackerChange((prev) => ({ ...prev, quickBuilderNextCount: (prev.quickBuilderNextCount || 0) + 1 }));
+      } else {
+        onHabitTrackerChange((prev) => ({ ...prev, quickBuilderNextCount: 0 }));
       }
-      action();
-    },
-    [onLogButtonUsage, successTimestamp, onHabitTrackerChange]
-  );
+    }
+    action();
+  };
 
   const buttons = useMemo(() => {
     const buttonData = [
@@ -582,9 +566,9 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
     ];
     // Dynamic button layout has been removed for a consistent UI.
     return buttonData;
-  }, [handleActionButtonClick, onClose, onNextPhrase, onPracticeNext, t]);
+  }, [onClose, onNextPhrase, onPracticeNext, t]);
 
-  const handleFailureAndReveal = useCallback(() => {
+  const handleFailureAndReveal = () => {
     if (!phrase) return;
     onFailure(phrase);
     setEvaluation({
@@ -594,12 +578,12 @@ export const VoiceWorkspaceModal: React.FC<VoiceWorkspaceModalProps> = ({
     });
     setIsStuck(false);
     setShowPostHintButtons(false);
-  }, [phrase, onFailure, t]);
+  };
 
-  const handleLearn = useCallback(() => {
+  const handleLearn = () => {
     if (!phrase) return;
     onOpenLearningAssistant(phrase);
-  }, [phrase, onOpenLearningAssistant]);
+  };
 
   if (!isOpen || !phrase) return null;
 

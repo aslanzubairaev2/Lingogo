@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 
 import { LanguageContext } from '../contexts/languageContext.tsx';
 import { useTranslation } from '../hooks/useTranslation.ts';
@@ -48,32 +48,29 @@ const AddPhraseModal: React.FC<AddPhraseModalProps> = ({
   const instructionText = t('modals.addPhrase.body.instructions.text', { language: languagePrepositional });
   const listeningText = t('modals.addPhrase.status.listening');
 
-  const handleSubmit = useCallback(
-    async (textToSubmit: string) => {
-      const trimmedText = textToSubmit.trim();
-      if (!trimmedText || isLoading || !profile) return;
+  const handleSubmit = async (textToSubmit: string) => {
+    const trimmedText = textToSubmit.trim();
+    if (!trimmedText || isLoading || !profile) return;
 
-      setIsLoading(true);
-      setError(null);
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        let newPhraseData: { learning: string; native: string };
-        // Check if the input language is the native language
-        if (language === profile.native) {
-          newPhraseData = await onGenerate(trimmedText);
-        } else {
-          const { native } = await onTranslateLearning(trimmedText);
-          newPhraseData = { learning: trimmedText, native };
-        }
-        await onPhraseCreated(newPhraseData);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : t('modals.addPhrase.errors.generic'));
-        setIsLoading(false);
+    try {
+      let newPhraseData: { learning: string; native: string };
+      // Check if the input language is the native language
+      if (language === profile.native) {
+        newPhraseData = await onGenerate(trimmedText);
+      } else {
+        const { native } = await onTranslateLearning(trimmedText);
+        newPhraseData = { learning: trimmedText, native };
       }
-      // Parent component closes the modal, which resets `isLoading` on success.
-    },
-    [isLoading, onGenerate, onPhraseCreated, language, onTranslateLearning, t, profile]
-  );
+      await onPhraseCreated(newPhraseData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('modals.addPhrase.errors.generic'));
+      setIsLoading(false);
+    }
+    // Parent component closes the modal, which resets `isLoading` on success.
+  };
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -119,7 +116,7 @@ const AddPhraseModal: React.FC<AddPhraseModalProps> = ({
     };
 
     recognitionRef.current = recognition;
-  }, [handleSubmit, language, autoSubmit, t]);
+  }, [language, autoSubmit, t]);
 
   useEffect(() => {
     if (isOpen) {

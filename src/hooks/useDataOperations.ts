@@ -1,5 +1,5 @@
 import { t } from 'i18next';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ToastType } from '../components/Toast';
 import { useAuth } from '../contexts/authContext';
@@ -30,7 +30,6 @@ import {
   PhraseBuilderOptions,
   PhraseCategory,
   PracticeChatSessionRecord,
-  PracticeReviewAction,
   PracticeReviewAction,
   PracticeReviewLogEntry,
   View,
@@ -197,50 +196,39 @@ export const useDataOperations = (
    *
    * @param apiCall - A function that takes an AiService provider and returns a Promise.
    */
-  const callApiWithFallback = useCallback(
-    async <T>(apiCall: (provider: AiService) => Promise<T>): Promise<T> => {
-      if (!apiProvider || !apiProviderType) throw new Error('AI provider not initialized.');
+  const callApiWithFallback = async <T>(apiCall: (provider: AiService) => Promise<T>): Promise<T> => {
+    if (!apiProvider || !apiProviderType) throw new Error('AI provider not initialized.');
 
-      const maxRetries = 3;
+    const maxRetries = 3;
 
-      const executeWithRetries = async (provider: AiService, type: ApiProviderType): Promise<T> => {
-        let attempt = 0;
-        let delay = 1000; // 1s initial delay
-        while (attempt < maxRetries) {
-          try {
-            return await apiCall(provider);
-          } catch (error: any) {
-            attempt++;
-            let isRetryableError = false;
-            let errorType = 'generic';
+    const executeWithRetries = async (provider: AiService, type: ApiProviderType): Promise<T> => {
+      let attempt = 0;
+      let delay = 1000; // 1s initial delay
+      while (attempt < maxRetries) {
+        try {
+          return await apiCall(provider);
+        } catch (error: any) {
+          attempt++;
+          let isRetryableError = false;
+          let errorType = 'generic';
 
-            if (type === 'gemini') {
-              try {
-                const message = error.message || '';
-                const jsonMatch = message.match(/{.*}/s);
-                if (jsonMatch) {
-                  const errorJson = JSON.parse(jsonMatch[0]);
-                  const errorCode = errorJson?.error?.code;
-                  const errorStatus = errorJson?.error?.status;
+          if (type === 'gemini') {
+            try {
+              const message = error.message || '';
+              const jsonMatch = message.match(/{.*}/s);
+              if (jsonMatch) {
+                const errorJson = JSON.parse(jsonMatch[0]);
+                const errorCode = errorJson?.error?.code;
+                const errorStatus = errorJson?.error?.status;
 
-                  if (errorCode === 429 || errorStatus === 'RESOURCE_EXHAUSTED') {
-                    isRetryableError = true;
-                    errorType = 'rate limit';
-                  } else if (errorCode === 503 || errorStatus === 'UNAVAILABLE') {
-                    isRetryableError = true;
-                    errorType = 'server overloaded';
-                  }
-                } else {
-                  if (message.includes('429') || message.includes('RESOURCE_EXHAUSTED')) {
-                    isRetryableError = true;
-                    errorType = 'rate limit';
-                  } else if (message.includes('503') || message.includes('UNAVAILABLE')) {
-                    isRetryableError = true;
-                    errorType = 'server overloaded';
-                  }
+                if (errorCode === 429 || errorStatus === 'RESOURCE_EXHAUSTED') {
+                  isRetryableError = true;
+                  errorType = 'rate limit';
+                } else if (errorCode === 503 || errorStatus === 'UNAVAILABLE') {
+                  isRetryableError = true;
+                  errorType = 'server overloaded';
                 }
-              } catch (e) {
-                const message = error.message || '';
+              } else {
                 if (message.includes('429') || message.includes('RESOURCE_EXHAUSTED')) {
                   isRetryableError = true;
                   errorType = 'rate limit';
@@ -249,71 +237,76 @@ export const useDataOperations = (
                   errorType = 'server overloaded';
                 }
               }
-            }
-
-            if (isRetryableError && attempt < maxRetries) {
-              const jitter = Math.random() * 500;
-              console.warn(
-                `API call failed (${errorType}) on attempt ${attempt} with ${type}. Retrying in ${
-                  (delay + jitter) / 1000
-                }s...`
-              );
-              await sleep(delay + jitter);
-              delay *= 2; // Exponential backoff
-            } else {
-              throw error;
+            } catch (e) {
+              const message = error.message || '';
+              if (message.includes('429') || message.includes('RESOURCE_EXHAUSTED')) {
+                isRetryableError = true;
+                errorType = 'rate limit';
+              } else if (message.includes('503') || message.includes('UNAVAILABLE')) {
+                isRetryableError = true;
+                errorType = 'server overloaded';
+              }
             }
           }
-        }
-        throw new Error(`API call failed with ${type} after ${maxRetries} attempts.`);
-      };
 
-      try {
-        return await executeWithRetries(apiProvider, apiProviderType);
-      } catch (primaryError) {
-        console.warn(`API call with ${apiProviderType} failed:`, primaryError);
-        const fallback = getFallbackProvider(apiProviderType);
-        if (fallback) {
-          console.log(`Attempting fallback to ${fallback.type}...`);
-          setApiProvider(fallback.provider);
-          setApiProviderType(fallback.type);
-          try {
-            return await executeWithRetries(fallback.provider, fallback.type);
-          } catch (fallbackError) {
-            console.error(`Fallback API call with ${fallback.type} also failed:`, fallbackError);
-            throw new Error(
-              `Primary API failed: ${
-                (primaryError as Error).message
-              }. Fallback API also failed: ${(fallbackError as Error).message}`
+          if (isRetryableError && attempt < maxRetries) {
+            const jitter = Math.random() * 500;
+            console.warn(
+              `API call failed (${errorType}) on attempt ${attempt} with ${type}. Retrying in ${
+                (delay + jitter) / 1000
+              }s...`
             );
+            await sleep(delay + jitter);
+            delay *= 2; // Exponential backoff
+          } else {
+            throw error;
           }
         }
-        throw primaryError;
       }
-    },
-    [apiProvider, apiProviderType]
-  );
+      throw new Error(`API call failed with ${type} after ${maxRetries} attempts.`);
+    };
 
-  const updateAndSavePhrases = useCallback(
-    (updater: React.SetStateAction<Phrase[]>) => {
-      setAllPhrases((prevPhrases) => {
-        const newPhrases = typeof updater === 'function' ? updater(prevPhrases) : updater;
+    try {
+      return await executeWithRetries(apiProvider, apiProviderType);
+    } catch (primaryError) {
+      console.warn(`API call with ${apiProviderType} failed:`, primaryError);
+      const fallback = getFallbackProvider(apiProviderType);
+      if (fallback) {
+        console.log(`Attempting fallback to ${fallback.type}...`);
+        setApiProvider(fallback.provider);
+        setApiProviderType(fallback.type);
         try {
-          localStorage.setItem(PHRASES_KEY(userId, languageProfile), JSON.stringify(newPhrases));
-        } catch (e) {
-          console.error('Failed to save phrases to storage', e);
+          return await executeWithRetries(fallback.provider, fallback.type);
+        } catch (fallbackError) {
+          console.error(`Fallback API call with ${fallback.type} also failed:`, fallbackError);
+          throw new Error(
+            `Primary API failed: ${
+              (primaryError as Error).message
+            }. Fallback API also failed: ${(fallbackError as Error).message}`
+          );
         }
-        return newPhrases;
-      });
-    },
-    [userId, languageProfile]
-  );
+      }
+      throw primaryError;
+    }
+  };
+
+  const updateAndSavePhrases = (updater: React.SetStateAction<Phrase[]>) => {
+    setAllPhrases((prevPhrases) => {
+      const newPhrases = typeof updater === 'function' ? updater(prevPhrases) : updater;
+      try {
+        localStorage.setItem(PHRASES_KEY(userId, languageProfile), JSON.stringify(newPhrases));
+      } catch (e) {
+        console.error('Failed to save phrases to storage', e);
+      }
+      return newPhrases;
+    });
+  };
 
   /**
    * Loads initial user data (phrases, categories, settings) from localStorage first,
    * then attempts to sync with the backend server in the background.
    */
-  const loadUserData = useCallback(async () => {
+  const loadUserData = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -458,7 +451,7 @@ export const useDataOperations = (
     }
 
     setIsLoading(false);
-  }, [showToast, updateAndSavePhrases, userId, languageProfile, t]);
+  };
 
   const processInitialServerData = (serverData: { categories: Category[]; phrases: Phrase[] }) => {
     let loadedPhrases = serverData.phrases.map((p) => ({
@@ -491,7 +484,7 @@ export const useDataOperations = (
         isOnboardingLoading,
       });
     }
-  }, [loadUserData, needsOnboarding, isOnboardingLoading]);
+  }, [needsOnboarding, isOnboardingLoading]);
 
   // Handle user change - reload data for new user
   useEffect(() => {
@@ -520,16 +513,13 @@ export const useDataOperations = (
     }
   }, [userChanged, resetUserChanged, loadUserData]);
 
-  const updateAndSaveCategories = useCallback(
-    (updater: React.SetStateAction<Category[]>) => {
-      setCategories((prev) => {
-        const newCategories = typeof updater === 'function' ? updater(prev) : updater;
-        localStorage.setItem(CATEGORIES_KEY(userId, languageProfile), JSON.stringify(newCategories));
-        return newCategories;
-      });
-    },
-    [userId, languageProfile]
-  );
+  const updateAndSaveCategories = (updater: React.SetStateAction<Category[]>) => {
+    setCategories((prev) => {
+      const newCategories = typeof updater === 'function' ? updater(prev) : updater;
+      localStorage.setItem(CATEGORIES_KEY(userId, languageProfile), JSON.stringify(newCategories));
+      return newCategories;
+    });
+  };
 
   /**
    * Generates new phrases using the current AI provider.
@@ -537,99 +527,93 @@ export const useDataOperations = (
    *
    * @param count - Number of phrases to generate.
    */
-  const fetchNewPhrases = useCallback(
-    async (count: number = 5) => {
-      if (isGenerating || !apiProvider) {
-        if (!apiProvider) setError('AI provider is not available for generating new phrases.');
-        return;
+  const fetchNewPhrases = async (count: number = 5) => {
+    if (isGenerating || !apiProvider) {
+      if (!apiProvider) setError('AI provider is not available for generating new phrases.');
+      return;
+    }
+    setIsGenerating(true);
+    if (!error?.includes('AI features are temporarily unavailable')) setError(null);
+    try {
+      // FIX: Use phrase.text.learning to match the updated Phrase type
+      const existingLearningPhrases = allPhrases.map((p) => p.text.learning).join('; ');
+      const prompt = `Сгенерируй ${count} новых, полезных в быту немецких фраз уровня A1. Не повторяй: "${existingLearningPhrases}". Верни JSON-массив объектов с ключами 'learning' и 'native'.`;
+      const newPhrasesData = await callApiWithFallback((provider) => provider.generatePhrases(prompt));
+
+      const generalCategory = categories.find((c) => c.name.toLowerCase() === 'общие');
+      const defaultCategoryId = generalCategory?.id || (categories.length > 0 ? categories[0].id : '1');
+
+      const phrasesToCreate = newPhrasesData.map((p) => ({
+        // FIX: Map flat structure to nested `text` object
+        text: { learning: p.learning, native: p.native },
+        category: defaultCategoryId,
+      }));
+
+      const createdPhrases: Phrase[] = [];
+      for (const p of phrasesToCreate) {
+        try {
+          const newPhrase = await backendService.createPhrase(p);
+          createdPhrases.push(newPhrase);
+        } catch (err) {
+          console.error('Failed to save new phrase to backend:', err);
+        }
       }
-      setIsGenerating(true);
-      if (!error?.includes('AI features are temporarily unavailable')) setError(null);
-      try {
-        // FIX: Use phrase.text.learning to match the updated Phrase type
-        const existingLearningPhrases = allPhrases.map((p) => p.text.learning).join('; ');
-        const prompt = `Сгенерируй ${count} новых, полезных в быту немецких фраз уровня A1. Не повторяй: "${existingLearningPhrases}". Верни JSON-массив объектов с ключами 'learning' и 'native'.`;
-        const newPhrasesData = await callApiWithFallback((provider) => provider.generatePhrases(prompt));
 
-        const generalCategory = categories.find((c) => c.name.toLowerCase() === 'общие');
-        const defaultCategoryId = generalCategory?.id || (categories.length > 0 ? categories[0].id : '1');
-
-        const phrasesToCreate = newPhrasesData.map((p) => ({
-          // FIX: Map flat structure to nested `text` object
-          text: { learning: p.learning, native: p.native },
-          category: defaultCategoryId,
-        }));
-
-        const createdPhrases: Phrase[] = [];
-        for (const p of phrasesToCreate) {
-          try {
-            const newPhrase = await backendService.createPhrase(p);
-            createdPhrases.push(newPhrase);
-          } catch (err) {
-            console.error('Failed to save new phrase to backend:', err);
-          }
-        }
-
-        if (createdPhrases.length > 0) {
-          updateAndSavePhrases((prev) => [...prev, ...createdPhrases]);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error during phrase generation.');
-      } finally {
-        setIsGenerating(false);
+      if (createdPhrases.length > 0) {
+        updateAndSavePhrases((prev) => [...prev, ...createdPhrases]);
       }
-    },
-    [allPhrases, categories, isGenerating, updateAndSavePhrases, callApiWithFallback, apiProvider, error]
-  );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error during phrase generation.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
-  const prefetchPhraseBuilderOptions = useCallback(
-    async (startingPhraseId: string | null) => {
-      if (isPrefetchingRef.current || !apiProvider) return;
-      isPrefetchingRef.current = true;
+  const prefetchPhraseBuilderOptions = async (startingPhraseId: string | null) => {
+    if (isPrefetchingRef.current || !apiProvider) return;
+    isPrefetchingRef.current = true;
 
-      try {
-        const PREFETCH_COUNT = 2;
-        let nextPhraseId = startingPhraseId;
-        const phrasesToFetch: Phrase[] = [];
-        const unmastered = allPhrases.filter((p) => p && !p.isMastered);
+    try {
+      const PREFETCH_COUNT = 2;
+      let nextPhraseId = startingPhraseId;
+      const phrasesToFetch: Phrase[] = [];
+      const unmastered = allPhrases.filter((p) => p && !p.isMastered);
 
-        for (let i = 0; i < PREFETCH_COUNT; i++) {
-          const nextPhrase = srsService.selectNextPhrase(unmastered, nextPhraseId);
-          if (nextPhrase) {
-            if (phrasesToFetch.some((p) => p.id === nextPhrase.id)) break;
-            phrasesToFetch.push(nextPhrase);
-            nextPhraseId = nextPhrase.id;
-          } else {
-            break;
-          }
+      for (let i = 0; i < PREFETCH_COUNT; i++) {
+        const nextPhrase = srsService.selectNextPhrase(unmastered, nextPhraseId);
+        if (nextPhrase) {
+          if (phrasesToFetch.some((p) => p.id === nextPhrase.id)) break;
+          phrasesToFetch.push(nextPhrase);
+          nextPhraseId = nextPhrase.id;
+        } else {
+          break;
         }
+      }
 
-        await Promise.all(
-          phrasesToFetch.map(async (phrase) => {
-            const cacheKey = `phrase_builder_${phrase.id}`;
-            if (!cacheService.getCache<PhraseBuilderOptions>(cacheKey)) {
-              try {
-                const options = await callApiWithFallback((provider) => provider.generatePhraseBuilderOptions(phrase));
-                cacheService.setCache(cacheKey, options);
-              } catch (err) {
-                console.warn(`Background prefetch failed for phrase ${phrase.id}:`, err);
-              }
+      await Promise.all(
+        phrasesToFetch.map(async (phrase) => {
+          const cacheKey = `phrase_builder_${phrase.id}`;
+          if (!cacheService.getCache<PhraseBuilderOptions>(cacheKey)) {
+            try {
+              const options = await callApiWithFallback((provider) => provider.generatePhraseBuilderOptions(phrase));
+              cacheService.setCache(cacheKey, options);
+            } catch (err) {
+              console.warn(`Background prefetch failed for phrase ${phrase.id}:`, err);
             }
-          })
-        );
-      } finally {
-        isPrefetchingRef.current = false;
-      }
-    },
-    [allPhrases, callApiWithFallback, apiProvider]
-  );
+          }
+        })
+      );
+    } finally {
+      isPrefetchingRef.current = false;
+    }
+  };
 
   // New proactive pre-fetching effect for both phrase builder and quick replies
   useEffect(() => {
     if (view === 'practice' && currentPracticePhrase) {
       prefetchPhraseBuilderOptions(currentPracticePhrase.id);
     }
-  }, [view, currentPracticePhrase, prefetchPhraseBuilderOptions]);
+  }, [view, currentPracticePhrase]);
 
   const updateSettings = (newSettings: Partial<Settings>) => {
     setSettings((prev) => {
@@ -797,25 +781,20 @@ export const useDataOperations = (
     return updatedPhrase; // Return the optimistically updated phrase.
   };
 
-  const updateDiscussTranslation = useCallback(
-    (request: any) => callApiWithFallback((provider) => provider.discussTranslation(request)),
-    [callApiWithFallback]
-  );
+  const updateDiscussTranslation = (request: any) =>
+    callApiWithFallback((provider) => provider.discussTranslation(request));
 
-  const updateDiscussHistory = useCallback(
-    (phraseId: string, messages: ChatMessage[]) => {
-      setDiscussCache((prev) => {
-        const newCache = { ...prev, [phraseId]: messages };
-        try {
-          localStorage.setItem(DISCUSS_CHAT_CACHE_KEY(userId, languageProfile), JSON.stringify(newCache));
-        } catch (error) {
-          console.error('Failed to save discuss cache', error);
-        }
-        return newCache;
-      });
-    },
-    [userId, languageProfile]
-  );
+  const updateDiscussHistory = (phraseId: string, messages: ChatMessage[]) => {
+    setDiscussCache((prev) => {
+      const newCache = { ...prev, [phraseId]: messages };
+      try {
+        localStorage.setItem(DISCUSS_CHAT_CACHE_KEY(userId, languageProfile), JSON.stringify(newCache));
+      } catch (error) {
+        console.error('Failed to save discuss cache', error);
+      }
+      return newCache;
+    });
+  };
 
   return {
     updateAndSavePhrases,

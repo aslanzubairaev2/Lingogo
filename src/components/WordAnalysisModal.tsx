@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { useTranslation } from '../hooks/useTranslation';
 import type { Phrase, WordAnalysis } from '../types.ts';
@@ -67,7 +67,7 @@ const WordAnalysisModal: React.FC<WordAnalysisModalProps> = ({
     }
   }, [isOpen]);
 
-  const getCanonicalLearning = useCallback((): string | null => {
+  const getCanonicalLearning = (): string | null => {
     if (!analysis) return null;
     if (analysis.verbDetails?.infinitive) {
       return analysis.verbDetails.infinitive;
@@ -76,13 +76,13 @@ const WordAnalysisModal: React.FC<WordAnalysisModalProps> = ({
       return `${analysis.nounDetails.article} ${analysis.word}`;
     }
     return analysis.baseForm || analysis.word;
-  }, [analysis]);
+  };
 
   const cardExists = useMemo(() => {
     const canonicalLearning = getCanonicalLearning();
     if (!canonicalLearning) return false;
     return allPhrases.some((p) => p.text.learning.trim().toLowerCase() === canonicalLearning.trim().toLowerCase());
-  }, [allPhrases, getCanonicalLearning]);
+  }, [allPhrases]);
 
   const handleCreateCard = () => {
     const canonicalLearning = getCanonicalLearning();

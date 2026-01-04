@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation.ts';
+import { getUserProfile } from '../services/backendService.ts';
 import { getLearningSpeechLocale, speak, SpeechOptions } from '../services/speechService';
 import { ChatMessage, Phrase, WordAnalysis } from '../types.ts';
 // Reusing a similar component from other chat modals for consistent UI
@@ -119,7 +120,7 @@ const ChatMessageContent: React.FC<{
                 {renderClickableLearning(part.text, part.translation || '')}
               </span>
               <button
-                onClick={() => onSpeak(part.text)}
+                onClick={() => onSpeak(part.text, { lang: useLanguage().profile.learning })}
                 className="p-0.5 rounded-full hover:bg-white/20 flex-shrink-0 ml-1.5"
               >
                 <SoundIcon className="w-3.5 h-3.5 text-slate-300" />
@@ -183,36 +184,33 @@ const PracticeChatModal: React.FC<PracticeChatModalProps> = ({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSendMessage = useCallback(
-    async (messageText: string) => {
-      if (!messageText.trim() && history.length > 0) return; // Allow initial empty message
-      if (isLoading) return;
+  const handleSendMessage = async (messageText: string) => {
+    if (!messageText.trim() && history.length > 0) return; // Allow initial empty message
+    if (isLoading) return;
 
-      if (isListening) recognitionRef.current?.stop();
+    if (isListening) recognitionRef.current?.stop();
 
-      const userMessage: ChatMessage = { role: 'user', text: messageText };
-      const newHistory = [...history, userMessage];
-      setHistory(newHistory);
-      setInput('');
-      setIsLoading(true);
-      setPromptSuggestions([]);
+    const userMessage: ChatMessage = { role: 'user', text: messageText };
+    const newHistory = [...history, userMessage];
+    setHistory(newHistory);
+    setInput('');
+    setIsLoading(true);
+    setPromptSuggestions([]);
 
-      try {
-        const modelResponse = await onSendMessage(newHistory, messageText);
-        setHistory((prev) => [...prev, modelResponse]);
-        if (modelResponse.promptSuggestions) setPromptSuggestions(modelResponse.promptSuggestions);
-      } catch (error) {
-        const errorMsg: ChatMessage = {
-          role: 'model',
-          contentParts: [{ type: 'text', text: `Произошла ошибка: ${(error as Error).message}` }],
-        };
-        setHistory((prev) => [...prev, errorMsg]);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [isLoading, history, onSendMessage, setHistory, isListening]
-  );
+    try {
+      const modelResponse = await onSendMessage(newHistory, messageText);
+      setHistory((prev) => [...prev, modelResponse]);
+      if (modelResponse.promptSuggestions) setPromptSuggestions(modelResponse.promptSuggestions);
+    } catch (error) {
+      const errorMsg: ChatMessage = {
+        role: 'model',
+        contentParts: [{ type: 'text', text: `Произошла ошибка: ${(error as Error).message}` }],
+      };
+      setHistory((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen && history.length === 0) {

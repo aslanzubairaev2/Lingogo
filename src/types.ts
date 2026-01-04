@@ -357,58 +357,52 @@ export interface AnimationState {
 }
 
 export interface PhraseEvaluation {
-  type?: object;
-  properties: {
-    isCorrect: boolean;
-    feedback: string;
-    correctedPhrase?: string;
-  };
+  isCorrect: boolean;
+  feedback: string;
+  correctedPhrase?: string;
 }
 
 export interface DeepDiveAnalysis {
-  type: object;
-  properties: {
-    chunks: {
-      type: string[];
-      description: string;
-      items: {
-        type: object;
-        properties: {
-          text: string;
-          type: {
-            type: string;
-            description: string;
-          };
-          explanation: {
-            type: string;
-            description: string;
-          };
-        };
-      };
-    };
-    keyConcepts: {
-      type: string[];
-      description: string;
-      items: {
-        type: object;
-        properties: {
-          concept: { type: string; description: string };
-          explanation: { type: string; description: string };
-        };
-      };
-    };
-    personalizationQuestion: {
-      type: string;
-      description: string;
-    };
-    mnemonicImage: {
+  chunks: {
+    type: string[];
+    description: string;
+    items: {
       type: object;
-      description: string;
       properties: {
-        description: {
+        text: string;
+        type: {
           type: string;
           description: string;
         };
+        explanation: {
+          type: string;
+          description: string;
+        };
+      };
+    };
+  };
+  keyConcepts: {
+    type: string[];
+    description: string;
+    items: {
+      type: object;
+      properties: {
+        concept: { type: string; description: string };
+        explanation: { type: string; description: string };
+      };
+    };
+  };
+  personalizationQuestion: {
+    type: string;
+    description: string;
+  };
+  mnemonicImage: {
+    type: object;
+    description: string;
+    properties: {
+      description: {
+        type: string;
+        description: string;
       };
     };
   };

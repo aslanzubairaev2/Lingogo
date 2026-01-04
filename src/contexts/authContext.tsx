@@ -1,9 +1,8 @@
 ﻿import type { Session, User } from '@supabase/supabase-js';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 import * as authService from '../services/authService.ts';
 import { clearAccessToken, setAccessToken, setUnauthorizedHandler } from '../services/authTokenStore.ts';
-import * as backendService from '../services/backendService.ts';
 import { clearAppCaches } from '../services/storageService.ts';
 
 interface AuthContextValue {
@@ -28,7 +27,7 @@ const useApplySession = () => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  const applySession = useCallback((nextSession: Session | null) => {
+  const applySession = (nextSession: Session | null) => {
     setSession(nextSession);
     const nextUser = nextSession?.user ?? null;
     setUser(nextUser);
@@ -40,7 +39,7 @@ const useApplySession = () => {
     } else {
       clearAccessToken();
     }
-  }, []);
+  };
 
   return { session, user, token, applySession };
 };
@@ -70,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       setUnauthorizedHandler(null);
     };
-  }, [applySession]);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -120,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isMounted = false;
       subscription?.unsubscribe();
     };
-  }, [applySession]);
+  }, []);
 
   const withLoading = async <T,>(fn: () => Promise<T>): Promise<T> => {
     setLoading(true);
@@ -208,9 +207,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const resetUserChanged = useCallback(() => {
+  const resetUserChanged = () => {
     setUserChanged(false);
-  }, []);
+  };
 
   const value = useMemo<AuthContextValue>(
     () => ({

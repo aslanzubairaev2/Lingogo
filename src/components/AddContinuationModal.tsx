@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation.ts';
@@ -99,11 +99,11 @@ const AddContinuationModal: React.FC<AddContinuationModalProps> = ({ isOpen, onC
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = () => {
     if (inputText.trim()) {
       onSubmit(inputText.trim());
     }
-  }, [inputText, onSubmit]);
+  };
 
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !event.shiftKey && inputText.trim()) {
