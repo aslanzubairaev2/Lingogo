@@ -1,13 +1,36 @@
 import React, { useEffect, useState } from 'react';
 
+/**
+ * Toast.tsx
+ *
+ * A notification component that displays temporary messages to the user.
+ * It supports different visual styles depending on the message type (e.g., standard vs. automation success).
+ */
 import CheckIcon from './icons/CheckIcon';
 
+export type ToastType = 'default' | 'automationSuccess';
+
+export interface ToastState {
+  message: string;
+  id: number;
+  type: ToastType;
+}
+
 interface ToastProps {
-  toast: { message: string; id: number; type?: 'default' | 'automationSuccess' } | null;
+  /** The current toast data to display. If null, nothing is rendered. */
+  toast: ToastState | null;
+  /** Callback to clear the toast from the parent state. */
   onDismiss: () => void;
 }
 
-const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
+/**
+ * Toast Component
+ *
+ * Renders the toast notification.
+ * - 'default': Standard dark toast at the bottom.
+ * - 'automationSuccess': A specialized animated toast (morphs from a checkmark to text).
+ */
+export const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
   const [isDefaultVisible, setIsDefaultVisible] = useState(false);
   const [automationStage, setAutomationStage] = useState<'initial' | 'transformed' | 'hiding'>('initial');
 
@@ -17,20 +40,25 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
     }
 
     if (toast.type === 'automationSuccess') {
-      setIsDefaultVisible(false); // Ensure default isn't showing
+      // Logic for the 'automationSuccess' animation sequence:
+      // 1. Start in 'initial' state (icon).
+      // 2. Expand to 'transformed' state (text) after 1s.
+      // 3. Enter 'hiding' state after another 1.8s.
+      // 4. Finally dismiss.
+      setIsDefaultVisible(false);
       setAutomationStage('initial');
       const transformTimer = setTimeout(() => setAutomationStage('transformed'), 1000);
       const hideTimer = setTimeout(() => {
         setAutomationStage('hiding');
-        setTimeout(onDismiss, 300); // Wait for animation
-      }, 2800); // 1s (initial) + 1.8s (transformed)
+        setTimeout(onDismiss, 300); // Wait for transition out
+      }, 2800);
 
       return () => {
         clearTimeout(transformTimer);
         clearTimeout(hideTimer);
       };
     } else {
-      // Default toast logic
+      // Standard toast: show, wait, hide, dismiss.
       setIsDefaultVisible(true);
       const timer = setTimeout(() => {
         setIsDefaultVisible(false);

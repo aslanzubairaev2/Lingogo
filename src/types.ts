@@ -335,6 +335,8 @@ export interface PracticeReviewLogEntry {
   isLeechAfter: boolean;
 }
 
+export type DiscussCacheEntry = Record<string, ChatMessage[]>;
+
 /**
  * Raw AI response from Gemini (simplified schema)
  */
@@ -346,4 +348,68 @@ export interface PracticeChatAIResponse {
   suggestions: string[];
   hints?: string[];
   vocabularyUsed?: string[];
+}
+
+export type AnimationDirection = 'left' | 'right';
+export interface AnimationState {
+  key: string;
+  direction: AnimationDirection;
+}
+
+export interface PhraseEvaluation {
+  type?: object;
+  properties: {
+    isCorrect: boolean;
+    feedback: string;
+    correctedPhrase?: string;
+  };
+}
+
+export interface DeepDiveAnalysis {
+  type: object;
+  properties: {
+    chunks: {
+      type: string[];
+      description: string;
+      items: {
+        type: object;
+        properties: {
+          text: string;
+          type: {
+            type: string;
+            description: string;
+          };
+          explanation: {
+            type: string;
+            description: string;
+          };
+        };
+      };
+    };
+    keyConcepts: {
+      type: string[];
+      description: string;
+      items: {
+        type: object;
+        properties: {
+          concept: { type: string; description: string };
+          explanation: { type: string; description: string };
+        };
+      };
+    };
+    personalizationQuestion: {
+      type: string;
+      description: string;
+    };
+    mnemonicImage: {
+      type: object;
+      description: string;
+      properties: {
+        description: {
+          type: string;
+          description: string;
+        };
+      };
+    };
+  };
 }

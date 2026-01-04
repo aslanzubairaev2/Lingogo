@@ -1,7 +1,20 @@
+/**
+ * LearningAssistantModal.tsx
+ *
+ * This component provides an AI-powered conversational interface for learning specific phrases.
+ * Features:
+ * - Interactive chat with an AI tutor (Gemini).
+ * - Speech-to-text (STT) support for both native and learning languages.
+ * - Text-to-speech (TTS) for pronouncing learning content.
+ * - Interactive word analysis (breaking down phrases into words).
+ * - "Cheat sheets" for grammar assistance (verb conjugations, noun declensions, etc.).
+ */
+
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
+import { getLanguageLabel } from '../i18n/languageMeta.ts';
 import { getSpeechLocale, speak, SpeechOptions } from '../services/speechService';
 // FIX: Added 'ContentPart' to the import to resolve 'Cannot find name' error.
 import { ChatMessage, CheatSheetOption, ContentPart, LanguageCode, Phrase } from '../types.ts';
@@ -11,24 +24,50 @@ import CloseIcon from './icons/CloseIcon';
 import MicrophoneIcon from './icons/MicrophoneIcon';
 import SendIcon from './icons/SendIcon';
 import SoundIcon from './icons/SoundIcon';
-import { getLanguageLabel } from '../i18n/languageMeta.ts';
 
+/**
+ * Props for the LearningAssistantModal.
+ */
 interface LearningAssistantModalProps {
+  /** Controls visibility of the modal */
   isOpen: boolean;
+  /** Callback to close the modal. didSucceed indicates if the phrase was mastered/completed. */
   onClose: (didSucceed?: boolean) => void;
+  /** The phrase currently being learned or practiced */
   phrase: Phrase;
+  /**
+   * Core function to get AI guidance.
+   * @param phrase The phrase context.
+   * @param history Chat history so far.
+   * @param userAnswer The user's input/question.
+   * @returns Promise resolving to the AI's response message.
+   */
   onGuide: (phrase: Phrase, history: ChatMessage[], userAnswer: string) => Promise<ChatMessage>;
+  /** Callback invoked when the user successfully completes the learning task */
   onSuccess: (phrase: Phrase) => void;
+  // --- Navigation & Helper Callbacks ---
+  /** Open verb conjugation modal */
   onOpenVerbConjugation: (infinitive: string) => void;
+  /** Open noun declension modal */
   onOpenNounDeclension: (noun: string, article: string) => void;
+  /** Open pronouns reference modal */
   onOpenPronounsModal: () => void;
+  /** Open W-questions (Who, What, Where, etc.) reference modal */
   onOpenWFragenModal: () => void;
+  /** Open word-specific analysis (e.g. for individual words in a sentence) */
+  onOpenWordAnalysis: (phrase: Phrase, word: string) => void;
+  /** Open adjective declension modal */
+  onOpenAdjectiveDeclension: (adjective: string) => void;
+  // --- Caching ---
+  /** Cache of chat history for phrases, preventing loss of context on close/reopen */
   cache: { [phraseId: string]: ChatMessage[] };
   setCache: React.Dispatch<React.SetStateAction<{ [phraseId: string]: ChatMessage[] }>>;
-  onOpenWordAnalysis: (phrase: Phrase, word: string) => void;
-  onOpenAdjectiveDeclension: (adjective: string) => void;
 }
 
+/**
+ * Renders a single chat message.
+ * Handles parsing of message content parts (text vs. learning blocks) and interaction logic.
+ */
 const ChatMessageContent: React.FC<{
   message: ChatMessage;
   onSpeak: (text: string, options: SpeechOptions) => void;
@@ -38,6 +77,10 @@ const ChatMessageContent: React.FC<{
   const { contentParts } = message;
 
   // FIX: Updated to accept nativeText and construct a valid proxy Phrase.
+  /**
+   * Handles clicking on a specific word within a learning block.
+   * Creates a "proxy" phrase to pass to the word analysis tool.
+   */
   const handleWordClick = (contextText: string, word: string, nativeText: string) => {
     if (!onOpenWordAnalysis || !basePhrase) return;
     const proxyPhrase: Phrase = {
@@ -49,6 +92,10 @@ const ChatMessageContent: React.FC<{
   };
 
   // FIX: Updated to pass the translation to handleWordClick.
+  /**
+   * Renders a "learning" content part (usually target language text) as clickable words.
+   * Splits text by spaces and makes each word interactive.
+   */
   const renderClickableLearning = (part: ContentPart) => {
     if (!part.text) return null;
     return part.text.split(' ').map((word, i, arr) => (
@@ -113,21 +160,39 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const { profile } = useLanguage();
+
+  // --- State Variables ---
+  // Chat history for the current session
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Loading state for AI responses
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  // Current user input text
   const [input, setInput] = useState('');
+  // Quick-reply options suggested by the AI
   const [wordOptions, setWordOptions] = useState<string[]>([]);
+  // Context-aware cheat sheet options (e.g. "Conjugate this verb")
   const [cheatSheetOptions, setCheatSheetOptions] = useState<CheatSheetOption[]>([]);
+  // Success state (confetti/completion UI)
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // --- Speech Recognition State ---
+  // Current language being listened for (Native vs Learning)
   const [recognitionLang, setRecognitionLang] = useState<LanguageCode>(profile.native);
   const [isListening, setIsListening] = useState(false);
+  // Refs for speech recognition instances to avoid re-creation
   const nativeRecognitionRef = useRef<any>(null);
   const learningRecognitionRef = useRef<any>(null);
 
+  // --- UI Refs ---
+  // For auto-scrolling to the newest message
   const chatEndRef = useRef<HTMLDivElement>(null);
+  // For auto-resizing the input textarea
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  /**
+   * Helper to update messages state and sync with the session cache.
+   * Ensures that if the modal is closed and reopened, the conversation is preserved.
+   */
   const updateMessages = useCallback(
     (updater: (prev: ChatMessage[]) => ChatMessage[]) => {
       setMessages((prevMessages) => {
@@ -139,6 +204,12 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
     [setCache, phrase.id]
   );
 
+  /**
+   * Effect: Initialization
+   * - Loads cached messages if available.
+   * - If no cache, triggers the initial AI "guide" message to start the conversation.
+   * - Sets quick reply options from the last message.
+   */
   useEffect(() => {
     if (isOpen && phrase) {
       const cachedMessages = cache[phrase.id];
@@ -147,6 +218,7 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
       setCheatSheetOptions([]);
 
       if (cachedMessages) {
+        // Restore from cache
         setMessages(cachedMessages);
         const lastMessage = cachedMessages[cachedMessages.length - 1];
         if (lastMessage?.role === 'model') {
@@ -158,6 +230,7 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
         }
         setIsLoading(false);
       } else {
+        // Start new session
         setIsLoading(true);
         setMessages([]);
         onGuide(phrase, [], '')
@@ -185,6 +258,11 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
     }
   }, [isOpen, phrase, onGuide, cache, updateMessages]);
 
+  /**
+   * Effect: Speech Recognition Setup
+   * Initializes two recognizers: one for Native language and one for Learning language.
+   * This allows the user to switch languages instantly.
+   */
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
@@ -214,11 +292,13 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
     }
   }, [profile.native, profile.learning]);
 
+  // Handles switching the active speech recognition language
   const handleLangChange = (lang: LanguageCode) => {
     if (isListening) return;
     setRecognitionLang(lang);
   };
 
+  // Toggles speech recognition on/off
   const handleMicClick = () => {
     const recognizer =
       recognitionLang === profile.native ? nativeRecognitionRef.current : learningRecognitionRef.current;
@@ -237,6 +317,7 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
     }
   };
 
+  // Auto-resizes the input textarea as content grows
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -244,6 +325,13 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
     }
   }, [input]);
 
+  /**
+   * Handles sending a user message to the AI.
+   * - Stops listening if active.
+   * - Updates local chat history immediately.
+   * - Calls the AI API (`onGuide`).
+   * - Handles success state if the AI marks the interaction as correct.
+   */
   const handleSendMessage = useCallback(
     async (messageText: string) => {
       if (!messageText.trim() || isLoading || isSuccess) return;
@@ -268,6 +356,7 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
         if (modelResponse.isCorrect) {
           setIsSuccess(true);
           onSuccess(phrase);
+          // Auto-close after success animation
           setTimeout(() => onClose(true), 2500);
         }
       } catch (error) {
@@ -289,6 +378,10 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
     handleSendMessage(suggestion);
   };
 
+  /**
+   * Handles clicks on "Cheat Sheet" chips (e.g. "Show conjugation").
+   * Opens the appropriate modal based on the option type.
+   */
   const handleCheatSheetClick = (option: CheatSheetOption) => {
     switch (option.type) {
       case 'verbConjugation':
@@ -332,7 +425,7 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
     handleSendMessage(word);
   };
 
-  // Replace hardcoded "Не знаю" with localized version
+  // Replace hardcoded "Не знаю" with localized version for consistency
   const getLocalizedWordOptions = useCallback(
     (options: string[]) => {
       if (options.length > 0 && options[0] === 'Не знаю') {

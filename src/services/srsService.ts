@@ -1,4 +1,4 @@
-import { Category, Phrase, PhraseCategory } from '../types.ts';
+import { Category, Phrase, PhraseCategory, PracticeReviewAction } from '../types.ts';
 
 // Intervals in milliseconds
 // e.g., 1 hour, 8 hours, 1 day, 3 days, 1 week, 2 weeks
@@ -116,13 +116,11 @@ export const selectNextPhrase = (phrases: Phrase[], currentPhraseId: string | nu
   return null;
 };
 
-type UserAction = 'know' | 'forgot' | 'dont_know';
-
 export const isLeech = (phrase: Phrase): boolean => {
   return phrase.lapses >= LEECH_THRESHOLD;
 };
 
-export const updatePhraseMastery = (phrase: Phrase, action: UserAction, categories: Category[]): Phrase => {
+export const updatePhraseMastery = (phrase: Phrase, action: PracticeReviewAction, categories: Category[]): Phrase => {
   const now = Date.now();
   let newMasteryLevel = phrase.masteryLevel;
   let newKnowCount = phrase.knowCount;
