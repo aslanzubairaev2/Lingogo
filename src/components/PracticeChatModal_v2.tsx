@@ -11,7 +11,7 @@
  * - Matches app design style
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -311,7 +311,7 @@ export const PracticeChatModal_v2: React.FC<Props> = ({
     messagesRef.current = messages;
   }, [messages]);
 
-  const handleRevealTranslation = useCallback((messageIndex: number) => {
+  const handleRevealTranslation = (messageIndex: number) => {
     setRevealedTranslations((prev) => {
       if (prev.has(messageIndex)) {
         return prev;
@@ -324,9 +324,9 @@ export const PracticeChatModal_v2: React.FC<Props> = ({
       }));
       return next;
     });
-  }, []);
+  };
 
-  const finalizeSession = useCallback(() => {
+  const finalizeSession = () => {
     if (sessionFinalizedRef.current) {
       return;
     }
@@ -363,7 +363,7 @@ export const PracticeChatModal_v2: React.FC<Props> = ({
     setContextMenuTarget(null);
     setError(null);
     setIsLoading(false);
-  }, [onSessionComplete]);
+  };
 
   // Initialize greeting
   useEffect(() => {
@@ -388,13 +388,13 @@ export const PracticeChatModal_v2: React.FC<Props> = ({
       finalizeSession();
     }
     prevIsOpenRef.current = isOpen;
-  }, [isOpen, finalizeSession]);
+  }, [isOpen]);
 
   useEffect(() => {
     return () => {
       finalizeSession();
     };
-  }, [finalizeSession]);
+  }, []);
 
   // Initialize speech recognition
   useEffect(() => {
@@ -467,132 +467,123 @@ export const PracticeChatModal_v2: React.FC<Props> = ({
     }
   }, [isOpen]);
 
-  const normalizeAssistantTranslation = useCallback(
-    async (message: PracticeChatMessage) => {
-      const primaryContent = message.content?.primary;
-      if (!primaryContent?.text) return message;
+  const normalizeAssistantTranslation = async (message: PracticeChatMessage) => {
+    const primaryContent = message.content?.primary;
+    if (!primaryContent?.text) return message;
 
-      try {
-        const translationResult = await onTranslateLearningToNative(primaryContent.text);
-        const normalized = translationResult?.native?.trim();
+    try {
+      const translationResult = await onTranslateLearningToNative(primaryContent.text);
+      const normalized = translationResult?.native?.trim();
 
-        if (normalized && normalized !== primaryContent.translation?.trim()) {
-          return {
-            ...message,
-            content: {
-              ...message.content,
-              primary: {
-                ...primaryContent,
-                translation: normalized,
-              },
+      if (normalized && normalized !== primaryContent.translation?.trim()) {
+        return {
+          ...message,
+          content: {
+            ...message.content,
+            primary: {
+              ...primaryContent,
+              translation: normalized,
             },
-          };
-        }
-      } catch (error) {
-        console.error('[PracticeChatModal] Failed to normalize translation:', error);
+          },
+        };
       }
+    } catch (error) {
+      console.error('[PracticeChatModal] Failed to normalize translation:', error);
+    }
 
-      return message;
-    },
-    [onTranslateLearningToNative]
-  );
+    return message;
+  };
 
   // Handle sending message
-  const handleSendMessage = useCallback(
-    async (text: string) => {
-      if (!text.trim() || isLoading) return;
+  const handleSendMessage = async (text: string) => {
+    if (!text.trim() || isLoading) return;
 
-      if (isListening) recognitionRef.current?.stop();
+    if (isListening) recognitionRef.current?.stop();
 
-      const userMessage: PracticeChatMessage = {
-        role: 'user',
-        content: {
-          primary: { text: text.trim() },
-        },
-        metadata: {
-          timestamp: Date.now(),
-        },
-      };
+    const userMessage: PracticeChatMessage = {
+      role: 'user',
+      content: {
+        primary: { text: text.trim() },
+      },
+      metadata: {
+        timestamp: Date.now(),
+      },
+    };
 
-      // Capture current history and add user message
-      let historySnapshot: PracticeChatMessage[] = [];
-      setMessages((prev) => {
-        historySnapshot = prev; // Capture the current state
-        return [...prev, userMessage];
+    // Capture current history and add user message
+    let historySnapshot: PracticeChatMessage[] = [];
+    setMessages((prev) => {
+      historySnapshot = prev; // Capture the current state
+      return [...prev, userMessage];
+    });
+
+    setUserInput('');
+    setIsLoading(true);
+    setError(null);
+    const userMessageTimestamp = Date.now();
+    setStats((prev) => ({
+      ...prev,
+      messagesExchanged: prev.messagesExchanged + 1,
+      duration: Math.max(prev.duration, userMessageTimestamp - prev.sessionStartTime),
+    }));
+
+    try {
+      // Pass history without the user message (it will be added by the service)
+      const aiResponse = await sendPracticeChatMessage(historySnapshot, text.trim(), allPhrases, profile);
+
+      const normalizedResponse = await normalizeAssistantTranslation(aiResponse);
+
+      setMessages((prev) => [...prev, normalizedResponse]);
+
+      const now = Date.now();
+      setStats((prev) => {
+        const phraseId = normalizedResponse.actions?.phraseUsed;
+        const hasPhrase = phraseId ? prev.phrasesUsedIds.includes(phraseId) : false;
+        const correctness = normalizedResponse.metadata?.correctness;
+
+        return {
+          ...prev,
+          phrasesUsedIds: phraseId
+            ? hasPhrase
+              ? prev.phrasesUsedIds
+              : [...prev.phrasesUsedIds, phraseId]
+            : prev.phrasesUsedIds,
+          correctCount: correctness === 'correct' ? prev.correctCount + 1 : prev.correctCount,
+          incorrectCount: correctness === 'incorrect' ? prev.incorrectCount + 1 : prev.incorrectCount,
+          partialCount: correctness === 'partial' ? prev.partialCount + 1 : prev.partialCount,
+          messagesExchanged: prev.messagesExchanged + 1,
+          duration: Math.max(prev.duration, now - prev.sessionStartTime),
+        };
       });
-
-      setUserInput('');
-      setIsLoading(true);
-      setError(null);
-      const userMessageTimestamp = Date.now();
-      setStats((prev) => ({
-        ...prev,
-        messagesExchanged: prev.messagesExchanged + 1,
-        duration: Math.max(prev.duration, userMessageTimestamp - prev.sessionStartTime),
-      }));
-
-      try {
-        // Pass history without the user message (it will be added by the service)
-        const aiResponse = await sendPracticeChatMessage(historySnapshot, text.trim(), allPhrases, profile);
-
-        const normalizedResponse = await normalizeAssistantTranslation(aiResponse);
-
-        setMessages((prev) => [...prev, normalizedResponse]);
-
-        const now = Date.now();
-        setStats((prev) => {
-          const phraseId = normalizedResponse.actions?.phraseUsed;
-          const hasPhrase = phraseId ? prev.phrasesUsedIds.includes(phraseId) : false;
-          const correctness = normalizedResponse.metadata?.correctness;
-
-          return {
-            ...prev,
-            phrasesUsedIds: phraseId
-              ? hasPhrase
-                ? prev.phrasesUsedIds
-                : [...prev.phrasesUsedIds, phraseId]
-              : prev.phrasesUsedIds,
-            correctCount: correctness === 'correct' ? prev.correctCount + 1 : prev.correctCount,
-            incorrectCount: correctness === 'incorrect' ? prev.incorrectCount + 1 : prev.incorrectCount,
-            partialCount: correctness === 'partial' ? prev.partialCount + 1 : prev.partialCount,
-            messagesExchanged: prev.messagesExchanged + 1,
-            duration: Math.max(prev.duration, now - prev.sessionStartTime),
-          };
-        });
-      } catch (err) {
-        const unknownError = t('practice.chat.messages.unknownError', { defaultValue: 'Unknown error' });
-        const errorMsg = err instanceof Error ? err.message : unknownError;
-        setError(errorMsg);
-        console.error('[PracticeChatModal] Error:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [isLoading, allPhrases, profile, isListening, normalizeAssistantTranslation, t]
-  );
+    } catch (err) {
+      const unknownError = t('practice.chat.messages.unknownError', { defaultValue: 'Unknown error' });
+      const errorMsg = err instanceof Error ? err.message : unknownError;
+      setError(errorMsg);
+      console.error('[PracticeChatModal] Error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handle quick reply
-  const handleQuickReply = useCallback(
-    (text: string) => {
-      handleSendMessage(text);
-    },
-    [handleSendMessage]
-  );
+  const handleQuickReply = (text: string) => {
+    handleSendMessage(text);
+  };
 
   // Handle microphone
-  const handleMicClick = useCallback(() => {
+  const handleMicClick = () => {
     if (!recognitionRef.current) return;
     if (isListening) {
       recognitionRef.current.stop();
     } else {
       recognitionRef.current.start();
     }
-  }, [isListening]);
+  };
 
-  const handleModalClose = useCallback(() => {
+  const handleModalClose = () => {
     finalizeSession();
     onClose();
-  }, [finalizeSession, onClose]);
+  };
 
   // Get last assistant message for quick replies
   const lastAssistantMessage = [...messages].reverse().find((m) => m.role === 'assistant');

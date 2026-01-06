@@ -6,7 +6,7 @@
  * and various context-aware actions.
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useLanguage } from '@/src/contexts/languageContext.tsx';
 
@@ -171,10 +171,10 @@ const PhraseCard: React.FC<PhraseCardProps> = ({
     }
   }, [flash, onFlashEnd]);
 
-  const handleCardClick = useCallback(() => {
+  const handleCardClick = () => {
     setWordHint(null); // Close hint on any card interaction
     onFlip();
-  }, [onFlip]);
+  };
 
   /**
    * Handles clicking a word on the native side to show its translation.
@@ -218,14 +218,11 @@ const PhraseCard: React.FC<PhraseCardProps> = ({
    * @param key - The unique key for the action (e.g., 'chat', 'deepDive').
    * @param action - The callback function to execute.
    */
-  const createLoggedAction = useCallback(
-    (key: string, action: (p: Phrase) => void) => (e: React.MouseEvent) => {
-      e.stopPropagation();
-      onLogCardActionUsage(key);
-      action(phrase);
-    },
-    [phrase, onLogCardActionUsage]
-  );
+  const createLoggedAction = (key: string, action: (p: Phrase) => void) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onLogCardActionUsage(key);
+    action(phrase);
+  };
 
   const allButtons = useMemo(
     () => [
@@ -268,7 +265,6 @@ const PhraseCard: React.FC<PhraseCardProps> = ({
     ],
     [
       t,
-      createLoggedAction,
       onOpenLearningAssistant,
       onOpenSentenceChain,
       onOpenVoicePractice,

@@ -2,7 +2,7 @@
  * Hook for automatic phrase validation and fixing on app startup
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { AiService } from '../services/aiService';
 import { fixPhrasesInBatch, generateFixReport, type RegenerationProgress } from '../services/phraseRegenerationService';
@@ -67,7 +67,7 @@ export function useAutoFixPhrases(
   /**
    * Run validation and auto-fix
    */
-  const runAutoFix = useCallback(async () => {
+  const runAutoFix = async () => {
     // Prevent multiple simultaneous runs
     if (isRunningRef.current) {
       console.log('[AutoFix] Already running, skipping...');
@@ -183,30 +183,20 @@ export function useAutoFixPhrases(
     } finally {
       isRunningRef.current = false;
     }
-  }, [
-    enabled,
-    runOnce,
-    allPhrases,
-    learningLanguageCode,
-    learningLanguageName,
-    nativeLanguageName,
-    aiService,
-    updatePhrases,
-    onComplete,
-  ]);
+  };
 
   /**
    * Manually trigger auto-fix
    */
-  const trigger = useCallback(() => {
+  const trigger = () => {
     hasRunRef.current = false; // Reset the "has run" flag
     runAutoFix();
-  }, [runAutoFix]);
+  };
 
   /**
    * Reset the auto-fix state
    */
-  const reset = useCallback(() => {
+  const reset = () => {
     hasRunRef.current = false;
     isRunningRef.current = false;
     setState({
@@ -216,7 +206,7 @@ export function useAutoFixPhrases(
       error: null,
       completedMessage: null,
     });
-  }, []);
+  };
 
   // Auto-run on mount if enabled
   useEffect(() => {

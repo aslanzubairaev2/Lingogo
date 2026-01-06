@@ -10,7 +10,7 @@
  * - "Cheat sheets" for grammar assistance (verb conjugations, noun declensions, etc.).
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useLanguage } from '../contexts/languageContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -193,16 +193,13 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
    * Helper to update messages state and sync with the session cache.
    * Ensures that if the modal is closed and reopened, the conversation is preserved.
    */
-  const updateMessages = useCallback(
-    (updater: (prev: ChatMessage[]) => ChatMessage[]) => {
-      setMessages((prevMessages) => {
-        const newMessages = updater(prevMessages);
-        setCache((prevCache) => ({ ...prevCache, [phrase.id]: newMessages }));
-        return newMessages;
-      });
-    },
-    [setCache, phrase.id]
-  );
+  const updateMessages = (updater: (prev: ChatMessage[]) => ChatMessage[]) => {
+    setMessages((prevMessages) => {
+      const newMessages = updater(prevMessages);
+      setCache((prevCache) => ({ ...prevCache, [phrase.id]: newMessages }));
+      return newMessages;
+    });
+  };
 
   /**
    * Effect: Initialization
@@ -256,7 +253,7 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
           });
       }
     }
-  }, [isOpen, phrase, onGuide, cache, updateMessages]);
+  }, []);
 
   /**
    * Effect: Speech Recognition Setup
@@ -332,47 +329,44 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
    * - Calls the AI API (`onGuide`).
    * - Handles success state if the AI marks the interaction as correct.
    */
-  const handleSendMessage = useCallback(
-    async (messageText: string) => {
-      if (!messageText.trim() || isLoading || isSuccess) return;
+  const handleSendMessage = async (messageText: string) => {
+    if (!messageText.trim() || isLoading || isSuccess) return;
 
-      if (isListening) {
-        (recognitionLang === profile.native ? nativeRecognitionRef.current : learningRecognitionRef.current)?.stop();
+    if (isListening) {
+      (recognitionLang === profile.native ? nativeRecognitionRef.current : learningRecognitionRef.current)?.stop();
+    }
+
+    setWordOptions([]);
+    setCheatSheetOptions([]);
+
+    const userMessage: ChatMessage = { role: 'user', text: messageText };
+    updateMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const modelResponse = await onGuide(phrase, [...messages, userMessage], messageText);
+      updateMessages((prev) => [...prev, modelResponse]);
+      setWordOptions(modelResponse.wordOptions || []);
+      setCheatSheetOptions(modelResponse.cheatSheetOptions || []);
+      if (modelResponse.isCorrect) {
+        setIsSuccess(true);
+        onSuccess(phrase);
+        // Auto-close after success animation
+        setTimeout(() => onClose(true), 2500);
       }
-
-      setWordOptions([]);
-      setCheatSheetOptions([]);
-
-      const userMessage: ChatMessage = { role: 'user', text: messageText };
-      updateMessages((prev) => [...prev, userMessage]);
-      setInput('');
-      setIsLoading(true);
-
-      try {
-        const modelResponse = await onGuide(phrase, [...messages, userMessage], messageText);
-        updateMessages((prev) => [...prev, modelResponse]);
-        setWordOptions(modelResponse.wordOptions || []);
-        setCheatSheetOptions(modelResponse.cheatSheetOptions || []);
-        if (modelResponse.isCorrect) {
-          setIsSuccess(true);
-          onSuccess(phrase);
-          // Auto-close after success animation
-          setTimeout(() => onClose(true), 2500);
-        }
-      } catch (error) {
-        const errorMsg: ChatMessage = {
-          role: 'model',
-          contentParts: [
-            { type: 'text', text: t('modals.learningAssistant.errors.generic', { message: (error as Error).message }) },
-          ],
-        };
-        updateMessages((prev) => [...prev, errorMsg]);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [isLoading, isSuccess, messages, phrase, onGuide, onSuccess, onClose, updateMessages, recognitionLang, isListening]
-  );
+    } catch (error) {
+      const errorMsg: ChatMessage = {
+        role: 'model',
+        contentParts: [
+          { type: 'text', text: t('modals.learningAssistant.errors.generic', { message: (error as Error).message }) },
+        ],
+      };
+      updateMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
@@ -426,16 +420,13 @@ const LearningAssistantModal: React.FC<LearningAssistantModalProps> = ({
   };
 
   // Replace hardcoded "Не знаю" with localized version for consistency
-  const getLocalizedWordOptions = useCallback(
-    (options: string[]) => {
-      if (options.length > 0 && options[0] === 'Не знаю') {
-        const localizedDontKnow = t('modals.learningAssistant.dontKnow');
-        return [localizedDontKnow, ...options.slice(1)];
-      }
-      return options;
-    },
-    [t]
-  );
+  const getLocalizedWordOptions = (options: string[]) => {
+    if (options.length > 0 && options[0] === 'Не знаю') {
+      const localizedDontKnow = t('modals.learningAssistant.dontKnow');
+      return [localizedDontKnow, ...options.slice(1)];
+    }
+    return options;
+  };
 
   const localizedWordOptions = getLocalizedWordOptions(wordOptions);
 

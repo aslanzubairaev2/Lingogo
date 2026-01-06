@@ -51,7 +51,8 @@ const VoicePracticeModal: React.FC<VoicePracticeModalProps> = ({ isOpen, onClose
         }
       };
       recognitionRef.current = recognition;
-    }, [onSubmit, onClose]);
+    }
+  }, [onSubmit, onClose]);
 
   useEffect(() => {
     if (isOpen) {

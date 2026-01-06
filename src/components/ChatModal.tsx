@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -379,48 +379,45 @@ const ChatModal: React.FC<ChatModalProps> = ({
     }
   }, [input]);
 
-  const handleSendMessage = useCallback(
-    async (messageText: string) => {
-      if (!messageText.trim() || isLoading) return;
+  const handleSendMessage = async (messageText: string) => {
+    if (!messageText.trim() || isLoading) return;
 
-      if (isListening) {
-        recognitionRef.current?.stop();
+    if (isListening) {
+      recognitionRef.current?.stop();
+    }
+
+    const userMessage: ChatMessage = { role: 'user', text: messageText };
+    const messagesWithUser = [...messages, userMessage];
+    setMessages(messagesWithUser);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const modelResponse = await onContinueChat(phrase, messagesWithUser, messageText);
+      setMessages((prev) => [...prev, modelResponse]);
+      if (modelResponse.promptSuggestions && modelResponse.promptSuggestions.length > 0) {
+        setPromptSuggestions((prev) => {
+          const newPrompts = modelResponse.promptSuggestions || [];
+          const combined = [...newPrompts, ...prev];
+          const uniquePrompts = Array.from(new Set(combined));
+          return uniquePrompts;
+        });
       }
-
-      const userMessage: ChatMessage = { role: 'user', text: messageText };
-      const messagesWithUser = [...messages, userMessage];
-      setMessages(messagesWithUser);
-      setInput('');
-      setIsLoading(true);
-
-      try {
-        const modelResponse = await onContinueChat(phrase, messagesWithUser, messageText);
-        setMessages((prev) => [...prev, modelResponse]);
-        if (modelResponse.promptSuggestions && modelResponse.promptSuggestions.length > 0) {
-          setPromptSuggestions((prev) => {
-            const newPrompts = modelResponse.promptSuggestions || [];
-            const combined = [...newPrompts, ...prev];
-            const uniquePrompts = Array.from(new Set(combined));
-            return uniquePrompts;
-          });
-        }
-      } catch (error) {
-        console.error('Chat error:', error);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'model',
-            contentParts: [
-              { type: 'text', text: t('modals.chat.errors.generic', { message: (error as Error).message }) },
-            ],
-          },
-        ]);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [isLoading, messages, phrase, isListening, onContinueChat]
-  );
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'model',
+          contentParts: [
+            { type: 'text', text: t('modals.chat.errors.generic', { message: (error as Error).message }) },
+          ],
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);

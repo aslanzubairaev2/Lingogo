@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 /**
  * App.tsx
@@ -149,13 +149,13 @@ const App: React.FC = () => {
 
   // Toast
   const [toast, setToast] = useState<ToastState | null>(null);
-  const showToast = useCallback((config: { message: string; type?: ToastType }) => {
+  const showToast = (config: { message: string; type?: ToastType }) => {
     setToast({
       message: config.message,
       type: config.type || 'default',
       id: Date.now(),
     });
-  }, []);
+  };
 
   // --- Data & API Operations ---
   // Centralized hook for managing phrases, categories, SRS, stats, and API interactions.
@@ -314,172 +314,154 @@ const App: React.FC = () => {
    * Generates a "Deep Dive" analysis for a phrase using AI.
    * Checks local cache first before making an API call.
    */
-  const handleOpenDeepDive = useCallback(
-    async (phrase: Phrase) => {
-      setDeepDivePhrase(phrase);
-      setIsDeepDiveModalOpen(true);
-      setIsDeepDiveLoading(true);
-      setDeepDiveAnalysis(null);
-      setDeepDiveError(null);
-      const cacheKey = `deep_dive_${phrase.id}`;
-      const cachedAnalysis = cacheService.getCache<DeepDiveAnalysis>(cacheKey);
-      if (cachedAnalysis) {
-        setDeepDiveAnalysis(cachedAnalysis);
-        setIsDeepDiveLoading(false);
-        return;
-      }
-      try {
-        const analysis = await callApiWithFallback((provider) => provider.generateDeepDiveAnalysis(phrase));
-        setDeepDiveAnalysis(analysis);
-        cacheService.setCache(cacheKey, analysis);
-      } catch (err) {
-        setDeepDiveError(err instanceof Error ? err.message : 'Unknown error during analysis generation.');
-      } finally {
-        setIsDeepDiveLoading(false);
-      }
-    },
-    [callApiWithFallback]
-  );
+  const handleOpenDeepDive = async (phrase: Phrase) => {
+    setDeepDivePhrase(phrase);
+    setIsDeepDiveModalOpen(true);
+    setIsDeepDiveLoading(true);
+    setDeepDiveAnalysis(null);
+    setDeepDiveError(null);
+    const cacheKey = `deep_dive_${phrase.id}`;
+    const cachedAnalysis = cacheService.getCache<DeepDiveAnalysis>(cacheKey);
+    if (cachedAnalysis) {
+      setDeepDiveAnalysis(cachedAnalysis);
+      setIsDeepDiveLoading(false);
+      return;
+    }
+    try {
+      const analysis = await callApiWithFallback((provider) => provider.generateDeepDiveAnalysis(phrase));
+      setDeepDiveAnalysis(analysis);
+      cacheService.setCache(cacheKey, analysis);
+    } catch (err) {
+      setDeepDiveError(err instanceof Error ? err.message : 'Unknown error during analysis generation.');
+    } finally {
+      setIsDeepDiveLoading(false);
+    }
+  };
 
   /**
    * Generates movie examples for a phrase using AI.
    * Checks local cache first.
    */
-  const handleOpenMovieExamples = useCallback(
-    async (phrase: Phrase) => {
-      setMovieExamplesPhrase(phrase);
-      setIsMovieExamplesModalOpen(true);
-      setIsMovieExamplesLoading(true);
-      setMovieExamples([]);
-      setMovieExamplesError(null);
-      const cacheKey = `movie_examples_${phrase.id}`;
-      const cachedExamples = cacheService.getCache<MovieExample[]>(cacheKey);
-      if (cachedExamples) {
-        setMovieExamples(cachedExamples);
-        setIsMovieExamplesLoading(false);
-        return;
-      }
-      try {
-        const examples = await callApiWithFallback((provider) => provider.generateMovieExamples(phrase));
-        setMovieExamples(examples);
-        cacheService.setCache(cacheKey, examples);
-      } catch (err) {
-        setMovieExamplesError(err instanceof Error ? err.message : 'Unknown error during example generation.');
-      } finally {
-        setIsMovieExamplesLoading(false);
-      }
-    },
-    [callApiWithFallback]
-  );
+  const handleOpenMovieExamples = async (phrase: Phrase) => {
+    setMovieExamplesPhrase(phrase);
+    setIsMovieExamplesModalOpen(true);
+    setIsMovieExamplesLoading(true);
+    setMovieExamples([]);
+    setMovieExamplesError(null);
+    const cacheKey = `movie_examples_${phrase.id}`;
+    const cachedExamples = cacheService.getCache<MovieExample[]>(cacheKey);
+    if (cachedExamples) {
+      setMovieExamples(cachedExamples);
+      setIsMovieExamplesLoading(false);
+      return;
+    }
+    try {
+      const examples = await callApiWithFallback((provider) => provider.generateMovieExamples(phrase));
+      setMovieExamples(examples);
+      cacheService.setCache(cacheKey, examples);
+    } catch (err) {
+      setMovieExamplesError(err instanceof Error ? err.message : 'Unknown error during example generation.');
+    } finally {
+      setIsMovieExamplesLoading(false);
+    }
+  };
 
   /**
    * Analyzes a specific word within a phrase to provide context-aware meaning.
    */
-  const analyzeWord = useCallback(
-    async (phrase: Phrase, word: string): Promise<WordAnalysis | null> => {
-      const cacheKey = `word_analysis_${phrase.id}_${word.toLowerCase()}`;
-      const cachedAnalysis = cacheService.getCache<WordAnalysis>(cacheKey);
-      if (cachedAnalysis) return cachedAnalysis;
+  const analyzeWord = async (phrase: Phrase, word: string): Promise<WordAnalysis | null> => {
+    const cacheKey = `word_analysis_${phrase.id}_${word.toLowerCase()}`;
+    const cachedAnalysis = cacheService.getCache<WordAnalysis>(cacheKey);
+    if (cachedAnalysis) return cachedAnalysis;
 
-      try {
-        const analysis = await callApiWithFallback((provider) => provider.analyzeWordInPhrase(phrase, word));
-        cacheService.setCache(cacheKey, analysis);
-        return analysis;
-      } catch (err) {
-        console.error('Error analyzing word:', err);
-        return null;
-      }
-    },
-    [callApiWithFallback]
-  );
+    try {
+      const analysis = await callApiWithFallback((provider) => provider.analyzeWordInPhrase(phrase, word));
+      cacheService.setCache(cacheKey, analysis);
+      return analysis;
+    } catch (err) {
+      console.error('Error analyzing word:', err);
+      return null;
+    }
+  };
 
-  const handleOpenWordAnalysis = useCallback(
-    async (phrase: Phrase, word: string) => {
-      if (isWordAnalysisLoading) return;
-      setWordAnalysisPhrase(phrase);
-      setSelectedWord(word);
-      setIsWordAnalysisModalOpen(true);
-      setIsWordAnalysisLoading(true);
-      setWordAnalysis(null);
-      setWordAnalysisError(null);
+  const handleOpenWordAnalysis = async (phrase: Phrase, word: string) => {
+    if (isWordAnalysisLoading) return;
+    setWordAnalysisPhrase(phrase);
+    setSelectedWord(word);
+    setIsWordAnalysisModalOpen(true);
+    setIsWordAnalysisLoading(true);
+    setWordAnalysis(null);
+    setWordAnalysisError(null);
 
-      const analysisResult = await analyzeWord(phrase, word);
-      if (analysisResult) {
-        setWordAnalysis(analysisResult);
-      } else {
-        setWordAnalysisError('Unknown error during word analysis.');
-      }
-      setIsWordAnalysisLoading(false);
-    },
-    [analyzeWord, isWordAnalysisLoading]
-  );
+    const analysisResult = await analyzeWord(phrase, word);
+    if (analysisResult) {
+      setWordAnalysis(analysisResult);
+    } else {
+      setWordAnalysisError('Unknown error during word analysis.');
+    }
+    setIsWordAnalysisLoading(false);
+  };
 
-  const handleOpenVerbConjugation = useCallback((infinitive: string) => {
+  const handleOpenVerbConjugation = (infinitive: string) => {
     setConjugationVerb(infinitive);
     setIsVerbConjugationModalOpen(true);
-  }, []);
+  };
 
   /**
    * Fetches noun declension tables (cases) for a given noun.
    */
-  const handleOpenNounDeclension = useCallback(
-    async (noun: string, article: string) => {
-      setDeclensionNoun({ noun, article });
-      setIsNounDeclensionModalOpen(true);
-      setIsNounDeclensionLoading(true);
-      setNounDeclensionData(null);
-      setNounDeclensionError(null);
-      const cacheKey = `noun_declension_${article}_${noun}`;
-      const cachedData = cacheService.getCache<NounDeclension>(cacheKey);
-      if (cachedData) {
-        setNounDeclensionData(cachedData);
-        setIsNounDeclensionLoading(false);
-        return;
-      }
-      try {
-        const data = await callApiWithFallback((provider) => provider.declineNoun(noun, article));
-        setNounDeclensionData(data);
-        cacheService.setCache(cacheKey, data);
-      } catch (err) {
-        setNounDeclensionError(err instanceof Error ? err.message : 'Unknown error during declension generation.');
-      } finally {
-        setIsNounDeclensionLoading(false);
-      }
-    },
-    [callApiWithFallback]
-  );
+  const handleOpenNounDeclension = async (noun: string, article: string) => {
+    setDeclensionNoun({ noun, article });
+    setIsNounDeclensionModalOpen(true);
+    setIsNounDeclensionLoading(true);
+    setNounDeclensionData(null);
+    setNounDeclensionError(null);
+    const cacheKey = `noun_declension_${article}_${noun}`;
+    const cachedData = cacheService.getCache<NounDeclension>(cacheKey);
+    if (cachedData) {
+      setNounDeclensionData(cachedData);
+      setIsNounDeclensionLoading(false);
+      return;
+    }
+    try {
+      const data = await callApiWithFallback((provider) => provider.declineNoun(noun, article));
+      setNounDeclensionData(data);
+      cacheService.setCache(cacheKey, data);
+    } catch (err) {
+      setNounDeclensionError(err instanceof Error ? err.message : 'Unknown error during declension generation.');
+    } finally {
+      setIsNounDeclensionLoading(false);
+    }
+  };
 
   /**
    * Fetches adjective declension tables (endings) for a given adjective.
    */
-  const handleOpenAdjectiveDeclension = useCallback(
-    async (adjective: string) => {
-      setDeclensionAdjective(adjective);
-      setIsAdjectiveDeclensionModalOpen(true);
-      setIsAdjectiveDeclensionLoading(true);
-      setAdjectiveDeclensionData(null);
-      setAdjectiveDeclensionError(null);
-      const cacheKey = `adj_declension_${adjective}`;
-      const cachedData = cacheService.getCache<AdjectiveDeclension>(cacheKey);
-      if (cachedData) {
-        setAdjectiveDeclensionData(cachedData);
-        setIsAdjectiveDeclensionLoading(false);
-        return;
-      }
-      try {
-        const data = await callApiWithFallback((provider) => provider.declineAdjective(adjective));
-        setAdjectiveDeclensionData(data);
-        cacheService.setCache(cacheKey, data);
-      } catch (err) {
-        setAdjectiveDeclensionError(
-          err instanceof Error ? err.message : 'Unknown error during adjective declension generation.'
-        );
-      } finally {
-        setIsAdjectiveDeclensionLoading(false);
-      }
-    },
-    [callApiWithFallback]
-  );
+  const handleOpenAdjectiveDeclension = async (adjective: string) => {
+    setDeclensionAdjective(adjective);
+    setIsAdjectiveDeclensionModalOpen(true);
+    setIsAdjectiveDeclensionLoading(true);
+    setAdjectiveDeclensionData(null);
+    setAdjectiveDeclensionError(null);
+    const cacheKey = `adj_declension_${adjective}`;
+    const cachedData = cacheService.getCache<AdjectiveDeclension>(cacheKey);
+    if (cachedData) {
+      setAdjectiveDeclensionData(cachedData);
+      setIsAdjectiveDeclensionLoading(false);
+      return;
+    }
+    try {
+      const data = await callApiWithFallback((provider) => provider.declineAdjective(adjective));
+      setAdjectiveDeclensionData(data);
+      cacheService.setCache(cacheKey, data);
+    } catch (err) {
+      setAdjectiveDeclensionError(
+        err instanceof Error ? err.message : 'Unknown error during adjective declension generation.'
+      );
+    } finally {
+      setIsAdjectiveDeclensionLoading(false);
+    }
+  };
 
   const handleOpenSentenceChain = (phrase: Phrase) => {
     setSentenceChainPhrase(phrase);
@@ -494,117 +476,75 @@ const App: React.FC = () => {
   // --- AI Interaction Wrappers ---
   // These functions wrap the AI provider calls, enabling easy component integration.
 
-  const handleEvaluatePhraseAttempt = useCallback(
-    (phrase: Phrase, userAttempt: string): Promise<PhraseEvaluation> => {
-      return callApiWithFallback((provider) => provider.evaluatePhraseAttempt(phrase, userAttempt));
-    },
-    [callApiWithFallback]
-  );
+  const handleEvaluatePhraseAttempt = (phrase: Phrase, userAttempt: string): Promise<PhraseEvaluation> => {
+    return callApiWithFallback((provider) => provider.evaluatePhraseAttempt(phrase, userAttempt));
+  };
 
-  const handleEvaluateSpokenPhraseAttempt = useCallback(
-    (phrase: Phrase, userAttempt: string): Promise<PhraseEvaluation> => {
-      return callApiWithFallback((provider) => provider.evaluateSpokenPhraseAttempt(phrase, userAttempt));
-    },
-    [callApiWithFallback]
-  );
+  const handleEvaluateSpokenPhraseAttempt = (phrase: Phrase, userAttempt: string): Promise<PhraseEvaluation> => {
+    return callApiWithFallback((provider) => provider.evaluateSpokenPhraseAttempt(phrase, userAttempt));
+  };
 
-  const handleGenerateContinuations = useCallback(
-    (nativePhrase: string) => callApiWithFallback((provider) => provider.generateSentenceContinuations(nativePhrase)),
-    [callApiWithFallback]
-  );
-  const handleGenerateInitialExamples = useCallback(
-    (phrase: Phrase) => callApiWithFallback((provider) => provider.generateInitialExamples(phrase)),
-    [callApiWithFallback]
-  );
-  const handleContinueChat = useCallback(
-    (phrase: Phrase, history: any[], newMessage: string) =>
-      callApiWithFallback((provider) => provider.continueChat(phrase, history, newMessage)),
-    [callApiWithFallback]
-  );
-  const handlePracticeConversation = useCallback(
-    (history: ChatMessage[], newMessage: string) =>
-      callApiWithFallback((provider) => provider.practiceConversation(history, newMessage, allPhrases)),
-    [callApiWithFallback, allPhrases]
-  );
-  const handleGuideToTranslation = useCallback(
-    (phrase: Phrase, history: ChatMessage[], userAnswer: string) =>
-      callApiWithFallback((provider) => provider.guideToTranslation(phrase, history, userAnswer)),
-    [callApiWithFallback]
-  );
-  const handleGenerateSinglePhrase = useCallback(
-    (nativePhrase: string) => callApiWithFallback((provider) => provider.generateSinglePhrase(nativePhrase)),
-    [callApiWithFallback]
-  );
-  const handleTranslateLearningToNative = useCallback(
-    (learningPhrase: string) => callApiWithFallback((provider) => provider.translateLearningToNative(learningPhrase)),
-    [callApiWithFallback]
-  );
-  const handleGetWordTranslation = useCallback(
-    async (
-      nativePhrase: string,
-      learningPhrase: string,
-      nativeWord: string
-    ): Promise<{ learningTranslation: string }> => {
-      const cacheKey = `word_translation_${nativePhrase}_${nativeWord}`;
-      const cached = cacheService.getCache<{ learningTranslation: string }>(cacheKey);
-      if (cached) return cached;
+  const handleGenerateContinuations = (nativePhrase: string) =>
+    callApiWithFallback((provider) => provider.generateSentenceContinuations(nativePhrase));
+  const handleGenerateInitialExamples = (phrase: Phrase) =>
+    callApiWithFallback((provider) => provider.generateInitialExamples(phrase));
+  const handleContinueChat = (phrase: Phrase, history: any[], newMessage: string) =>
+    callApiWithFallback((provider) => provider.continueChat(phrase, history, newMessage));
+  const handlePracticeConversation = (history: ChatMessage[], newMessage: string) =>
+    callApiWithFallback((provider) => provider.practiceConversation(history, newMessage, allPhrases));
+  const handleGuideToTranslation = (phrase: Phrase, history: ChatMessage[], userAnswer: string) =>
+    callApiWithFallback((provider) => provider.guideToTranslation(phrase, history, userAnswer));
+  const handleGenerateSinglePhrase = (nativePhrase: string) =>
+    callApiWithFallback((provider) => provider.generateSinglePhrase(nativePhrase));
+  const handleTranslateLearningToNative = (learningPhrase: string) =>
+    callApiWithFallback((provider) => provider.translateLearningToNative(learningPhrase));
+  const handleGetWordTranslation = async (
+    nativePhrase: string,
+    learningPhrase: string,
+    nativeWord: string
+  ): Promise<{ learningTranslation: string }> => {
+    const cacheKey = `word_translation_${nativePhrase}_${nativeWord}`;
+    const cached = cacheService.getCache<{ learningTranslation: string }>(cacheKey);
+    if (cached) return cached;
 
-      const result = await callApiWithFallback((provider) =>
-        provider.getWordTranslation(nativePhrase, learningPhrase, nativeWord)
-      );
-      cacheService.setCache(cacheKey, result);
-      return result;
-    },
-    [callApiWithFallback]
-  );
-  const handleGenerateCardsFromTranscript = useCallback(
-    (transcript: string, sourceLang: 'ru' | 'de') =>
-      callApiWithFallback((provider) => provider.generateCardsFromTranscript(transcript, sourceLang)),
-    [callApiWithFallback]
-  );
-  const handleGenerateCardsFromImage = useCallback(
-    (imageData: { mimeType: string; data: string }) =>
-      callApiWithFallback((provider) => provider.generateCardsFromImage(imageData)),
-    [callApiWithFallback]
-  );
-  const handleGenerateTopicCards = useCallback(
-    (topic: string, refinement?: string, existingPhrases?: string[]) =>
-      callApiWithFallback((provider) => provider.generateTopicCards(topic, refinement, existingPhrases)),
-    [callApiWithFallback]
-  );
-  const handleClassifyTopic = useCallback(
-    (topic: string) => callApiWithFallback((provider) => provider.classifyTopic(topic)),
-    [callApiWithFallback]
-  );
-  const handleGetCategoryAssistantResponse = useCallback(
-    (categoryName: string, existingPhrases: Phrase[], request: CategoryAssistantRequest, history?: ChatMessage[]) =>
-      callApiWithFallback((provider) =>
-        provider.getCategoryAssistantResponse(categoryName, existingPhrases, request, history)
-      ),
-    [callApiWithFallback]
-  );
-  const handleConjugateVerbSimple = useCallback(
-    async (infinitive: string) => {
-      const cacheKey = cacheService.createLanguageAwareKey(`verb_conjugation_simple_${infinitive}`);
-      const cached = cacheService.getCache<any[]>(cacheKey);
-      if (cached) return cached;
-      const result = await callApiWithFallback((provider) => provider.conjugateVerbSimple(infinitive));
-      cacheService.setCache(cacheKey, result);
-      return result;
-    },
-    [callApiWithFallback]
-  );
-  const handleConjugateVerbDetailed = useCallback(
-    async (infinitive: string) => {
-      const cacheKey = cacheService.createLanguageAwareKey(`verb_conjugation_detailed_${infinitive}`);
-      const cached = cacheService.getCache<VerbConjugation>(cacheKey);
-      if (cached) return cached;
-      const result = await callApiWithFallback((provider) => provider.conjugateVerb(infinitive));
-      cacheService.setCache(cacheKey, result);
-      return result;
-    },
-    [callApiWithFallback]
-  );
+    const result = await callApiWithFallback((provider) =>
+      provider.getWordTranslation(nativePhrase, learningPhrase, nativeWord)
+    );
+    cacheService.setCache(cacheKey, result);
+    return result;
+  };
+  const handleGenerateCardsFromTranscript = (transcript: string, sourceLang: 'ru' | 'de') =>
+    callApiWithFallback((provider) => provider.generateCardsFromTranscript(transcript, sourceLang));
+  const handleGenerateCardsFromImage = (imageData: { mimeType: string; data: string }) =>
+    callApiWithFallback((provider) => provider.generateCardsFromImage(imageData));
+  const handleGenerateTopicCards = (topic: string, refinement?: string, existingPhrases?: string[]) =>
+    callApiWithFallback((provider) => provider.generateTopicCards(topic, refinement, existingPhrases));
+  const handleClassifyTopic = (topic: string) => callApiWithFallback((provider) => provider.classifyTopic(topic));
+  const handleGetCategoryAssistantResponse = (
+    categoryName: string,
+    existingPhrases: Phrase[],
+    request: CategoryAssistantRequest,
+    history?: ChatMessage[]
+  ) =>
+    callApiWithFallback((provider) =>
+      provider.getCategoryAssistantResponse(categoryName, existingPhrases, request, history)
+    );
+  const handleConjugateVerbSimple = async (infinitive: string) => {
+    const cacheKey = cacheService.createLanguageAwareKey(`verb_conjugation_simple_${infinitive}`);
+    const cached = cacheService.getCache<any[]>(cacheKey);
+    if (cached) return cached;
+    const result = await callApiWithFallback((provider) => provider.conjugateVerbSimple(infinitive));
+    cacheService.setCache(cacheKey, result);
+    return result;
+  };
+  const handleConjugateVerbDetailed = async (infinitive: string) => {
+    const cacheKey = cacheService.createLanguageAwareKey(`verb_conjugation_detailed_${infinitive}`);
+    const cached = cacheService.getCache<VerbConjugation>(cacheKey);
+    if (cached) return cached;
+    const result = await callApiWithFallback((provider) => provider.conjugateVerb(infinitive));
+    cacheService.setCache(cacheKey, result);
+    return result;
+  };
 
   // --- Phrase Creation & Modification Handlers ---
 
@@ -673,230 +613,214 @@ const App: React.FC = () => {
    * Processes proposed cards (from auto-fill or smart import) and adds them to a category.
    * Handles duplicate detection and moves duplicates to review if necessary.
    */
-  const handleCreateProposedCards = useCallback(
-    async (proposedCards: ProposedCard[], options?: { categoryId?: string; createCategoryName?: string }) => {
-      let finalCategoryId = options?.categoryId;
-      let newCategory: Category | null = null;
+  const handleCreateProposedCards = async (
+    proposedCards: ProposedCard[],
+    options?: { categoryId?: string; createCategoryName?: string }
+  ) => {
+    let finalCategoryId = options?.categoryId;
+    let newCategory: Category | null = null;
 
-      if (options?.createCategoryName && !finalCategoryId) {
-        const trimmedName = options.createCategoryName.trim();
-        const existingCategory = categories.find((c) => c.name.trim().toLowerCase() === trimmedName.toLowerCase());
+    if (options?.createCategoryName && !finalCategoryId) {
+      const trimmedName = options.createCategoryName.trim();
+      const existingCategory = categories.find((c) => c.name.trim().toLowerCase() === trimmedName.toLowerCase());
 
-        if (existingCategory) {
-          finalCategoryId = existingCategory.id;
-        } else {
-          const colors = [
-            'bg-red-500',
-            'bg-orange-500',
-            'bg-amber-500',
-            'bg-yellow-500',
-            'bg-lime-500',
-            'bg-green-500',
-            'bg-emerald-500',
-            'bg-teal-500',
-            'bg-cyan-500',
-            'bg-sky-500',
-            'bg-blue-500',
-            'bg-indigo-500',
-            'bg-violet-500',
-            'bg-fuchsia-500',
-            'bg-pink-500',
-            'bg-rose-500',
-          ];
-          const randomColor = colors[Math.floor(Math.random() * colors.length)];
-          const capitalizedName = trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1);
+      if (existingCategory) {
+        finalCategoryId = existingCategory.id;
+      } else {
+        const colors = [
+          'bg-red-500',
+          'bg-orange-500',
+          'bg-amber-500',
+          'bg-yellow-500',
+          'bg-lime-500',
+          'bg-green-500',
+          'bg-emerald-500',
+          'bg-teal-500',
+          'bg-cyan-500',
+          'bg-sky-500',
+          'bg-blue-500',
+          'bg-indigo-500',
+          'bg-violet-500',
+          'bg-fuchsia-500',
+          'bg-pink-500',
+          'bg-rose-500',
+        ];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        const capitalizedName = trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1);
 
-          const newCategoryData = {
-            name: capitalizedName,
-            color: randomColor,
-            isFoundational: false,
-          };
+        const newCategoryData = {
+          name: capitalizedName,
+          color: randomColor,
+          isFoundational: false,
+        };
 
-          try {
-            newCategory = await backendService.createCategory(newCategoryData);
-            updateAndSaveCategories((prev) => [...prev, newCategory!]);
-            updateSettings({
-              enabledCategories: {
-                ...settings.enabledCategories,
-                [newCategory.id]: true,
-              },
-            });
-            finalCategoryId = newCategory.id;
-          } catch (err) {
-            showToast({
-              message: t('notifications.categories.createError', {
-                message: (err as Error).message,
-              }),
-            });
-            return;
-          }
+        try {
+          newCategory = await backendService.createCategory(newCategoryData);
+          updateAndSaveCategories((prev) => [...prev, newCategory!]);
+          updateSettings({
+            enabledCategories: {
+              ...settings.enabledCategories,
+              [newCategory.id]: true,
+            },
+          });
+          finalCategoryId = newCategory.id;
+        } catch (err) {
+          showToast({
+            message: t('notifications.categories.createError', {
+              message: (err as Error).message,
+            }),
+          });
+          return;
         }
       }
+    }
 
+    const generalCategory = categories.find((c) => c.name.toLowerCase() === 'общие');
+    const defaultCategoryId = categories.length > 0 ? categories[0].id : '1';
+    const targetCategoryId =
+      finalCategoryId || assistantCategory?.id || categoryToView?.id || generalCategory?.id || defaultCategoryId;
+
+    const targetCategory = newCategory || categories.find((c) => c.id === targetCategoryId);
+
+    if (!targetCategory) {
+      console.error('Target category could not be determined.');
+      return;
+    }
+
+    const duplicatesFound: {
+      existingPhrase: Phrase;
+      proposedCard: ProposedCard;
+    }[] = [];
+    const newCards: ProposedCard[] = [];
+    const normalizedExistingPhrases = new Map<string, Phrase>();
+    allPhrases.forEach((p) => {
+      normalizedExistingPhrases.set(p.text.learning.trim().toLowerCase(), p);
+    });
+
+    proposedCards.forEach((proposed) => {
+      // FIX: Use `proposed.learning` instead of `proposed.learning`
+      // Use `proposed.learning` instead of `proposed.learning`
+      const normalizedProposed = proposed.learning.trim().toLowerCase();
+      const existingPhrase = normalizedExistingPhrases.get(normalizedProposed);
+
+      if (existingPhrase && existingPhrase.category !== targetCategory.id) {
+        duplicatesFound.push({ existingPhrase, proposedCard: proposed });
+      } else if (!existingPhrase) {
+        newCards.push(proposed);
+      }
+    });
+
+    if (duplicatesFound.length > 0) {
+      setDuplicatesReviewData({
+        duplicates: duplicatesFound,
+        newCards: newCards,
+        targetCategory: targetCategory,
+      });
+      setIsMoveOrSkipModalOpen(true);
+      setIsSmartImportModalOpen(false);
+      setSmartImportInitialTopic(undefined);
+      return;
+    }
+
+    const addedCount = await addCardsToCategory(newCards, targetCategory);
+
+    const skippedCount = proposedCards.length - addedCount;
+    const baseToastMessage = t('notifications.cards.bulkAdded', {
+      count: addedCount,
+    });
+    const toastMessage =
+      skippedCount > 0
+        ? `${baseToastMessage} ${t('notifications.cards.bulkSkipped', {
+            count: skippedCount,
+          })}`
+        : baseToastMessage;
+    showToast({ message: toastMessage });
+
+    if (categoryToView || assistantCategory) {
+      /* stay in view */
+    } else {
+      setView('list');
+      setHighlightedPhraseId(null);
+    }
+  };
+
+  const handleCreateCardFromWord = async (phraseData: { learning: string; native: string }) => {
+    const alreadyExists = allPhrases.some(
+      (p) => p.text.learning.trim().toLowerCase() === phraseData.learning.trim().toLowerCase()
+    );
+    if (alreadyExists) {
+      showToast({
+        message: t('notifications.phrases.exists', {
+          phrase: phraseData.learning,
+        }),
+      });
+      return;
+    }
+
+    try {
       const generalCategory = categories.find((c) => c.name.toLowerCase() === 'общие');
       const defaultCategoryId = categories.length > 0 ? categories[0].id : '1';
-      const targetCategoryId =
-        finalCategoryId || assistantCategory?.id || categoryToView?.id || generalCategory?.id || defaultCategoryId;
+      const categoryId = generalCategory?.id || defaultCategoryId;
 
-      const targetCategory = newCategory || categories.find((c) => c.id === targetCategoryId);
+      // FIX: The Phrase type requires a nested `text` object.
+      const phraseToCreate = {
+        text: { learning: phraseData.learning, native: phraseData.native },
+        category: categoryId,
+      };
+      const newPhrase = await backendService.createPhrase(phraseToCreate);
 
-      if (!targetCategory) {
-        console.error('Target category could not be determined.');
-        return;
-      }
-
-      const duplicatesFound: {
-        existingPhrase: Phrase;
-        proposedCard: ProposedCard;
-      }[] = [];
-      const newCards: ProposedCard[] = [];
-      const normalizedExistingPhrases = new Map<string, Phrase>();
-      allPhrases.forEach((p) => {
-        normalizedExistingPhrases.set(p.text.learning.trim().toLowerCase(), p);
+      updateAndSavePhrases((prev) => [{ ...newPhrase, isNew: true }, ...prev]);
+      showToast({
+        message: t('notifications.phrases.created', {
+          phrase: phraseData.learning,
+        }),
       });
-
-      proposedCards.forEach((proposed) => {
-        // FIX: Use `proposed.learning` instead of `proposed.learning`
-        // Use `proposed.learning` instead of `proposed.learning`
-        const normalizedProposed = proposed.learning.trim().toLowerCase();
-        const existingPhrase = normalizedExistingPhrases.get(normalizedProposed);
-
-        if (existingPhrase && existingPhrase.category !== targetCategory.id) {
-          duplicatesFound.push({ existingPhrase, proposedCard: proposed });
-        } else if (!existingPhrase) {
-          newCards.push(proposed);
-        }
+    } catch (err) {
+      showToast({
+        message: t('notifications.phrases.createCardError', {
+          message: (err as Error).message,
+        }),
       });
+    }
+  };
 
-      if (duplicatesFound.length > 0) {
-        setDuplicatesReviewData({
-          duplicates: duplicatesFound,
-          newCards: newCards,
-          targetCategory: targetCategory,
-        });
-        setIsMoveOrSkipModalOpen(true);
-        setIsSmartImportModalOpen(false);
-        setSmartImportInitialTopic(undefined);
-        return;
-      }
-
-      const addedCount = await addCardsToCategory(newCards, targetCategory);
-
-      const skippedCount = proposedCards.length - addedCount;
-      const baseToastMessage = t('notifications.cards.bulkAdded', {
-        count: addedCount,
+  const handleCreateCardFromSelection = async (learningText: string): Promise<boolean> => {
+    const alreadyExists = allPhrases.some(
+      (p) => p.text.learning.trim().toLowerCase() === learningText.trim().toLowerCase()
+    );
+    if (alreadyExists) {
+      showToast({
+        message: t('notifications.phrases.exists', { phrase: learningText }),
       });
-      const toastMessage =
-        skippedCount > 0
-          ? `${baseToastMessage} ${t('notifications.cards.bulkSkipped', {
-              count: skippedCount,
-            })}`
-          : baseToastMessage;
-      showToast({ message: toastMessage });
+      return false;
+    }
 
-      if (categoryToView || assistantCategory) {
-        /* stay in view */
-      } else {
-        setView('list');
-        setHighlightedPhraseId(null);
-      }
-    },
-    [
-      allPhrases,
-      categories,
-      categoryToView,
-      assistantCategory,
-      settings.enabledCategories,
-      updateSettings,
-      showToast,
-      updateAndSaveCategories,
-      updateAndSavePhrases,
-    ]
-  );
+    try {
+      const { native } = await callApiWithFallback((provider) => provider.translateLearningToNative(learningText));
+      const generalCategory = categories.find((c) => c.name.toLowerCase() === 'общие');
+      const defaultCategoryId = categories.length > 0 ? categories[0].id : '1';
+      const categoryId = generalCategory?.id || defaultCategoryId;
 
-  const handleCreateCardFromWord = useCallback(
-    async (phraseData: { learning: string; native: string }) => {
-      const alreadyExists = allPhrases.some(
-        (p) => p.text.learning.trim().toLowerCase() === phraseData.learning.trim().toLowerCase()
-      );
-      if (alreadyExists) {
-        showToast({
-          message: t('notifications.phrases.exists', {
-            phrase: phraseData.learning,
-          }),
-        });
-        return;
-      }
+      // FIX: The Phrase type requires a nested `text` object.
+      const phraseToCreate = {
+        text: { learning: learningText, native: native },
+        category: categoryId,
+      };
+      const newPhrase = await backendService.createPhrase(phraseToCreate);
 
-      try {
-        const generalCategory = categories.find((c) => c.name.toLowerCase() === 'общие');
-        const defaultCategoryId = categories.length > 0 ? categories[0].id : '1';
-        const categoryId = generalCategory?.id || defaultCategoryId;
-
-        // FIX: The Phrase type requires a nested `text` object.
-        const phraseToCreate = {
-          text: { learning: phraseData.learning, native: phraseData.native },
-          category: categoryId,
-        };
-        const newPhrase = await backendService.createPhrase(phraseToCreate);
-
-        updateAndSavePhrases((prev) => [{ ...newPhrase, isNew: true }, ...prev]);
-        showToast({
-          message: t('notifications.phrases.created', {
-            phrase: phraseData.learning,
-          }),
-        });
-      } catch (err) {
-        showToast({
-          message: t('notifications.phrases.createCardError', {
-            message: (err as Error).message,
-          }),
-        });
-      }
-    },
-    [allPhrases, categories, updateAndSavePhrases, showToast]
-  );
-
-  const handleCreateCardFromSelection = useCallback(
-    async (learningText: string): Promise<boolean> => {
-      const alreadyExists = allPhrases.some(
-        (p) => p.text.learning.trim().toLowerCase() === learningText.trim().toLowerCase()
-      );
-      if (alreadyExists) {
-        showToast({
-          message: t('notifications.phrases.exists', { phrase: learningText }),
-        });
-        return false;
-      }
-
-      try {
-        const { native } = await callApiWithFallback((provider) => provider.translateLearningToNative(learningText));
-        const generalCategory = categories.find((c) => c.name.toLowerCase() === 'общие');
-        const defaultCategoryId = categories.length > 0 ? categories[0].id : '1';
-        const categoryId = generalCategory?.id || defaultCategoryId;
-
-        // FIX: The Phrase type requires a nested `text` object.
-        const phraseToCreate = {
-          text: { learning: learningText, native: native },
-          category: categoryId,
-        };
-        const newPhrase = await backendService.createPhrase(phraseToCreate);
-
-        updateAndSavePhrases((prev) => [{ ...newPhrase, isNew: true }, ...prev]);
-        showToast({
-          message: t('notifications.phrases.created', { phrase: learningText }),
-        });
-        return true;
-      } catch (error) {
-        console.error('Failed to create card from selection:', error);
-        showToast({
-          message: t('notifications.phrases.createCardGenericError'),
-        });
-        return false;
-      }
-    },
-    [allPhrases, categories, updateAndSavePhrases, showToast, callApiWithFallback, apiProvider]
-  );
+      updateAndSavePhrases((prev) => [{ ...newPhrase, isNew: true }, ...prev]);
+      showToast({
+        message: t('notifications.phrases.created', { phrase: learningText }),
+      });
+      return true;
+    } catch (error) {
+      console.error('Failed to create card from selection:', error);
+      showToast({
+        message: t('notifications.phrases.createCardGenericError'),
+      });
+      return false;
+    }
+  };
 
   const handleOpenDiscussion = (phraseForDiscussion: Phrase) => {
     setPhraseToDiscuss(phraseForDiscussion);
@@ -906,20 +830,12 @@ const App: React.FC = () => {
     setIsDiscussModalOpen(true);
   };
 
-  const handleTranslatePhrase = useCallback(
-    (native: string) => callApiWithFallback((provider) => provider.translatePhrase(native)),
-    [callApiWithFallback]
-  );
+  const handleTranslatePhrase = (native: string) => callApiWithFallback((provider) => provider.translatePhrase(native));
 
-  const handleDiscussTranslation = useCallback(
-    (request: any) => callApiWithFallback((provider) => provider.discussTranslation(request)),
-    [callApiWithFallback]
-  );
+  const handleDiscussTranslation = (request: any) =>
+    callApiWithFallback((provider) => provider.discussTranslation(request));
 
-  const handleFindDuplicates = useCallback(
-    () => callApiWithFallback((provider) => provider.findDuplicatePhrases(allPhrases)),
-    [callApiWithFallback, allPhrases]
-  );
+  const handleFindDuplicates = () => callApiWithFallback((provider) => provider.findDuplicatePhrases(allPhrases));
 
   const handlePhraseImproved = async (phraseId: string, newLearning: string, newNative?: string) => {
     const originalPhrase = allPhrases.find((p) => p.id === phraseId);
@@ -965,18 +881,15 @@ const App: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleDeletePhrase = useCallback(
-    (phraseId: string) => {
-      const phrase = allPhrases.find((p) => p.id === phraseId);
-      if (phrase) {
-        setPhraseToDelete(phrase);
-        setIsDeleteModalOpen(true);
-      }
-    },
-    [allPhrases]
-  );
+  const handleDeletePhrase = (phraseId: string) => {
+    const phrase = allPhrases.find((p) => p.id === phraseId);
+    if (phrase) {
+      setPhraseToDelete(phrase);
+      setIsDeleteModalOpen(true);
+    }
+  };
 
-  const handleConfirmDelete = useCallback(async () => {
+  const handleConfirmDelete = async () => {
     if (phraseToDelete) {
       try {
         await backendService.deletePhrase(phraseToDelete.id);
@@ -995,7 +908,7 @@ const App: React.FC = () => {
         setPhraseToDelete(null);
       }
     }
-  }, [phraseToDelete, updateAndSavePhrases, currentPracticePhrase, showToast]);
+  };
 
   const handleStartPracticeWithPhrase = (phraseToPractice: Phrase) => {
     specificPhraseRequestedRef.current = true;
@@ -1031,42 +944,36 @@ const App: React.FC = () => {
     setDiscussInitialMessage(undefined);
   };
 
-  const handleMarkPhraseAsSeen = useCallback(
-    (phraseId: string) => {
-      updateAndSavePhrases((prev) => {
-        const phraseExists = prev.some((p) => p.id === phraseId && p.isNew);
-        if (!phraseExists) return prev; // Avoid unnecessary updates
+  const handleMarkPhraseAsSeen = (phraseId: string) => {
+    updateAndSavePhrases((prev) => {
+      const phraseExists = prev.some((p) => p.id === phraseId && p.isNew);
+      if (!phraseExists) return prev; // Avoid unnecessary updates
 
-        return prev.map((p) => {
-          if (p.id === phraseId && p.isNew) {
-            const { isNew, ...rest } = p;
-            return rest;
-          }
-          return p;
-        });
+      return prev.map((p) => {
+        if (p.id === phraseId && p.isNew) {
+          const { isNew, ...rest } = p;
+          return rest;
+        }
+        return p;
       });
-    },
-    [updateAndSavePhrases]
-  );
+    });
+  };
 
-  const handleUpdatePhraseCategory = useCallback(
-    async (phraseId: string, newCategoryId: string) => {
-      const originalPhrase = allPhrases.find((p) => p.id === phraseId);
-      if (!originalPhrase) return;
-      const updatedPhrase = { ...originalPhrase, category: newCategoryId };
-      try {
-        await backendService.updatePhrase(updatedPhrase);
-        updateAndSavePhrases((prev) => prev.map((p) => (p.id === phraseId ? updatedPhrase : p)));
-      } catch (err) {
-        showToast({
-          message: t('notifications.moveError', {
-            message: (err as Error).message,
-          }),
-        });
-      }
-    },
-    [allPhrases, updateAndSavePhrases, showToast]
-  );
+  const handleUpdatePhraseCategory = async (phraseId: string, newCategoryId: string) => {
+    const originalPhrase = allPhrases.find((p) => p.id === phraseId);
+    if (!originalPhrase) return;
+    const updatedPhrase = { ...originalPhrase, category: newCategoryId };
+    try {
+      await backendService.updatePhrase(updatedPhrase);
+      updateAndSavePhrases((prev) => prev.map((p) => (p.id === phraseId ? updatedPhrase : p)));
+    } catch (err) {
+      showToast({
+        message: t('notifications.moveError', {
+          message: (err as Error).message,
+        }),
+      });
+    }
+  };
 
   // --- Category Management Handlers ---
   // Functions for creating, updating, and deleting phrase categories.
@@ -1276,103 +1183,97 @@ const App: React.FC = () => {
    * Adds a batch of proposed cards to a category.
    * Handles API rate limiting with a delay between requests.
    */
-  const addCardsToCategory = useCallback(
-    async (cards: ProposedCard[], targetCategory: Category): Promise<number> => {
-      let addedCount = 0;
-      // FIX: Map ProposedCard to the correct Phrase structure before creating
-      const phrasesToAdd = cards.map((p) => ({
-        text: { native: p.native, learning: p.learning },
-        category: targetCategory.id,
-        ...(p.romanization ? { romanization: { learning: p.romanization } } : {}),
-      }));
-      const createdPhrases: Phrase[] = [];
+  const addCardsToCategory = async (cards: ProposedCard[], targetCategory: Category): Promise<number> => {
+    let addedCount = 0;
+    // FIX: Map ProposedCard to the correct Phrase structure before creating
+    const phrasesToAdd = cards.map((p) => ({
+      text: { native: p.native, learning: p.learning },
+      category: targetCategory.id,
+      ...(p.romanization ? { romanization: { learning: p.romanization } } : {}),
+    }));
+    const createdPhrases: Phrase[] = [];
 
-      for (const phrase of phrasesToAdd) {
-        try {
-          // Add a small delay to avoid hitting API rate limits.
-          await sleep(300);
-          const newPhrase = await backendService.createPhrase(phrase);
-          createdPhrases.push({ ...newPhrase, isNew: true });
-          addedCount++;
-        } catch (err) {
-          const errorMessage = (err as Error).message;
-          console.error('Failed to create a card during bulk add:', errorMessage);
-          // FIX: Use `phrase.text.learning` to display the correct property in the toast message
-          // Use `phrase.text.learning` to display the correct property in the toast message
-          showToast({
-            message: t('notifications.cards.addFailed', {
-              phrase: phrase.text.learning,
-              error: errorMessage,
-            }),
-          });
-
-          // If rate-limited, stop trying to add more cards.
-          if (errorMessage.toLowerCase().includes('too many requests')) {
-            showToast({ message: t('notifications.cards.rateLimit') });
-            break;
-          }
-        }
-      }
-
-      if (createdPhrases.length > 0) {
-        updateAndSavePhrases((prev) => [...createdPhrases, ...prev]);
-      }
-      return addedCount;
-    },
-    [updateAndSavePhrases, showToast]
-  );
-
-  const handleConfirmAutoFill = useCallback(
-    async (selectedCards: ProposedCard[]) => {
-      if (!autoFillingCategory) return;
-
-      const duplicatesFound: {
-        existingPhrase: Phrase;
-        proposedCard: ProposedCard;
-      }[] = [];
-      const newCards: ProposedCard[] = [];
-
-      const normalizedExistingPhrases = new Map<string, Phrase>();
-      allPhrases.forEach((p) => {
-        normalizedExistingPhrases.set(p.text.learning.trim().toLowerCase(), p);
-      });
-
-      selectedCards.forEach((proposed) => {
-        // FIX: Use `proposed.learning` instead of `proposed.learning`
-        const normalizedProposed = proposed.learning.trim().toLowerCase();
-        const existingPhrase = normalizedExistingPhrases.get(normalizedProposed);
-
-        if (existingPhrase && existingPhrase.category !== autoFillingCategory.id) {
-          duplicatesFound.push({ existingPhrase, proposedCard: proposed });
-        } else if (!existingPhrase) {
-          newCards.push(proposed);
-        }
-      });
-
-      if (duplicatesFound.length > 0) {
-        setDuplicatesReviewData({
-          duplicates: duplicatesFound,
-          newCards: newCards,
-          targetCategory: autoFillingCategory,
-        });
-        setIsMoveOrSkipModalOpen(true);
-        setIsAutoFillPreviewOpen(false);
-        setAutoFillingCategory(null);
-      } else {
-        const addedCount = await addCardsToCategory(newCards, autoFillingCategory);
+    for (const phrase of phrasesToAdd) {
+      try {
+        // Add a small delay to avoid hitting API rate limits.
+        await sleep(300);
+        const newPhrase = await backendService.createPhrase(phrase);
+        createdPhrases.push({ ...newPhrase, isNew: true });
+        addedCount++;
+      } catch (err) {
+        const errorMessage = (err as Error).message;
+        console.error('Failed to create a card during bulk add:', errorMessage);
+        // FIX: Use `phrase.text.learning` to display the correct property in the toast message
+        // Use `phrase.text.learning` to display the correct property in the toast message
         showToast({
-          message: t('notifications.cards.addedToCategory', {
-            count: addedCount,
-            category: autoFillingCategory.name,
+          message: t('notifications.cards.addFailed', {
+            phrase: phrase.text.learning,
+            error: errorMessage,
           }),
         });
-        setIsAutoFillPreviewOpen(false);
-        setCategoryToView(autoFillingCategory);
-        setAutoFillingCategory(null);
+
+        // If rate-limited, stop trying to add more cards.
+        if (errorMessage.toLowerCase().includes('too many requests')) {
+          showToast({ message: t('notifications.cards.rateLimit') });
+          break;
+        }
       }
-    },
-    [autoFillingCategory, allPhrases, addCardsToCategory, showToast]
-  );
+    }
+
+    if (createdPhrases.length > 0) {
+      updateAndSavePhrases((prev) => [...createdPhrases, ...prev]);
+    }
+    return addedCount;
+  };
+
+  const handleConfirmAutoFill = async (selectedCards: ProposedCard[]) => {
+    if (!autoFillingCategory) return;
+
+    const duplicatesFound: {
+      existingPhrase: Phrase;
+      proposedCard: ProposedCard;
+    }[] = [];
+    const newCards: ProposedCard[] = [];
+
+    const normalizedExistingPhrases = new Map<string, Phrase>();
+    allPhrases.forEach((p) => {
+      normalizedExistingPhrases.set(p.text.learning.trim().toLowerCase(), p);
+    });
+
+    selectedCards.forEach((proposed) => {
+      // FIX: Use `proposed.learning` instead of `proposed.learning`
+      const normalizedProposed = proposed.learning.trim().toLowerCase();
+      const existingPhrase = normalizedExistingPhrases.get(normalizedProposed);
+
+      if (existingPhrase && existingPhrase.category !== autoFillingCategory.id) {
+        duplicatesFound.push({ existingPhrase, proposedCard: proposed });
+      } else if (!existingPhrase) {
+        newCards.push(proposed);
+      }
+    });
+
+    if (duplicatesFound.length > 0) {
+      setDuplicatesReviewData({
+        duplicates: duplicatesFound,
+        newCards: newCards,
+        targetCategory: autoFillingCategory,
+      });
+      setIsMoveOrSkipModalOpen(true);
+      setIsAutoFillPreviewOpen(false);
+      setAutoFillingCategory(null);
+    } else {
+      const addedCount = await addCardsToCategory(newCards, autoFillingCategory);
+      showToast({
+        message: t('notifications.cards.addedToCategory', {
+          count: addedCount,
+          category: autoFillingCategory.name,
+        }),
+      });
+      setIsAutoFillPreviewOpen(false);
+      setCategoryToView(autoFillingCategory);
+      setAutoFillingCategory(null);
+    }
+  };
 
   /**
    * Moves existing phrases (duplicates) to a new category and adds new cards.
@@ -1512,7 +1413,7 @@ const App: React.FC = () => {
     return buildPracticeAnalyticsSummary(allPhrases, categories, practiceReviewLog);
   }, [allPhrases, categories, practiceReviewLog]);
 
-  const changePracticePhrase = useCallback((nextPhrase: Phrase | null, direction: AnimationDirection) => {
+  const changePracticePhrase = (nextPhrase: Phrase | null, direction: AnimationDirection) => {
     setIsPracticeAnswerRevealed(false);
     setPracticeCardEvaluated(false);
     if (!nextPhrase) {
@@ -1521,7 +1422,7 @@ const App: React.FC = () => {
     }
     setPracticeAnimationState({ key: nextPhrase.id, direction });
     setCurrentPracticePhrase(nextPhrase);
-  }, []);
+  };
 
   const isInitialFilterChange = useRef(true);
   useEffect(() => {
@@ -1549,7 +1450,7 @@ const App: React.FC = () => {
    * Selects the next phrase to practice using the SRS algorithm.
    * Ensures the new phrase is different from the current one if possible.
    */
-  const selectNextPracticePhrase = useCallback(() => {
+  const selectNextPracticePhrase = () => {
     if (currentPracticePhrase) {
       setCardHistory((prev) => [...prev, currentPracticePhrase.id]);
       setLearningAssistantCache((prev) => {
@@ -1568,7 +1469,7 @@ const App: React.FC = () => {
       // Automatic phrase generation was removed as per user request.
       changePracticePhrase(null, 'right');
     }
-  }, [practicePool, currentPracticePhrase, changePracticePhrase]);
+  };
 
   useEffect(() => {
     if (specificPhraseRequestedRef.current) {
@@ -1578,13 +1479,13 @@ const App: React.FC = () => {
     if (!isLoading && allPhrases.length > 0 && !currentPracticePhrase && view === 'practice') {
       selectNextPracticePhrase();
     }
-  }, [isLoading, allPhrases, currentPracticePhrase, selectNextPracticePhrase, view]);
+  }, [isLoading, allPhrases, currentPracticePhrase, view]);
 
   useEffect(() => {
     if (currentPracticePhrase && !allPhrases.some((p) => p && p.id === currentPracticePhrase.id)) {
       selectNextPracticePhrase();
     }
-  }, [allPhrases, currentPracticePhrase, selectNextPracticePhrase]);
+  }, [allPhrases, currentPracticePhrase]);
 
   useEffect(() => {
     if (isVoiceWorkspaceModalOpen && currentPracticePhrase) {
@@ -1592,67 +1493,54 @@ const App: React.FC = () => {
     }
   }, [currentPracticePhrase, isVoiceWorkspaceModalOpen]);
 
-  const transitionToNext = useCallback(
-    (direction: AnimationDirection = 'right') => {
-      if (practiceIsExitingRef.current) return;
+  const transitionToNext = (direction: AnimationDirection = 'right') => {
+    if (practiceIsExitingRef.current) return;
 
-      practiceIsExitingRef.current = true;
-      setTimeout(() => {
-        if (direction === 'right') {
-          selectNextPracticePhrase();
-        }
-        practiceIsExitingRef.current = false;
-      }, 250);
-    },
-    [selectNextPracticePhrase]
-  );
+    practiceIsExitingRef.current = true;
+    setTimeout(() => {
+      if (direction === 'right') {
+        selectNextPracticePhrase();
+      }
+      practiceIsExitingRef.current = false;
+    }, 250);
+  };
 
   /**
    * Updates the mastery status of the current practice phrase (Know/Forgot).
    * Handles "Leech" detection (checking if a phrase has become difficult).
    */
-  const handlePracticeUpdateMastery = useCallback(
-    async (action: PracticeReviewAction): Promise<boolean> => {
-      if (!currentPracticePhrase || practiceIsExitingRef.current) return false;
+  const handlePracticeUpdateMastery = async (action: PracticeReviewAction): Promise<boolean> => {
+    if (!currentPracticePhrase || practiceIsExitingRef.current) return false;
 
-      updateMasteryButtonUsage(action);
-      const originalPhrase = currentPracticePhrase;
-      const srsUpdatedPhrase = srsService.updatePhraseMastery(originalPhrase, action, categories);
+    updateMasteryButtonUsage(action);
+    const originalPhrase = currentPracticePhrase;
+    const srsUpdatedPhrase = srsService.updatePhraseMastery(originalPhrase, action, categories);
 
-      if (action === 'forgot' || action === 'dont_know') {
-        const wasLeech = srsService.isLeech(originalPhrase);
-        const isNowLeech = srsService.isLeech(srsUpdatedPhrase);
+    if (action === 'forgot' || action === 'dont_know') {
+      const wasLeech = srsService.isLeech(originalPhrase);
+      const isNowLeech = srsService.isLeech(srsUpdatedPhrase);
 
-        if (!wasLeech && isNowLeech) {
-          const backendUpdatedPhrase = await updatePhraseMasteryAndCache(originalPhrase, action);
-          if (settings.soundEffects) playIncorrectSound();
-          handleOpenLeechModal(backendUpdatedPhrase);
-          return true; // Leech modal shown
-        }
+      if (!wasLeech && isNowLeech) {
+        const backendUpdatedPhrase = await updatePhraseMasteryAndCache(originalPhrase, action);
+        if (settings.soundEffects) playIncorrectSound();
+        handleOpenLeechModal(backendUpdatedPhrase);
+        return true; // Leech modal shown
       }
+    }
 
-      const finalPhraseState = await updatePhraseMasteryAndCache(originalPhrase, action);
+    const finalPhraseState = await updatePhraseMasteryAndCache(originalPhrase, action);
 
-      // При "Знаю" не переворачиваем карточку - пользователь и так знает ответ
-      if (action !== 'know') {
-        setIsPracticeAnswerRevealed(true);
-      }
-      setPracticeCardEvaluated(action === 'know');
-      setCurrentPracticePhrase(finalPhraseState);
+    // При "Знаю" не переворачиваем карточку - пользователь и так знает ответ
+    if (action !== 'know') {
+      setIsPracticeAnswerRevealed(true);
+    }
+    setPracticeCardEvaluated(action === 'know');
+    setCurrentPracticePhrase(finalPhraseState);
 
-      return false; // Leech modal not shown
-    },
-    [
-      currentPracticePhrase,
-      practiceIsExitingRef,
-      updateMasteryButtonUsage,
-      categories,
-      updatePhraseMasteryAndCache,
-      settings.soundEffects,
-    ]
-  );
+    return false; // Leech modal not shown
+  };
 
-  const handlePracticeSwipeRight = useCallback(() => {
+  const handlePracticeSwipeRight = () => {
     if (practiceIsExitingRef.current || cardHistory.length === 0) return;
     practiceIsExitingRef.current = true;
     setTimeout(() => {
@@ -1664,8 +1552,7 @@ const App: React.FC = () => {
       }
       practiceIsExitingRef.current = false;
     }, 250);
-  }, [allPhrases, cardHistory, changePracticePhrase]);
-  // --- End Practice Page Logic ---
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1698,7 +1585,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [view, currentPracticePhrase, isPracticeAnswerRevealed, transitionToNext, handlePracticeSwipeRight]);
+  }, [view, currentPracticePhrase, isPracticeAnswerRevealed]);
 
   const getProviderDisplayName = () => {
     const name = apiProvider.getProviderName();
@@ -2084,10 +1971,9 @@ const App: React.FC = () => {
           setIsVoiceWorkspaceModalOpen(false);
           transitionToNext();
         }}
-        onGeneratePhraseBuilderOptions={useCallback(
-          (phrase: Phrase) => callApiWithFallback((p) => p.generatePhraseBuilderOptions(phrase)),
-          [callApiWithFallback]
-        )}
+        onGeneratePhraseBuilderOptions={(phrase: Phrase) =>
+          callApiWithFallback((p) => p.generatePhraseBuilderOptions(phrase))
+        }
         onPracticeNext={() => selectNextPracticePhrase()}
         settings={settings}
         buttonUsage={buttonUsage}

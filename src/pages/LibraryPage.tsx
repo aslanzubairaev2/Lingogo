@@ -1,5 +1,5 @@
 import ePub from 'epubjs';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import PlusIcon from '../components/icons/PlusIcon';
 import { useTranslation } from '../hooks/useTranslation.ts';
@@ -28,7 +28,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({ onOpenBook }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingBook, setIsAddingBook] = useState(false);
 
-  const loadBooks = useCallback(async () => {
+  const loadBooks = async () => {
     setIsLoading(true);
     const storedBooks = await dbService.getAllBooks();
     const bookRecords = storedBooks.map((book) => ({
@@ -38,7 +38,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({ onOpenBook }) => {
     }));
     setBooks(bookRecords);
     setIsLoading(false);
-  }, []);
+  };
 
   useEffect(() => {
     loadBooks();

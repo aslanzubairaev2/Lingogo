@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTranslation } from '../hooks/useTranslation';
 import * as cacheService from '../services/cacheService';
@@ -49,49 +49,43 @@ const SentenceChainModal: React.FC<SentenceChainModalProps> = ({
   const apiCacheKey = useMemo(() => `sentence_chain_api_cache_${phrase.id}`, [phrase.id]);
   const historyCacheKey = useMemo(() => `sentence_chain_history_${phrase.id}`, [phrase.id]);
 
-  const getFullNativePhrase = useCallback(
-    (currentHistory: string[]): string => {
-      let fullPhrase = phrase.text.native;
-      for (const part of currentHistory) {
-        if (part.match(/^[.,:;!?]/)) {
-          fullPhrase += part;
-        } else {
-          fullPhrase += ' ' + part;
-        }
+  const getFullNativePhrase = (currentHistory: string[]): string => {
+    let fullPhrase = phrase.text.native;
+    for (const part of currentHistory) {
+      if (part.match(/^[.,:;!?]/)) {
+        fullPhrase += part;
+      } else {
+        fullPhrase += ' ' + part;
       }
-      return fullPhrase;
-    },
-    [phrase.text.native]
-  );
+    }
+    return fullPhrase;
+  };
 
-  const fetchContinuations = useCallback(
-    async (nativePhrase: string) => {
-      if (cacheRef.current.has(nativePhrase)) {
-        const cachedData = cacheRef.current.get(nativePhrase)!;
-        setCurrentLearning(cachedData.learning);
-        setContinuations(cachedData.continuations);
-        setIsLoading(false);
-        setError(null);
-        return;
-      }
-
-      setIsLoading(true);
+  const fetchContinuations = async (nativePhrase: string) => {
+    if (cacheRef.current.has(nativePhrase)) {
+      const cachedData = cacheRef.current.get(nativePhrase)!;
+      setCurrentLearning(cachedData.learning);
+      setContinuations(cachedData.continuations);
+      setIsLoading(false);
       setError(null);
-      setContinuations([]);
-      try {
-        const result = await onGenerateContinuations(nativePhrase);
-        cacheRef.current.set(nativePhrase, result);
-        // FIX: Use `result.learning` to match the `SentenceContinuation` type.
-        setCurrentLearning(result.learning);
-        setContinuations(result.continuations);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [onGenerateContinuations]
-  );
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setContinuations([]);
+    try {
+      const result = await onGenerateContinuations(nativePhrase);
+      cacheRef.current.set(nativePhrase, result);
+      // FIX: Use `result.learning` to match the `SentenceContinuation` type.
+      setCurrentLearning(result.learning);
+      setContinuations(result.continuations);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Effect to handle initialization on open and saving on close.
   useEffect(() => {
@@ -118,7 +112,7 @@ const SentenceChainModal: React.FC<SentenceChainModalProps> = ({
       const fullNativePhrase = getFullNativePhrase(history);
       fetchContinuations(fullNativePhrase);
     }
-  }, [history, isOpen, isInitialized, getFullNativePhrase, fetchContinuations]);
+  }, [history, isOpen, isInitialized]);
 
   const handleSelectContinuation = (continuation: string) => {
     const newHistory = [...history, continuation];

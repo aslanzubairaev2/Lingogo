@@ -1,4 +1,4 @@
-﻿import React, { createContext, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { createContext, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
 
 import DevLanguageSelector from '../components/DevLanguageSelector.tsx';
@@ -361,50 +361,44 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     syncProfileWithDatabase();
   }, [isAuthenticated]); // Only run when auth status changes
 
-  const setProfile = useCallback(
-    (update: ProfileUpdater, options: SetProfileOptions = {}) => {
-      const { lockUi = true } = options;
-      const detected = detectBrowserLanguage();
-      setProfileState((prev) => {
-        const next =
-          typeof update === 'function' ? (update as (value: LanguageProfile) => LanguageProfile)(prev) : update;
-        configService.saveLanguageProfile(next);
-        configService.saveLanguageProfileMeta({
-          uiLocked: lockUi,
-          lastDetected: detected,
-        });
-
-        // Sync with database if authenticated
-        if (isAuthenticated) {
-          backendService
-            .upsertUserProfile(next)
-            .then(() => {
-              console.log('[LanguageContext] Profile synced to database');
-            })
-            .catch((error) => {
-              console.error('[LanguageContext] Failed to sync profile to database:', error);
-            });
-        }
-
-        return next;
+  const setProfile = (update: ProfileUpdater, options: SetProfileOptions = {}) => {
+    const { lockUi = true } = options;
+    const detected = detectBrowserLanguage();
+    setProfileState((prev) => {
+      const next =
+        typeof update === 'function' ? (update as (value: LanguageProfile) => LanguageProfile)(prev) : update;
+      configService.saveLanguageProfile(next);
+      configService.saveLanguageProfileMeta({
+        uiLocked: lockUi,
+        lastDetected: detected,
       });
-    },
-    [isAuthenticated]
-  );
 
-  const handleDevLanguageSelect = useCallback(
-    (lang: LanguageCode) => {
-      if (!isDev) {
-        return;
+      // Sync with database if authenticated
+      if (isAuthenticated) {
+        backendService
+          .upsertUserProfile(next)
+          .then(() => {
+            console.log('[LanguageContext] Profile synced to database');
+          })
+          .catch((error) => {
+            console.error('[LanguageContext] Failed to sync profile to database:', error);
+          });
       }
-      localStorage.setItem(DEV_OVERRIDE_KEY, lang);
-      setShowDevSelector(false);
-      setProfile((prev) => ({ ...prev, ui: lang }), { lockUi: true });
-    },
-    [isDev, setProfile]
-  );
 
-  const handleUseSystemLanguage = useCallback(() => {
+      return next;
+    });
+  };
+
+  const handleDevLanguageSelect = (lang: LanguageCode) => {
+    if (!isDev) {
+      return;
+    }
+    localStorage.setItem(DEV_OVERRIDE_KEY, lang);
+    setShowDevSelector(false);
+    setProfile((prev) => ({ ...prev, ui: lang }), { lockUi: true });
+  };
+
+  const handleUseSystemLanguage = () => {
     if (!isDev) {
       return;
     }
@@ -412,13 +406,13 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     const detected = detectBrowserLanguage();
     setShowDevSelector(false);
     setProfile((prev) => ({ ...prev, ui: detected }), { lockUi: false });
-  }, [isDev, setProfile]);
+  };
 
-  const openDevLanguageSelector = useCallback(() => {
+  const openDevLanguageSelector = () => {
     if (isDev) {
       setShowDevSelector(true);
     }
-  }, [isDev]);
+  };
 
   const value = useMemo(
     () => ({
@@ -431,16 +425,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       isDev,
       openDevLanguageSelector: isDev ? openDevLanguageSelector : undefined,
     }),
-    [
-      profile,
-      setProfile,
-      currentLanguage,
-      isLocalizing,
-      localizationPhase,
-      localizationLanguage,
-      isDev,
-      openDevLanguageSelector,
-    ]
+    [profile, currentLanguage, isLocalizing, localizationPhase, localizationLanguage, isDev]
   );
 
   return (

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -313,58 +313,48 @@ const CategoryAssistantModal: React.FC<CategoryAssistantModalProps> = (props) =>
 
   const messages = cache[category.id] || [];
 
-  const updateMessages = useCallback(
-    (updater: (prev: ChatMessage[]) => ChatMessage[]) => {
-      setCache((prev) => {
-        const currentMessages = prev[category.id] || [];
-        const newMessages = updater(currentMessages);
-        return { ...prev, [category.id]: newMessages };
-      });
-    },
-    [setCache, category.id]
-  );
+  const updateMessages = (updater: (prev: ChatMessage[]) => ChatMessage[]) => {
+    setCache((prev) => {
+      const currentMessages = prev[category.id] || [];
+      const newMessages = updater(currentMessages);
+      return { ...prev, [category.id]: newMessages };
+    });
+  };
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleRequest = useCallback(
-    async (request: CategoryAssistantRequest) => {
-      setIsLoading(true);
-      if (request.type === 'user_text' && request.text) {
-        updateMessages((prev) => [...prev, { role: 'user', text: request.text }]);
-        setInput('');
-      }
+  const handleRequest = async (request: CategoryAssistantRequest) => {
+    setIsLoading(true);
+    if (request.type === 'user_text' && request.text) {
+      updateMessages((prev) => [...prev, { role: 'user', text: request.text }]);
+      setInput('');
+    }
 
-      try {
-        const response = await onGetAssistantResponse(category.name, phrases, request, messages);
-        updateMessages((prev) => [...prev, { role: 'model', assistantResponse: response }]);
-        if (response?.promptSuggestions) {
-          setPromptSuggestions(response.promptSuggestions);
-        }
-        if (response?.responseType === 'phrases_to_delete' && response.phrasesForDeletion) {
-          const learningTextsToDelete = new Set(
-            response.phrasesForDeletion.map((p) => p.learning.toLowerCase().trim())
-          );
-          const phrasesToDelete = phrases.filter((p) =>
-            learningTextsToDelete.has(p.text.learning.toLowerCase().trim())
-          );
-          if (phrasesToDelete.length > 0) {
-            onOpenConfirmDeletePhrases(phrasesToDelete, category);
-          }
-        }
-      } catch (err) {
-        const errorMsg: ChatMessage = {
-          role: 'model',
-          text: t('assistant.modal.messages.error', { message: (err as Error).message }),
-        };
-        updateMessages((prev) => [...prev, errorMsg]);
-      } finally {
-        setIsLoading(false);
+    try {
+      const response = await onGetAssistantResponse(category.name, phrases, request, messages);
+      updateMessages((prev) => [...prev, { role: 'model', assistantResponse: response }]);
+      if (response?.promptSuggestions) {
+        setPromptSuggestions(response.promptSuggestions);
       }
-    },
-    [category, phrases, onGetAssistantResponse, updateMessages, onOpenConfirmDeletePhrases, messages, t]
-  );
+      if (response?.responseType === 'phrases_to_delete' && response.phrasesForDeletion) {
+        const learningTextsToDelete = new Set(response.phrasesForDeletion.map((p) => p.learning.toLowerCase().trim()));
+        const phrasesToDelete = phrases.filter((p) => learningTextsToDelete.has(p.text.learning.toLowerCase().trim()));
+        if (phrasesToDelete.length > 0) {
+          onOpenConfirmDeletePhrases(phrasesToDelete, category);
+        }
+      }
+    } catch (err) {
+      const errorMsg: ChatMessage = {
+        role: 'model',
+        text: t('assistant.modal.messages.error', { message: (err as Error).message }),
+      };
+      updateMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
