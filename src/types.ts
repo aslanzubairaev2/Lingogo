@@ -122,6 +122,11 @@ export interface NounDeclension {
 
 export interface AdjectiveDeclension {
   adjective: string;
+  comparison: {
+    positive: string;
+    comparative: string;
+    superlative: string;
+  };
   weak: DeclensionTable;
   mixed: DeclensionTable;
   strong: DeclensionTable;

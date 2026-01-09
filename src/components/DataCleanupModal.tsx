@@ -231,9 +231,9 @@ const DataCleanupModal: React.FC<DataCleanupModalProps> = ({ isOpen, onClose, al
                 <p className="text-slate-300 text-center">
                   {cleanupResult.totalUpdated > 0
                     ? t('dataCleanup.complete.success', {
-                        count: cleanupResult.totalUpdated,
-                        defaultValue: 'Successfully updated {{count}} phrases.',
-                      })
+                      count: cleanupResult.totalUpdated,
+                      defaultValue: 'Successfully updated {{count}} phrases.',
+                    })
                     : t('dataCleanup.complete.noChanges', 'No phrases needed updating. Your data is already clean!')}
                 </p>
               </div>

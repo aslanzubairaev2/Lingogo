@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useTranslation } from '../hooks/useTranslation.ts';
-import type { AdjectiveDeclension, AdjectiveDeclensionTable, Phrase } from '../types.ts';
+import type { AdjectiveDeclension, DeclensionTable, Phrase } from '../types.ts';
 import AudioPlayer from './AudioPlayer';
 import CloseIcon from './icons/CloseIcon';
 import TableIcon from './icons/TableIcon';
@@ -16,7 +16,7 @@ interface AdjectiveDeclensionModalProps {
   onOpenWordAnalysis: (phrase: Phrase, word: string) => void;
 }
 
-const CASE_ORDER: Array<keyof AdjectiveDeclensionTable['masculine']> = ['nominativ', 'akkusativ', 'dativ', 'genitiv'];
+const CASE_ORDER: Array<keyof DeclensionTable['masculine']> = ['nominative', 'accusative', 'dative', 'genitive'];
 
 const AdjectiveDeclensionSkeleton: React.FC = () => (
   <div className="space-y-8 animate-pulse">
@@ -122,7 +122,7 @@ const AdjectiveDeclensionModal: React.FC<AdjectiveDeclensionModalProps> = ({
     ));
   };
 
-  const renderDeclensionTable = (tableData: AdjectiveDeclensionTable, variant: 'weak' | 'mixed' | 'strong') => (
+  const renderDeclensionTable = (tableData: DeclensionTable, variant: 'weak' | 'mixed' | 'strong') => (
     <section>
       <h3 className="text-lg font-semibold text-purple-300 mb-3">
         {t(`modals.adjectiveDeclension.labels.${variant}`)}

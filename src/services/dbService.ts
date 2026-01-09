@@ -1,6 +1,6 @@
 import { DBSchema, IDBPDatabase, openDB } from 'idb';
 
-import { Book } from '../types.ts';
+import { Book } from 'epubjs';
 
 interface AppDB extends DBSchema {
   books: {
@@ -53,6 +53,7 @@ export const updateBookLocation = async (id: number, lastLocation: string): Prom
   const db = await initDB();
   const book = await db.get(STORE_NAME, id);
   if (book) {
-    await db.put(STORE_NAME, { ...book, lastLocation });
+    book.locations.currentLocation(lastLocation);
+    await db.put(STORE_NAME, book);
   }
 };

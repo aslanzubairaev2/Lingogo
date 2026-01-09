@@ -19,6 +19,7 @@ import { Phrase } from '../types';
 import BugIcon from './icons/BugIcon';
 import MessageQuestionIcon from './icons/MessageQuestionIcon';
 import WandIcon from './icons/WandIcon';
+import { ToastType } from './Toast';
 
 interface LeechModalProps {
   /** The phrase identified as a leech */
