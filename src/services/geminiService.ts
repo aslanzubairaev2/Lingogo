@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from '@google/genai';
 
 import i18n from '../i18n/config.ts';
-import { getLanguageName } from '../i18n/languageMeta';
+import { getLanguageName, needsTranscription } from '../i18n/languageMeta';
 import type { TranslationRecord } from '../services/languageService.ts';
 import type {
   AdjectiveDeclension,
@@ -98,13 +98,6 @@ const getLang = () => {
     nativeCode: profile.native,
     learningCode: profile.learning,
   };
-};
-
-/**
- * Determines if a language requires romanization/transcription
- */
-const requiresRomanization = (languageCode: LanguageCode): boolean => {
-  return ['ar', 'hi', 'zh', 'ja'].includes(languageCode);
 };
 
 const buildLocalePrompt = (languageLabel: string) => [
@@ -216,19 +209,19 @@ const phraseSchema = () => {
           type: Type.STRING,
           description: `The phrase in ${lang.native}.`,
         },
-        ...(requiresRomanization(lang.learningCode)
+        ...(needsTranscription(lang.learningCode)
           ? {
-              romanization: {
-                type: Type.STRING,
-                description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-              },
-            }
+            romanization: {
+              type: Type.STRING,
+              description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+            },
+          }
           : {}),
       },
       required: [
         lang.learningCode,
         lang.nativeCode,
-        ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
+        ...(needsTranscription(lang.learningCode) ? ['romanization'] : []),
       ],
     },
   };
@@ -430,10 +423,10 @@ const getWordTranslation: AiService['getWordTranslation'] = async (nativePhrase,
   if (!api) throw new Error('Gemini API key not configured.');
   const lang = getLang();
 
-  const prompt = `Дана ${lang.native} фраза: "${nativePhrase}".
-Ее ${lang.learning} перевод: "${learningPhrase}".
-Каков точный перевод ${lang.native} слова "${nativeWord}" в этом конкретном контексте?
-Верни ТОЛЬКО JSON-объект с одним ключом "learningTranslation".`;
+  const prompt = `Given the ${lang.native} phrase: "${nativePhrase}".
+Its ${lang.learning} translation: "${learningPhrase}".
+What is the exact translation of the ${lang.native} word "${nativeWord}" in this specific context?
+Return ONLY a JSON object with one key "learningTranslation".`;
 
   try {
     const response = await api.models.generateContent({
@@ -471,19 +464,19 @@ const cardsFromTranscriptSchema = () => {
           type: Type.STRING,
           description: `The phrase in ${lang.native}.`,
         },
-        ...(requiresRomanization(lang.learningCode)
+        ...(needsTranscription(lang.learningCode)
           ? {
-              romanization: {
-                type: Type.STRING,
-                description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-              },
-            }
+            romanization: {
+              type: Type.STRING,
+              description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+            },
+          }
           : {}),
       },
       required: [
         lang.learningCode,
         lang.nativeCode,
-        ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
+        ...(needsTranscription(lang.learningCode) ? ['romanization'] : []),
       ],
     },
   };
@@ -516,8 +509,8 @@ Instructions:
 
 Example Output Format:
 [
-  { "${lang.nativeCode}": "я пойду домой", "${lang.learningCode}": "ich gehe nach Hause" },
-  { "${lang.nativeCode}": "потому что у меня сильно болит голова", "${lang.learningCode}": "weil ich starke Kopfschmerzen habe" }
+  { "${lang.nativeCode}": "I am going home", "${lang.learningCode}": "ich gehe nach Hause" },
+  { "${lang.nativeCode}": "because I have a bad headache", "${lang.learningCode}": "weil ich starke Kopfschmerzen habe" }
 ]`;
 
   try {
@@ -560,19 +553,19 @@ const imageCardsWithCategorySchema = () => {
               description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
             },
             [lang.nativeCode]: { type: Type.STRING, description: `The phrase in ${lang.native}.` },
-            ...(requiresRomanization(lang.learningCode)
+            ...(needsTranscription(lang.learningCode)
               ? {
-                  romanization: {
-                    type: Type.STRING,
-                    description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-                  },
-                }
+                romanization: {
+                  type: Type.STRING,
+                  description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+                },
+              }
               : {}),
           },
           required: [
             lang.learningCode,
             lang.nativeCode,
-            ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
+            ...(needsTranscription(lang.learningCode) ? ['romanization'] : []),
           ],
         },
       },
@@ -608,7 +601,7 @@ If the user did not provide an instruction, analyze the image content:
 **3. OUTPUT REQUIREMENTS (Applies to ALL cases):**
 You must return a single JSON object with two keys:
 - **"cards"**: A JSON array of objects. Each object must have "${lang.learningCode}" and "${lang.nativeCode}" keys. If you cannot find any relevant content, return an empty array.
-- **"categoryName"**: A short, suitable category name in ${lang.native} that accurately describes the content of the generated cards. Examples: "Задание 3a: Существительные", "Объекты в комнате", "Надписи на улице".
+- **"categoryName"**: A short, suitable category name in ${lang.native} that accurately describes the content of the generated cards. Examples: "Exercise 3a: Nouns", "Objects in the room", "Street signs".
 
 Return EXCLUSIVELY the JSON object matching the provided schema.`;
 
@@ -652,21 +645,21 @@ const generateTopicCards: AiService['generateTopicCards'] = async (topic, refine
   const lang = getLang();
 
   const refinementPrompt = refinement
-    ? `\n\nПользователь был не удовлетворен предыдущими результатами и дал следующее уточнение: "${refinement}". Пожалуйста, сгенерируй новый список, строго следуя этому уточнению.`
+    ? `\n\nThe user was not satisfied with previous results and provided the following refinement: "${refinement}". Please generate a new list, strictly following this refinement.`
     : '';
 
   const existingPhrasesPrompt =
     existingPhrases && existingPhrases.length > 0
-      ? `\n\nВажно: В категории уже есть следующие фразы: "${existingPhrases.join('; ')}". Не повторяй их. Придумай новые, уникальные и полезные слова/фразы по этой теме.`
+      ? `\n\nImportant: The category already contains the following phrases: "${existingPhrases.join('; ')}". Do not repeat them. Create new, unique, and useful words/phrases on this topic.`
       : '';
 
-  const prompt = `Ты — AI-ассистент для изучения ${lang.learning} языка. Пользователь хочет получить набор карточек на определенную тему.
-Тема запроса: "${topic}"${refinementPrompt}${existingPhrasesPrompt}
+  const prompt = `You are an AI assistant for learning ${lang.learning}. The user wants a set of flashcards on a specific topic.
+Topic: "${topic}"${refinementPrompt}${existingPhrasesPrompt}
 
-Твоя задача:
-1.  Проанализируй запрос пользователя.
-2.  Сгенерируй список из 10-15 полезных, разнообразных ${lang.learning} слов и фраз с ${lang.native} переводом по этой теме. Фразы должны быть естественными и часто употребимыми.
-3.  Верни результат ТОЛЬКО как JSON-массив объектов. Каждый объект должен иметь два ключа: '${lang.nativeCode}' и '${lang.learningCode}'.`;
+Your task:
+1.  Analyze the user's request.
+2.  Generate a list of 10-15 useful, diverse ${lang.learning} words and phrases with ${lang.native} translation on this topic. Phrases should be natural and commonly used.
+3.  Return the result ONLY as a JSON array of objects. Each object must have two keys: '${lang.nativeCode}' and '${lang.learningCode}'.`;
 
   try {
     const response = await api.models.generateContent({
@@ -708,7 +701,7 @@ const topicClassificationSchema = {
     categoryName: {
       type: Type.STRING,
       description:
-        "A short, suitable name for the category if isCategory is true. Should be in Native. E.g., 'Дни недели', 'Цвета'. Empty string if isCategory is false.",
+        "A short, suitable name for the category if isCategory is true. Should be in Native. E.g., 'Days of the week', 'Colors'. Empty string if isCategory is false.",
     },
   },
   required: ['isCategory', 'categoryName'],
@@ -717,8 +710,9 @@ const topicClassificationSchema = {
 const classifyTopic: AiService['classifyTopic'] = async (topic) => {
   const api = initializeApi();
   if (!api) throw new Error('Gemini API key not configured.');
+  const lang = getLang();
 
-  const prompt = `Пользователь ввел тему для изучения: "${topic}". Является ли эта тема замкнутым, четко определенным набором понятий (например, дни недели, месяцы, цвета, члены семьи, города страны, пальцы рук)? Ответь 'да' или 'нет' и предложи короткое, подходящее название для категории на русском языке.`;
+  const prompt = `The user entered a topic to learn: "${topic}". Is this topic a closed, well-defined set of concepts (e.g., days of the week, months, colors, family members, cities, fingers)? Answer 'yes' or 'no' and suggest a short, suitable name for the category in ${lang.native}.`;
 
   try {
     const response = await api.models.generateContent({
@@ -762,17 +756,17 @@ const improvePhrase: AiService['improvePhrase'] = async (originalNative, current
   if (!api) throw new Error('Gemini API key not configured.');
   const lang = getLang();
 
-  const prompt = `Ты — эксперт по ${lang.learning} языку. Пользователь хочет выучить правильный и естественный ${lang.learning}.
-Исходная фраза на ${lang.native}: "${originalNative}"
-Текущий перевод на ${lang.learning}: "${currentLearning}"
+  const prompt = `You are an expert in ${lang.learning}. The user wants to learn correct and natural ${lang.learning}.
+Original phrase in ${lang.native}: "${originalNative}"
+Current translation in ${lang.learning}: "${currentLearning}"
 
-Твоя задача:
-1. Проанализируй ${lang.learning} перевод на грамматическую правильность, естественность звучания и идиоматичность.
-2. Если перевод можно улучшить, предложи лучший вариант. "Лучший" означает более правильный, более употребительный или более естественный для носителя языка.
-3. Дай краткое и ясное объяснение на ${lang.native} языке, почему твой вариант лучше. Например, "В данном контексте предлог 'auf' подходит лучше, чем 'in', потому что..." или "Эта формулировка более вежливая".
-4. Если текущий перевод уже идеален, верни его же в 'suggestedLearning' и объясни, почему он является наилучшим вариантом.
+Your task:
+1. Analyze the ${lang.learning} translation for grammatical correctness, natural flow, and idiomatic usage.
+2. If the translation can be improved, suggest a better version. "Better" means more correct, more common, or more natural for a native speaker.
+3. Provide a brief and clear explanation in ${lang.native} why your version is better. For example, "In this context, the preposition 'auf' fits better than 'in' because..." or "This phrasing is more polite".
+4. If the current translation is already perfect, return it in 'suggestedLearning' and explain why it is the best option.
 
-Верни результат в виде JSON-объекта.`;
+Return the result as a JSON object.`;
 
   try {
     const response = await api.models.generateContent({
@@ -894,7 +888,7 @@ Return JSON according to the schema. IMPORTANT: Use the 'grammarParts' field (AR
    - Break down your explanation into an ARRAY of segments with 'type' and 'text' fields.
    - For ${lang.native} explanatory text: use type='text'.
    - For ${lang.learning} words/phrases: use type='learning' with 'translation' field.
-   - Example structure: [{"type":"text","text":"Слово "},{"type":"learning","text":"Monat","translation":"месяц"},{"type":"text","text":" — существительное (м.р.)."}]
+   - Example structure: [{"type":"text","text":"The word "},{"type":"learning","text":"Monat","translation":"month"},{"type":"text","text":" is a noun (masculine)."}]
    - Include: parts of speech, word order comparison with ${lang.native}, key grammar points.
    - Keep it SHORT - max 150 words total.
    - Start DIRECTLY with content, NO intro phrases.
@@ -998,12 +992,12 @@ const continueChat: AiService['continueChat'] = async (phrase, history, newMessa
       fullText = msg.text;
       if (msg.examples && msg.examples.length > 0) {
         const examplesText = msg.examples.map((ex) => `- ${ex.learning} (${ex.native})`).join('\n');
-        fullText += '\n\nПримеры:\n' + examplesText;
+        fullText += '\\n\\nExamples:\\n' + examplesText;
       }
       if (msg.suggestions && msg.suggestions.length > 0) {
         // We don't have detailed structure for suggestions in the type definition
         const suggestionsText = msg.suggestions.map((s) => `- ${s.title}`).join('\n');
-        fullText += '\n\nСоветы:\n' + suggestionsText;
+        fullText += '\\n\\nSuggestions:\\n' + suggestionsText;
       }
     }
     return {
@@ -1012,12 +1006,12 @@ const continueChat: AiService['continueChat'] = async (phrase, history, newMessa
     };
   });
 
-  const systemInstruction = `Ты AI-помощник для изучения ${lang.learning} языка. Пользователь изучает фразу "${phrase.text.learning}" (${phrase.text.native}).
-1. Отвечай на вопросы пользователя. В своем ответе ОБЯЗАТЕЛЬНО используй предоставленную JSON-схему. Разбей свой ответ на массив 'contentParts'. Каждый элемент массива должен быть объектом с ключами 'type' и 'text'. Если часть ответа - это обычный текст на ${lang.native}, используй 'type': 'text'. Если это ${lang.learning} слово или фраза, используй 'type': 'learning'. Если 'type' равен 'learning', ОБЯЗАТЕЛЬНО предоставь перевод в поле 'translation'. Не используй Markdown в JSON. Сохраняй форматирование с помощью переносов строк (\\n) в текстовых блоках.
-2. После ответа, сгенерируй от 2 до 4 новых, контекстно-зависимых вопросов для продолжения диалога в поле 'promptSuggestions'. Эти вопросы должны быть основаны на последнем сообщении пользователя и общем контексте диалога.
-   - Предлагай "Покажи варианты с местоимениями" только если во фразе есть глагол для спряжения и это релевантно.
-   - Предлагай "Как это использовать в вопросе?" только если фраза не является вопросом и это релевантно.
-   - Предлагай новые, креативные вопросы, которые помогут пользователю глубже понять тему.`;
+  const systemInstruction = `You are an AI assistant for learning ${lang.learning}. The user is learning the phrase "${phrase.text.learning}" (${phrase.text.native}).
+1. Answer the user's questions. You MUST use the provided JSON schema in your response. Break down your answer into the 'contentParts' array. Each element of the array must be an object with 'type' and 'text' keys. If part of the answer is plain text in ${lang.native}, use 'type': 'text'. If it is a ${lang.learning} word or phrase, use 'type': 'learning'. If 'type' is 'learning', you MUST provide a translation in the 'translation' field. Do not use Markdown in JSON. Preserve formatting using newline characters (\\n) in text blocks.
+2. After answering, generate 2 to 4 new, context-aware questions to continue the dialogue in the 'promptSuggestions' field. These questions should be based on the user's last message and the general context of the dialogue.
+   - Suggest "Show variations with pronouns" only if the phrase contains a verb to conjugate and it is relevant.
+   - Suggest "How to use this in a question?" only if the phrase is not a question and it is relevant.
+   - Suggest new, creative questions that help the user understand the topic deeper.`;
 
   try {
     const response = await api.models.generateContent({
@@ -1296,7 +1290,7 @@ const learningAssistantResponseSchema = () => {
           type: Type.OBJECT,
           properties: {
             type: { type: Type.STRING, enum: ['verbConjugation', 'nounDeclension', 'pronouns', 'wFragen'] },
-            label: { type: Type.STRING, description: "The button text, e.g., 'Спряжение глагола'" },
+            label: { type: Type.STRING, description: "The button text, e.g., 'Verb conjugation'" },
             data: {
               type: Type.STRING,
               description:
@@ -1323,54 +1317,54 @@ const guideToTranslation: AiService['guideToTranslation'] = async (phrase, histo
 
   // FIX: Use phrase.text.native and phrase.text.learning
   const lang = getLang();
-  const systemInstruction = `Ты — опытный преподаватель-методист ${lang.learning} языка. Твоя задача — провести пользователя через интерактивное упражнение, чтобы он понял и запомнил перевод фразы. Используй метод наводящих вопросов и подсказок.
+  const systemInstruction = `You are an experienced language teacher and methodologist for ${lang.learning}. Your task is to guide the user through an interactive exercise so they understand and memorize the phrase translation. Use the method of leading questions and hints.
 
-Исходная фраза: "${phrase.text.native}"
-Правильный ${lang.learning} перевод: "${phrase.text.learning}"
+Original phrase: "${phrase.text.native}"
+Correct ${lang.learning} translation: "${phrase.text.learning}"
 
-**Твой алгоритм действий:**
+**Your algorithm:**
 
-**Шаг 1: Анализ фразы (внутренний).**
-- Разбей правильный ${lang.learning} перевод на **семантические блоки (чанки)**. Блок — это одно слово или **устойчивое словосочетание**, которое не следует разделять (например, "hätte gern", "es gibt", "zum Beispiel", "ich möchte").
-- **КЛЮЧЕВОЕ ПРАВИЛО:** Не разбивай фразу просто на отдельные слова. Ищи словосочетания, которые несут единый смысл.
+**Step 1: Phrase Analysis (Internal).**
+- Break the correct ${lang.learning} translation into **semantic chunks**. A chunk is a single word or a **stable phrase** that should not be split (e.g., "hätte gern", "es gibt", "zum Beispiel", "ich möchte").
+- **KEY RULE:** Do not split the phrase into individual words. Look for combinations that carry a single meaning.
 
-**Шаг 2: Первая подсказка (первое сообщение пользователю).**
-1.  Начни с первого **блока**.
-2.  Задай наводящий вопрос, который поможет пользователю угадать этот блок. Пример для "Ich hätte gern einen Kaffee": "Начнем с вежливой просьбы. Какое устойчивое выражение в ${lang.learning} используется для 'я бы хотел' или 'мне бы хотелось'?"
-3.  Сформируй \`wordOptions\`, включив в них правильный блок ("hätte gern") и несколько отвлекающих вариантов (отдельные слова "hätte", "gern", "möchte", "will").
+**Step 2: First Hint (First message to the user).**
+1. Start with the first **chunk**.
+2. Ask a leading question to help the user guess this chunk. Example for "Ich hätte gern einen Kaffee": "Let's start with a polite request. What stable expression in ${lang.learning} is used for 'I would like'?"
+3. Form \`wordOptions\` including the correct chunk ("hätte gern") and several distractors (individual words "hätte", "gern", "möchte", "will").
 
-**Шаг 3: Последующие шаги.**
-- **Если пользователь ответил ПРАВИЛЬНО (выбрал верный блок):**
-    1.  Похвали его ("Точно!", "Верно!").
-    2.  Дай ПОДСКАЗКУ для **СЛЕДУЮЩЕГО** блока. Твои подсказки должны быть тонкими и наводящими.
-    3.  Сгенерируй новый \`wordOptions\` для этого шага.
-- **Если пользователь ответил НЕПРАВИЛЬНО:**
-    1.  Мягко поправь.
-    2.  Дай **БОЛЕЕ ЯВНУЮ**, но все еще не прямую подсказку для **ТЕКУЩЕГО** блока.
-    3.  Предложи тот же или слегка измененный набор \`wordOptions\`.
-- **Если пользователь выбрал "Не знаю":**
-    1.  Дай ему прямой ответ на текущий шаг. Пример: "Это выражение 'hätte gern'. Давай добавим его."
-    2.  Сразу переходи к подсказке для следующего шага.
+**Step 3: Subsequent Steps.**
+- **If the user answered CORRECTLY (chose the right chunk):**
+    1. Praise them ("Exactly!", "Correct!").
+    2. Give a HINT for the **NEXT** chunk. Your hints should be subtle and leading.
+    3. Generate new \`wordOptions\` for this step.
+- **If the user answered INCORRECTLY:**
+    1. Gently correct them.
+    2. Give a **MORE EXPLICIT**, but still not direct hint for the **CURRENT** chunk.
+    3. Offer the same or slightly modified set of \`wordOptions\`.
+- **If the user chose "Don't know":**
+    1. Give them the direct answer for the current step. Example: "It's the expression 'hätte gern'. Let's add it."
+    2. Immediately move to the hint for the next step.
 
-**Шаг 4: Завершение.**
-- Когда вся фраза собрана правильно, установи \`isCorrect: true\`.
-- В \`responseParts\` напиши поздравительное сообщение.
-- \`wordOptions\` и \`promptSuggestions\` должны быть пустыми.
+**Step 4: Completion.**
+- When the entire phrase is assembled correctly, set \`isCorrect: true\`.
+- In \`responseParts\`, write a congratulatory message.
+- \`wordOptions\` and \`promptSuggestions\` should be empty.
 
-**Правила для генерируемых полей:**
-- \`wordOptions\`: **ВСЕГДА** включай "Не знаю" как первый элемент массива, если только фраза не собрана полностью (\`isCorrect: true\`). Варианты могут быть как отдельными словами, так и словосочетаниями.
-- \`promptSuggestions\`: Должны быть обучающими вопросами, а не прямыми подсказками. Примеры: 'Какой падеж здесь нужен?', 'Почему такой порядок слов?', 'Можно ли сказать это иначе?'. Избегай подсказок вроде 'Как сказать "взгляд"?'.
-- \`cheatSheetOptions\`: Включай шпаргалки, только когда твой вопрос напрямую касается их темы. **ВАЖНО:** Текст кнопки (\`label\`) должен быть ОБЩИМ и НЕ должен содержать сам ответ.
-    - **ПРАВИЛЬНО:** Если спрашиваешь про глагол, \`label\` должен быть "Спряжение глагола".
-    - **НЕПРАВИЛЬНО:** \`label\`: "Спряжение: gehen".
-    - **ПРАВИЛЬНО:** Если спрашиваешь про артикль, \`label\` должен быть "Склонение существительного".
-    - **НЕПРАВИЛЬНО:** \`label\`: "Склонение: der Tisch".
-- **Общие правила:**
-    - **КЛЮЧЕВОЕ ПРАВИЛО:** Твоя задача — давать пошаговые подсказки, а не готовый ответ. Не включай полную ${lang.learning} фразу \`${phrase.text.learning}\` в свой ответ (в поле \`responseParts\`) и не предлагай "примеры использования", пока пользователь не соберет фразу полностью и правильно. Устанавливай \`isCorrect: true\` только после того, как пользователь успешно предоставил ПОЛНЫЙ и ПРАВИЛЬНЫЙ перевод.
-    - Всегда отвечай на ${lang.native}.
-    - Используй JSON-формат со всеми полями из схемы. Поле \`cheatSheetOptions\` является необязательным.`;
+**Rules for generated fields:**
+- \`wordOptions\`: **ALWAYS** include "Don't know" as the first element of the array, unless the phrase is fully assembled (\`isCorrect: true\`). Options can be individual words or short phrases.
+- \`promptSuggestions\`: Should be educational questions, not direct hints. Examples: 'What case is needed here?', 'Why this word order?', 'Can this be said differently?'. Avoid hints like 'How to say "look"?'.
+- \`cheatSheetOptions\`: Include cheat sheets only when your question directly relates to their topic. **IMPORTANT:** The button text (\`label\`) must be GENERIC and MUST NOT contain the answer itself.
+    - **CORRECT:** If asking about a verb, \`label\` should be "Verb conjugation".
+    - **INCORRECT:** \`label\`: "Conjugation: gehen".
+    - **CORRECT:** If asking about an article, \`label\` should be "Noun declension".
+    - **INCORRECT:** \`label\`: "Declension: der Tisch".
+- **General Rules:**
+    - **KEY RULE:** Your task is to give step-by-step hints, not the ready answer. Do not include the full ${lang.learning} phrase \`${phrase.text.learning}\` in your response (in \`responseParts\`) and do not offer "usage examples" until the user has assembled the phrase completely and correctly. Set \`isCorrect: true\` only after the user has successfully provided the COMPLETE and CORRECT translation.
+    - Always answer in ${lang.native}.
+    - Use JSON format with all fields from the schema. The \`cheatSheetOptions\` field is optional.`;
 
-  const userMessage = userAnswer || '(Начало сессии, дай первую подсказку)';
+  const userMessage = userAnswer || '(Start of session, give the first hint)';
 
   try {
     const response = await api.models.generateContent({
@@ -1389,7 +1383,7 @@ const guideToTranslation: AiService['guideToTranslation'] = async (phrase, histo
 
     return {
       role: 'model',
-      contentParts: parsedResponse.responseParts || [{ type: 'text', text: 'Произошла ошибка.' }],
+      contentParts: parsedResponse.responseParts || [{ type: 'text', text: 'An error occurred.' }],
       isCorrect: parsedResponse.isCorrect || false,
       promptSuggestions: parsedResponse.promptSuggestions || [],
       wordOptions: parsedResponse.wordOptions || [],
@@ -1427,16 +1421,16 @@ const discussTranslation: AiService['discussTranslation'] = async (request) => {
   if (!api) throw new Error('Gemini API key not configured.');
   const lang = getLang();
 
-  const systemInstruction = `Ты AI-помощник и эксперт по ${lang.learning} языку. Пользователь недоволен переводом и хочет его улучшить.
-Исходная ${lang.native} фраза: "${request.originalNative}"
-Текущий ${lang.learning} перевод: "${request.currentLearning}"
+  const systemInstruction = `You are an AI assistant and expert in ${lang.learning}. The user is unhappy with the translation and wants to improve it.
+Original ${lang.native} phrase: "${request.originalNative}"
+Current ${lang.learning} translation: "${request.currentLearning}"
 
-Твоя задача:
-1.  Ответь на запрос пользователя, помогая ему найти лучший перевод. Общайся на ${lang.native}.
-2.  Если в ходе диалога ты приходишь к выводу, что фразу можно улучшить, ОБЯЗАТЕЛЬНО включи в свой JSON-ответ поле \`suggestion\`. Это поле должно содержать объект с ключами \`${lang.nativeCode}\` и \`${lang.learningCode}\` с финальным, улучшенным вариантом. Возможно, для лучшего перевода придется немного изменить и ${lang.native} фразу.
-3.  Если ты не предлагаешь конкретного изменения, НЕ включай поле \`suggestion\`.
-4.  Твой ответ ДОЛЖЕН быть ТОЛЬКО в формате JSON, строго соответствующем предоставленной схеме. Не добавляй никакого текста до или после JSON. Всегда разбивай свой текстовый ответ на массив \`contentParts\` и предлагай новые вопросы в \`promptSuggestions\`. В массиве \`contentParts\` используй 'type': 'text' для обычного текста и 'type': 'learning' для ${lang.learning} слов/фраз (с обязательным полем 'translation').
-5.  Будь краток и по делу.`;
+Your task:
+1. Respond to the user's request, helping them find a better translation. Communicate in ${lang.native}.
+2. If during the dialogue you conclude that the phrase can be improved, YOU MUST include the \`suggestion\` field in your JSON response. This field must contain an object with keys \`${lang.nativeCode}\` and \`${lang.learningCode}\` with the final, improved version. We may need to slightly change the ${lang.native} phrase for a better translation.
+3. If you do not propose a specific change, DO NOT include the \`suggestion\` field.
+4. Your response MUST be ONLY in JSON format, strictly adhering to the provided schema. Do not add any text before or after the JSON. Always break your text response into the \`contentParts\` array and offer new questions in \`promptSuggestions\`. In the \`contentParts\` array, use 'type': 'text' for plain text and 'type': 'learning' for ${lang.learning} words/phrases (with mandatory 'translation' field).
+5. Be concise and to the point.`;
 
   const formattedHistory = request.history.map((msg) => ({
     role: msg.role,
@@ -1474,7 +1468,7 @@ const discussTranslation: AiService['discussTranslation'] = async (request) => {
       contentParts:
         parsedResponse.contentParts.length > 0
           ? parsedResponse.contentParts
-          : [{ type: 'text', text: 'AI не предоставил текстовый ответ.' }],
+          : [{ type: 'text', text: 'AI did not provide a text response.' }],
       suggestion: parsedResponse.suggestion
         ? { learning: parsedResponse.suggestion[lang.learningCode], native: parsedResponse.suggestion[lang.nativeCode] }
         : undefined,
@@ -1483,9 +1477,9 @@ const discussTranslation: AiService['discussTranslation'] = async (request) => {
   } catch (error) {
     console.error('Error discussing translation with Gemini:', error);
     if (error instanceof Error && error.message.includes('JSON')) {
-      throw new Error('Не удалось разобрать JSON-ответ от AI. Неверный формат.');
+      throw new Error('Failed to parse JSON response from AI. Invalid format.');
     }
-    throw new Error(`Ошибка вызова Gemini API: ${(error as any)?.message || 'Unknown error'}`);
+    throw new Error(`Error calling Gemini API: ${(error as any)?.message || 'Unknown error'}`);
   }
 };
 
@@ -1552,22 +1546,22 @@ const generateDeepDiveAnalysis: AiService['generateDeepDiveAnalysis'] = async (p
   if (!api) throw new Error('Gemini API key not configured.');
   const lang = getLang();
 
-  const prompt = `Ты — AI-ассистент, специализирующийся на когнитивных техниках запоминания. Пользователь изучает ${lang.learning} фразу: "${phrase.text.learning}" (перевод: "${phrase.text.native}").
-Проведи глубокий когнитивный анализ этой фразы, следуя трём этапам, и верни результат в виде JSON-объекта.
+  const prompt = `You are an AI assistant specializing in cognitive memory techniques. The user is learning the ${lang.learning} phrase: "${phrase.text.learning}" (translation: "${phrase.text.native}").
+Perform a deep cognitive analysis of this phrase following three stages and return the result as a JSON object.
 
-**Этап 1: Деконструкция (Анализ)**
-- **chunks**: Разбей ${lang.learning} фразу на грамматические чанки (отдельные слова или небольшие группы). Для каждого чанка укажи его тип (например, 'Noun', 'Verb', 'Adjective', 'Preposition') и краткое объяснение его роли на ${lang.native} языке.
-- **keyConcepts**: Выдели 1-3 ключевых семантических понятия во фразе и дай им краткое объяснение на ${lang.native}.
+**Stage 1: Deconstruction (Analysis)**
+- **chunks**: Break the ${lang.learning} phrase into grammatical chunks (single words or small groups). For each chunk, specify its type (e.g., 'Noun', 'Verb', 'Adjective', 'Preposition') and a brief explanation of its role in ${lang.native}.
+- **keyConcepts**: Highlight 1-3 key semantic concepts in the phrase and provide a brief explanation for them in ${lang.native}.
 
-**Этап 2: Персонализация (Углубление)**
-- **personalizationQuestion**: Сформулируй один наводящий вопрос на ${lang.native}, который поможет пользователю связать фразу с его личным опытом, чувствами или воспоминаниями. Это должно активировать эффект самореференции. Вопрос должен быть открытым и поощрять воображение.
+**Stage 2: Personalization (Elaboration)**
+- **personalizationQuestion**: Formulate one leading question in ${lang.native} that helps the user connect the phrase to their personal experience, feelings, or memories. This should trigger the self-reference effect. The question should be open-ended and encourage imagination.
 
-**Этап 3: Кодирование (Мнемоника)**
-- **mnemonicImage**: Создай яркий, запоминающийся, мультисенсорный и, возможно, абсурдный мнемонический образ или короткую сцену, которая кодирует смысл всей фразы.
-  - **description**: Подробно опиши эту сцену на ${lang.native} языке.
-  - **keywords**: Укажи 2-4 ключевых слова из этого образа.
+**Stage 3: Encoding (Mnemonic)**
+- **mnemonicImage**: Create a vivid, memorable, multi-sensory, and possibly absurd mnemonic image or short scene that encodes the meaning of the entire phrase.
+  - **description**: Describe this scene in detail in ${lang.native}.
+  - **keywords**: List 2-4 keywords from this image.
 
-Верни только JSON-объект, соответствующий предоставленной схеме.`;
+Return only the JSON object matching the provided schema.`;
 
   try {
     const response = await api.models.generateContent({
@@ -1614,12 +1608,12 @@ const generateMovieExamples: AiService['generateMovieExamples'] = async (phrase)
   if (!api) throw new Error('Gemini API key not configured.');
   const lang = getLang();
 
-  const prompt = `Найди до 5 примеров из диалогов популярных фильмов, где используется ${lang.learning} фраза "${phrase.text.learning}". Фильмы могут быть как ${lang.learning} производства, так и популярные международные фильмы с качественным ${lang.learning} дубляжом. Для каждого примера укажи:
-1. Оригинальное название фильма ('title').
-2. Название фильма на ${lang.native} языке ('titleNative').
-3. Фрагмент диалога на ${lang.learning} языке ('dialogueLearning').
-4. Перевод этого фрагмента на ${lang.native} язык ('dialogueNative').
-Верни результат в виде JSON-массива объектов, соответствующего схеме.`;
+  const prompt = `Find up to 5 examples from dialogues in popular movies where the ${lang.learning} phrase "${phrase.text.learning}" is used. Movies can be produced in ${lang.learning} or popular international movies with high-quality ${lang.learning} dubbing. For each example specify:
+1. Original movie title ('title').
+2. Movie title in ${lang.native} ('titleNative').
+3. Dialogue snippet in ${lang.learning} ('dialogueLearning').
+4. Translation of this snippet to ${lang.native} ('dialogueNative').
+Return the result as a JSON array of objects matching the schema.`;
 
   try {
     const response = await api.models.generateContent({
@@ -1700,19 +1694,7 @@ const getWordAnalysisPrompt = (
   word: string,
   phraseText: string
 ): string => {
-  const prompts: Record<LanguageCode, string> = {
-    ru: `Проведи лингвистический анализ ${learningLang} слова "${word}" в контексте фразы "${phraseText}".
-Верни JSON-объект со следующей информацией:
-1.  **word**: анализируемое слово.
-2.  **partOfSpeech**: часть речи на ${nativeLang}.
-3.  **nativeTranslation**: перевод слова на ${nativeLang}.
-4.  **baseForm**: если слово — прилагательное, укажи его базовую (словарную) форму.
-5.  **nounDetails**: если слово — существительное, укажи его артикль ('article') и форму множественного числа ('plural'). Если нет, пропусти это поле.
-6.  **verbDetails**: если слово — глагол, укажи его инфинитив ('infinitive'), время ('tense') и лицо/число ('person'). Если нет, пропусти это поле.
-7.  **exampleSentence**: новое предложение-пример на ${learningLang}, использующее это слово.
-8.  **exampleSentenceNative**: перевод предложения-примера на ${nativeLang}.`,
-
-    en: `Perform a linguistic analysis of the ${learningLang} word "${word}" in the context of the phrase "${phraseText}".
+  const prompt = `Perform a linguistic analysis of the ${learningLang} word "${word}" in the context of the phrase "${phraseText}".
 Return a JSON object with the following information:
 1.  **word**: the analyzed word.
 2.  **partOfSpeech**: part of speech in ${nativeLang}.
@@ -1721,120 +1703,9 @@ Return a JSON object with the following information:
 5.  **nounDetails**: if the word is a noun, provide its article ('article') and plural form ('plural'). If not, omit this field.
 6.  **verbDetails**: if the word is a verb, provide its infinitive ('infinitive'), tense ('tense'), and person/number ('person'). If not, omit this field.
 7.  **exampleSentence**: a new example sentence in ${learningLang} using this word.
-8.  **exampleSentenceNative**: translation of the example sentence to ${nativeLang}.`,
+8.  **exampleSentenceNative**: translation of the example sentence to ${nativeLang}.`;
 
-    de: `Führe eine linguistische Analyse des ${learningLang} Wortes "${word}" im Kontext des Satzes "${phraseText}" durch.
-Gib ein JSON-Objekt mit den folgenden Informationen zurück:
-1.  **word**: das analysierte Wort.
-2.  **partOfSpeech**: Wortart auf ${nativeLang}.
-3.  **nativeTranslation**: Übersetzung des Wortes ins ${nativeLang}.
-4.  **baseForm**: wenn das Wort ein Adjektiv ist, gib seine Grundform an.
-5.  **nounDetails**: wenn das Wort ein Substantiv ist, gib seinen Artikel ('article') und Pluralform ('plural') an. Wenn nicht, lass dieses Feld weg.
-6.  **verbDetails**: wenn das Wort ein Verb ist, gib seinen Infinitiv ('infinitive'), Zeitform ('tense') und Person/Zahl ('person') an. Wenn nicht, lass dieses Feld weg.
-7.  **exampleSentence**: ein neuer Beispielsatz auf ${learningLang} mit diesem Wort.
-8.  **exampleSentenceNative**: Übersetzung des Beispielsatzes ins ${nativeLang}.`,
-
-    es: `Realiza un análisis lingüístico de la palabra "${word}" en ${learningLang} en el contexto de la frase "${phraseText}".
-Devuelve un objeto JSON con la siguiente información:
-1.  **word**: la palabra analizada.
-2.  **partOfSpeech**: parte del discurso en ${nativeLang}.
-3.  **nativeTranslation**: traducción de la palabra al ${nativeLang}.
-4.  **baseForm**: si la palabra es un adjetivo, proporciona su forma base (diccionario).
-5.  **nounDetails**: si la palabra es un sustantivo, proporciona su artículo ('article') y forma plural ('plural'). Si no, omite este campo.
-6.  **verbDetails**: si la palabra es un verbo, proporciona su infinitivo ('infinitive'), tiempo ('tense') y persona/número ('person'). Si no, omite este campo.
-7.  **exampleSentence**: una nueva oración de ejemplo en ${learningLang} usando esta palabra.
-8.  **exampleSentenceNative**: traducción de la oración de ejemplo al ${nativeLang}.`,
-
-    fr: `Effectue une analyse linguistique du mot "${word}" en ${learningLang} dans le contexte de la phrase "${phraseText}".
-Renvoie un objet JSON avec les informations suivantes:
-1.  **word**: le mot analysé.
-2.  **partOfSpeech**: partie du discours en ${nativeLang}.
-3.  **nativeTranslation**: traduction du mot en ${nativeLang}.
-4.  **baseForm**: si le mot est un adjectif, fournis sa forme de base (dictionnaire).
-5.  **nounDetails**: si le mot est un nom, fournis son article ('article') et forme plurielle ('plural'). Sinon, omets ce champ.
-6.  **verbDetails**: si le mot est un verbe, fournis son infinitif ('infinitive'), temps ('tense') et personne/nombre ('person'). Sinon, omets ce champ.
-7.  **exampleSentence**: une nouvelle phrase d'exemple en ${learningLang} utilisant ce mot.
-8.  **exampleSentenceNative**: traduction de la phrase d'exemple en ${nativeLang}.`,
-
-    it: `Esegui un'analisi linguistica della parola "${word}" in ${learningLang} nel contesto della frase "${phraseText}".
-Restituisci un oggetto JSON con le seguenti informazioni:
-1.  **word**: la parola analizzata.
-2.  **partOfSpeech**: parte del discorso in ${nativeLang}.
-3.  **nativeTranslation**: traduzione della parola in ${nativeLang}.
-4.  **baseForm**: se la parola è un aggettivo, fornisci la sua forma base (dizionario).
-5.  **nounDetails**: se la parola è un sostantivo, fornisci il suo articolo ('article') e forma plurale ('plural'). Se no, ometti questo campo.
-6.  **verbDetails**: se la parola è un verbo, fornisci il suo infinito ('infinitive'), tempo ('tense') e persona/numero ('person'). Se no, ometti questo campo.
-7.  **exampleSentence**: una nuova frase di esempio in ${learningLang} usando questa parola.
-8.  **exampleSentenceNative**: traduzione della frase di esempio in ${nativeLang}.`,
-
-    pt: `Realize uma análise linguística da palavra "${word}" em ${learningLang} no contexto da frase "${phraseText}".
-Retorne um objeto JSON com as seguintes informações:
-1.  **word**: a palavra analisada.
-2.  **partOfSpeech**: classe gramatical em ${nativeLang}.
-3.  **nativeTranslation**: tradução da palavra para ${nativeLang}.
-4.  **baseForm**: se a palavra é um adjetivo, forneça sua forma base (dicionário).
-5.  **nounDetails**: se a palavra é um substantivo, forneça seu artigo ('article') e forma plural ('plural'). Se não, omita este campo.
-6.  **verbDetails**: se a palavra é um verbo, forneça seu infinitivo ('infinitive'), tempo ('tense') e pessoa/número ('person'). Se não, omita este campo.
-7.  **exampleSentence**: uma nova frase de exemplo em ${learningLang} usando esta palavra.
-8.  **exampleSentenceNative**: tradução da frase de exemplo para ${nativeLang}.`,
-
-    pl: `Przeprowadź analizę lingwistyczną słowa "${word}" w języku ${learningLang} w kontekście zdania "${phraseText}".
-Zwróć obiekt JSON z następującymi informacjami:
-1.  **word**: analizowane słowo.
-2.  **partOfSpeech**: część mowy w języku ${nativeLang}.
-3.  **nativeTranslation**: tłumaczenie słowa na język ${nativeLang}.
-4.  **baseForm**: jeśli słowo jest przymiotnikiem, podaj jego formę podstawową (słownikową).
-5.  **nounDetails**: jeśli słowo jest rzeczownikiem, podaj jego rodzajnik ('article') i formę liczby mnogiej ('plural'). Jeśli nie, pomiń to pole.
-6.  **verbDetails**: jeśli słowo jest czasownikiem, podaj jego bezokolicznik ('infinitive'), czas ('tense') i osobę/liczbę ('person'). Jeśli nie, pomiń to pole.
-7.  **exampleSentence**: nowe zdanie przykładowe w języku ${learningLang} używające tego słowa.
-8.  **exampleSentenceNative**: tłumaczenie zdania przykładowego na język ${nativeLang}.`,
-
-    zh: `对短语"${phraseText}"中的${learningLang}单词"${word}"进行语言分析。
-返回一个包含以下信息的JSON对象：
-1.  **word**：分析的单词。
-2.  **partOfSpeech**：${nativeLang}中的词性。
-3.  **nativeTranslation**：单词的${nativeLang}翻译。
-4.  **baseForm**：如果单词是形容词，提供其基本（词典）形式。
-5.  **nounDetails**：如果单词是名词，提供其冠词（'article'）和复数形式（'plural'）。如果不是，省略此字段。
-6.  **verbDetails**：如果单词是动词，提供其不定式（'infinitive'）、时态（'tense'）和人称/数（'person'）。如果不是，省略此字段。
-7.  **exampleSentence**：使用此单词的${learningLang}新例句。
-8.  **exampleSentenceNative**：例句的${nativeLang}翻译。`,
-
-    ja: `フレーズ「${phraseText}」における${learningLang}の単語「${word}」の言語分析を行ってください。
-次の情報を含むJSONオブジェクトを返してください：
-1.  **word**：分析された単語。
-2.  **partOfSpeech**：${nativeLang}での品詞。
-3.  **nativeTranslation**：単語の${nativeLang}訳。
-4.  **baseForm**：単語が形容詞の場合、基本（辞書）形式を提供してください。
-5.  **nounDetails**：単語が名詞の場合、冠詞（'article'）と複数形（'plural'）を提供してください。そうでない場合は、このフィールドを省略してください。
-6.  **verbDetails**：単語が動詞の場合、不定形（'infinitive'）、時制（'tense'）、人称/数（'person'）を提供してください。そうでない場合は、このフィールドを省略してください。
-7.  **exampleSentence**：この単語を使った${learningLang}の新しい例文。
-8.  **exampleSentenceNative**：例文の${nativeLang}訳。`,
-
-    ar: `قم بإجراء تحليل لغوي للكلمة "${word}" بلغة ${learningLang} في سياق العبارة "${phraseText}".
-قم بإرجاع كائن JSON بالمعلومات التالية:
-1.  **word**: الكلمة المحللة.
-2.  **partOfSpeech**: نوع الكلمة بلغة ${nativeLang}.
-3.  **nativeTranslation**: ترجمة الكلمة إلى ${nativeLang}.
-4.  **baseForm**: إذا كانت الكلمة صفة، قدم شكلها الأساسي (القاموس).
-5.  **nounDetails**: إذا كانت الكلمة اسمًا، قدم أداة التعريف ('article') والصيغة الجمع ('plural'). إذا لم تكن كذلك، احذف هذا الحقل.
-6.  **verbDetails**: إذا كانت الكلمة فعلًا، قدم المصدر ('infinitive')، الزمن ('tense')، والشخص/العدد ('person'). إذا لم تكن كذلك، احذف هذا الحقل.
-7.  **exampleSentence**: جملة مثال جديدة بلغة ${learningLang} باستخدام هذه الكلمة.
-8.  **exampleSentenceNative**: ترجمة جملة المثال إلى ${nativeLang}.`,
-
-    hi: `वाक्यांश "${phraseText}" के संदर्भ में ${learningLang} शब्द "${word}" का भाषाई विश्लेषण करें।
-निम्नलिखित जानकारी के साथ एक JSON ऑब्जेक्ट लौटाएं:
-1.  **word**: विश्लेषण किया गया शब्द।
-2.  **partOfSpeech**: ${nativeLang} में शब्द भेद।
-3.  **nativeTranslation**: शब्द का ${nativeLang} में अनुवाद।
-4.  **baseForm**: यदि शब्द विशेषण है, तो इसका मूल (शब्दकोश) रूप प्रदान करें।
-5.  **nounDetails**: यदि शब्द संज्ञा है, तो इसका आर्टिकल ('article') और बहुवचन रूप ('plural') प्रदान करें। यदि नहीं, तो इस फ़ील्ड को छोड़ दें।
-6.  **verbDetails**: यदि शब्द क्रिया है, तो इसका मूल रूप ('infinitive'), काल ('tense') और पुरुष/वचन ('person') प्रदान करें। यदि नहीं, तो इस फ़ील्ड को छोड़ दें।
-7.  **exampleSentence**: इस शब्द का उपयोग करते हुए ${learningLang} में एक नया उदाहरण वाक्य।
-8.  **exampleSentenceNative**: उदाहरण वाक्य का ${nativeLang} में अनुवाद।`,
-  };
-
-  return prompts[languageCode] || prompts['en'];
+  return prompt;
 };
 
 const analyzeWordInPhrase: AiService['analyzeWordInPhrase'] = async (phrase, word) => {
@@ -2135,7 +2006,7 @@ const declineNoun: AiService['declineNoun'] = async (noun, article) => {
   if (!api) throw new Error('Gemini API key not configured.');
 
   const lang = getLang();
-  const prompt = `Предоставь склонение ${lang.learning} существительного "${noun}" с артиклем "${article}" по всем 4 падежам (Nominativ, Akkusativ, Dativ, Genitiv) для единственного (singular) и множественного (plural) числа. Включи определенный артикль в каждую форму. Верни JSON-объект.`;
+  const prompt = `Provide the declension of the ${lang.learning} noun "${noun}" with the article "${article}" for all 4 cases (Nominativ, Akkusativ, Dativ, Genitiv) for singular and plural forms. Include the definite article in each form. Return a JSON object.`;
 
   try {
     const response = await api.models.generateContent({
@@ -2160,12 +2031,12 @@ const declineNoun: AiService['declineNoun'] = async (noun, article) => {
 const caseSchema = {
   type: Type.OBJECT,
   properties: {
-    nominativ: { type: Type.STRING },
-    akkusativ: { type: Type.STRING },
-    dativ: { type: Type.STRING },
-    genitiv: { type: Type.STRING },
+    nominative: { type: Type.STRING },
+    accusative: { type: Type.STRING },
+    dative: { type: Type.STRING },
+    genitive: { type: Type.STRING },
   },
-  required: ['nominativ', 'akkusativ', 'dativ', 'genitiv'],
+  required: ['nominative', 'accusative', 'dative', 'genitive'],
 };
 
 const adjectiveDeclensionTableSchema = {
@@ -2204,12 +2075,12 @@ const declineAdjective: AiService['declineAdjective'] = async (adjective) => {
   if (!api) throw new Error('Gemini API key not configured.');
 
   const lang = getLang();
-  const prompt = `Ты — эксперт по грамматике ${lang.learning} языка. Предоставь полную информацию о прилагательном "${adjective}".
-1.  **Comparison**: Укажи три степени сравнения: положительную (positive), сравнительную (comparative) и превосходную (superlative).
-2.  **Declension**: Предоставь три полные таблицы склонения (слабое - weak, смешанное - mixed, сильное - strong).
-    - Каждая таблица должна включать все падежи (nominativ, akkusativ, dativ, genitiv) для всех родов (masculine, feminine, neuter) и множественного числа (plural).
-    - ВАЖНО: В каждой форме прилагательного выдели окончание с помощью Markdown bold, например: "schön**en**".
-Верни результат в виде единого JSON-объект.`;
+  const prompt = `You are an expert in ${lang.learning} grammar. Provide complete information about the adjective "${adjective}".
+1.  **Comparison**: Provide the three degrees of comparison: positive, comparative, and superlative.
+2.  **Declension**: Provide three complete declension tables (weak, mixed, strong).
+    - Each table must include all cases (nominative, accusative, dative, genitive) for all genders (masculine, feminine, neuter) and plural.
+    - IMPORTANT: In each adjective form, highlight the ending using Markdown bold, for example: "schön**en**".
+Return the result as a single JSON object.`;
 
   try {
     const response = await api.models.generateContent({
@@ -2257,24 +2128,24 @@ const generateSentenceContinuations: AiService['generateSentenceContinuations'] 
   if (!api) throw new Error('Gemini API key not configured.');
   const lang = getLang();
 
-  const prompt = `Ты — AI-помощник для изучения языка, который помогает пользователю строить фразы по частям.
-Текущая фраза пользователя на ${lang.native}: "${nativePhrase}"
+  const prompt = `You are a language learning AI assistant helping the user build phrases part by part.
+Current phrase of the user in ${lang.native}: "${nativePhrase}"
 
-Твоя задача — проанализировать фразу и предложить логичные продолжения.
+Your task is to analyze the phrase and suggest logical continuations.
 
-1.  **Анализ**: Определи, какая часть фразы не завершена. Это местоимение, объект, обстоятельство места, времени, способа действия?
-    - Если фраза "Как мне добраться до...", то не хватает **обстоятельства места** (куда?).
-    - Если фраза "Как мне добраться до вокзала", то можно добавить **обстоятельство способа действия** (как?) или **времени** (когда?).
+1.  **Analysis**: Determine which part of the phrase is incomplete. Is it a pronoun, object, place, time, or manner?
+    - If the phrase is "How do I get to...", it lacks a **destination** (where?).
+    - If the phrase is "How do I get to the station", you can add **manner** (how?) or **time** (when?).
 
-2.  **Генерация**:
-    - **learning**: Переведи текущую фразу "${nativePhrase}" на ${lang.learning} язык. Убедись, что грамматика и знаки препинания корректны.
-    - **continuations**: Сгенерируй от 7 до 10 разнообразных и логичных вариантов продолжения для ${lang.native} фразы. Варианты должны быть релевантны для взрослого человека в реальных жизненных ситуациях (работа, семья, быт, друзья, путешествия).
-        - **ВАЖНО**: Варианты должны **продолжать** мысль, а не **заменять** ее часть.
-        - **ПРАВИЛЬНО**: для "Как мне добраться до вокзала", предложи способы: "на метро", "пешком", "быстрее всего".
-        - **НЕПРАВИЛЬНО**: для "Как мне добраться до вокзала", предлагать "до аэропорта" или "до музея". Фраза уже содержит место назначения.
-        - Варианты должны быть короткими, "чистыми" словами или фразами на ${lang.native} без знаков препинания в начале.
+2.  **Generation**:
+    - **learning**: Translate the current phrase "${nativePhrase}" into ${lang.learning}. Ensure grammar and punctuation are correct.
+    - **continuations**: Generate 7 to 10 diverse and logical continuation options for the ${lang.native} phrase. Options should be relevant for an adult in real-life situations (work, family, daily life, friends, travel).
+        - **IMPORTANT**: Options must **continue** the thought, not **replace** part of it.
+        - **CORRECT**: for "How do I get to the station", suggest ways: "by metro", "on foot", "fastest way".
+        - **INCORRECT**: for "How do I get to the station", suggesting "to the airport" or "to the museum". The phrase already contains the destination.
+        - Options must be short, "clean" words or phrases in ${lang.native} without leading punctuation.
 
-Верни результат в виде JSON-объекта, соответствующего схеме.`;
+Return the result as a JSON object matching the schema.`;
 
   try {
     const response = await api.models.generateContent({
@@ -2361,14 +2232,14 @@ const generatePhraseBuilderOptions: AiService['generatePhraseBuilderOptions'] = 
 
   // FIX: Use phrase.text.learning and phrase.text.native
   const lang = getLang();
-  const prompt = `Создай набор слов для упражнения "собери фразу".
-${lang.learning} фраза: "${phrase.text.learning}" (${lang.native} перевод: "${phrase.text.native}").
+  const prompt = `Create a set of words for the "assemble the phrase" exercise.
+${lang.learning} phrase: "${phrase.text.learning}" (${lang.native} translation: "${phrase.text.native}").
 
-Правила:
-1. Включи в набор ВСЕ слова из ${lang.learning} фразы. Знаки препинания должны оставаться частью слова (например, "Hallo.").
-2. Добавь 5-7 подходящих, но неверных "отвлекающих" слов (например, неправильные грамматические формы, синонимы не по контексту, лишние артикли).
-3. Перемешай все слова случайным образом.
-4. Верни JSON-объект с одним ключом "words", который содержит массив всех слов.`;
+Rules:
+1. Include ALL words from the ${lang.learning} phrase in the set. Punctuation marks must remain part of the word (e.g., "Hallo.").
+2. Add 5-7 suitable but incorrect "distractor" words (e.g., wrong grammatical forms, out-of-context synonyms, extra articles).
+3. Shuffle all words randomly.
+4. Return a JSON object with a single key "words" containing the array of all words.`;
 
   try {
     const response = await api.models.generateContent({
@@ -2407,25 +2278,25 @@ const evaluatePhraseAttempt: AiService['evaluatePhraseAttempt'] = async (phrase,
   if (!api) throw new Error('Gemini API key not configured.');
   const lang = getLang();
 
-  const prompt = `Ты — опытный и доброжелательный преподаватель ${lang.learning} языка.
-Ученик изучает фразу: "${phrase.text.native}".
-Правильный перевод: "${phrase.text.learning}".
-Ответ ученика: "${userAttempt}".
+  const prompt = `You are an experienced and friendly ${lang.learning} teacher.
+The student is learning the phrase: "${phrase.text.native}".
+Correct translation: "${phrase.text.learning}".
+Student's answer: "${userAttempt}".
 
-Твоя задача — дать обратную связь по ответу ученика.
-1.  **Сравнение**: Сравнивай ответ ученика с правильным переводом, ИГНОРИРУЯ следующие незначительные расхождения:
-    - **Регистр букв**: "Hallo" и "hallo" следует считать одинаковыми. Единственное исключение — существительные в ${lang.learning} всегда пишутся с большой буквы. Если ученик написал существительное с маленькой, это ошибка.
-    - **Знаки препинания в конце**: Отсутствие точки или вопросительного знака в конце не является ошибкой.
-    - **Лишние пробелы** в начале или в конце.
-2.  **Если ответ правильный (с учетом допущений выше)**: Установи \`isCorrect: true\`. Похвали ученика. Можно добавить короткий комментарий, почему именно эта формулировка хороша.
-3.  **Если есть ошибки**: Установи \`isCorrect: false\`.
-    - Мягко укажи на них.
-    - Объясни, **почему** это ошибка (например, "Порядок слов здесь немного другой..." или "Существительное 'Tisch' мужского рода, поэтому нужен артикль 'der'").
-    - Обязательно приведи правильный вариант в поле \`correctedPhrase\`.
-4.  Твой тон должен быть позитивным, ободряющим и педагогичным.
-5.  Отвечай на ${lang.native} языке.
+Your task is to provide feedback on the student's answer.
+1.  **Comparison**: Compare the student's answer with the correct translation, IGNORING the following minor discrepancies:
+    - **Case sensitivity**: "Hallo" and "hallo" should be considered identical. The only exception is nouns in ${lang.learning} are always capitalized. If the student wrote a noun with a lowercase letter, it is a mistake.
+    - **Trailing punctuation**: Missing dot or question mark at the end is not a mistake.
+    - **Extra spaces** at the beginning or end.
+2.  **If the answer is correct (considering assumptions above)**: Set \`isCorrect: true\`. Praise the student. You can add a short comment why this wording is good.
+3.  **If there are mistakes**: Set \`isCorrect: false\`.
+    - Gently point them out.
+    - Explain **why** it is a mistake (e.g., "Word order is slightly different here..." or "The noun 'Tisch' is masculine, so it needs the article 'der'").
+    - ALWAYS provide the correct version in the \`correctedPhrase\` field.
+4.  Your tone should be positive, encouraging, and pedagogical.
+5.  Answer in ${lang.native}.
 
-Верни JSON-объект.`;
+Return a JSON object.`;
 
   try {
     const response = await api.models.generateContent({
@@ -2452,32 +2323,32 @@ const evaluateSpokenPhraseAttempt: AiService['evaluateSpokenPhraseAttempt'] = as
 
   // FIX: Use phrase.text.native and phrase.text.learning
   const lang = getLang();
-  const prompt = `Ты — опытный и доброжелательный преподаватель ${lang.learning} языка, оценивающий УСТНЫЙ ответ ученика.
-Ученик изучает фразу: "${phrase.text.native}".
-Правильный письменный перевод: "${phrase.text.learning}".
-Устный ответ ученика (транскрипция): "${userAttempt}".
+  const prompt = `You are an experienced and friendly ${lang.learning} teacher evaluating a SPOKEN answer.
+Student is learning the phrase: "${phrase.text.native}".
+Correct written translation: "${phrase.text.learning}".
+Student's spoken answer (transcription): "${userAttempt}".
 
-Твоя задача — дать обратную связь по устному ответу ученика.
+Your task is to provide feedback on the student's spoken answer.
 
-**ОЧЕНЬ ВАЖНОЕ ПРАВИЛО ДЛЯ ОЦЕНКИ УСТНОЙ РЕЧИ:**
-- Человек не может "произнести" заглавную букву. Поэтому ты ДОЛЖЕН быть снисходительным к капитализации.
-- Если ЕДИНСТВЕННОЕ различие между ответом ученика и правильным вариантом — это отсутствие заглавной буквы у существительного (например, ученик сказал 'danke' вместо 'Danke'), ты ДОЛЖЕН считать ответ **ПРАВИЛЬНЫМ**.
-- При этом в поле \`feedback\` ты можешь вежливо напомнить о правиле написания: "Отлично! Только помни, что на письме существительное 'Danke' пишется с большой буквы."
+**VERY IMPORTANT RULE FOR SPOKEN EVALUATION:**
+- A person cannot "pronounce" a capital letter. Therefore, you MUST be lenient with capitalization.
+- If the ONLY difference between the student's answer and the correct version is the capitalization of a noun (e.g., student said 'danke' instead of 'Danke'), you MUST consider the answer **CORRECT**.
+- However, in the \`feedback\` field, you can politely remind them about the spelling rule: "Great! Just remember that in writing, the noun 'Danke' is capitalized."
 
-**Общие правила:**
-1.  **Сравнение**: Сравнивай ответ ученика с правильным переводом, игнорируя знаки препинания в конце и лишние пробелы.
-2.  **Если ответ правильный (учитывая правило о капитализации выше)**:
-    - Установи \`isCorrect: true\`.
-    - Дай позитивную и ободряющую обратную связь.
-3.  **Если есть другие ошибки (кроме капитализации)**:
-    - Установи \`isCorrect: false\`.
-    - Мягко укажи на ошибку.
-    - Объясни, **почему** это ошибка (например, "Порядок слов здесь немного другой..." или "Существительное 'Tisch' мужского рода, поэтому нужен артикль 'der'").
-    - ОБЯЗАТЕЛЬНО приведи правильный вариант в поле \`correctedPhrase\`.
-4.  Твой тон должен быть позитивным и педагогичным.
-5.  Отвечай на ${lang.native} языке.
+**General Rules:**
+1.  **Comparison**: Compare the student's answer with the correct translation, ignoring trailing punctuation and extra spaces.
+2.  **If the answer is correct (considering the capitalization rule above)**:
+    - Set \`isCorrect: true\`.
+    - Give positive and encouraging feedback.
+3.  **If there are other errors (besides capitalization)**:
+    - Set \`isCorrect: false\`.
+    - Gently point out the error.
+    - Explain **why** it is an error (e.g., "Word order is slightly different here..." or "The noun 'Tisch' is masculine, so it needs the article 'der'").
+    - ALWAYS provide the correct version in the \`correctedPhrase\` field.
+4.  Your tone should be positive and pedagogical.
+5.  Answer in ${lang.native}.
 
-Верни JSON-объект.`;
+Return a JSON object.`;
 
   try {
     const response = await api.models.generateContent({
@@ -2540,7 +2411,7 @@ const categoryAssistantResponseSchema = () => {
       },
       proposedCards: {
         type: Type.ARRAY,
-        description: `A list of new cards. Only for responseType "proposed_cards". ${requiresRomanization(lang.learningCode) ? `Each card MUST include romanization (transcription) for ${lang.learning} text.` : ''}`,
+        description: `A list of new cards. Only for responseType "proposed_cards". ${needsTranscription(lang.learningCode) ? `Each card MUST include romanization (transcription) for ${lang.learning} text.` : ''}`,
         maxItems: 30,
         items: {
           type: Type.OBJECT,
@@ -2550,19 +2421,19 @@ const categoryAssistantResponseSchema = () => {
               description: `The phrase in ${lang.learning}. NEVER include romanization/transcription in parentheses here - use the separate romanization field.`,
             },
             [lang.nativeCode]: { type: Type.STRING, description: `The ${lang.native} translation.` },
-            ...(requiresRomanization(lang.learningCode)
+            ...(needsTranscription(lang.learningCode)
               ? {
-                  romanization: {
-                    type: Type.STRING,
-                    description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-                  },
-                }
+                romanization: {
+                  type: Type.STRING,
+                  description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+                },
+              }
               : {}),
           },
           required: [
             lang.learningCode,
             lang.nativeCode,
-            ...(requiresRomanization(lang.learningCode) ? ['romanization'] : []),
+            ...(needsTranscription(lang.learningCode) ? ['romanization'] : []),
           ],
         },
       },
@@ -2608,56 +2479,56 @@ const getCategoryAssistantResponse: AiService['getCategoryAssistantResponse'] = 
   const existingPhrasesText = existingPhrases.map((p) => `"${p.text.learning}"`).join(', ');
 
   const requestTextMap: Record<CategoryAssistantRequestType, string> = {
-    initial: 'Это первое открытие. Поприветствуй пользователя и предложи основные действия.',
-    add_similar: 'Проанализируй существующие фразы и сгенерируй 25 новых, похожих по теме. Не повторяй существующие.',
+    initial: 'This is the first opening. Greet the user and suggest main actions.',
+    add_similar: 'Analyze existing phrases and generate 25 new ones, similar in topic. Do not repeat existing ones.',
     check_homogeneity:
-      'Проанализируй все фразы на тематическое единство. Укажи те, что не подходят, и объясни почему. Если все хорошо, так и скажи.',
-    create_dialogue: `Создай короткий диалог, используя как можно больше фраз из списка. Предоставь ${lang.learning} вариант с переводом в скобках после каждой реплики и отформатируй его с помощью Markdown.`,
-    user_text: `Пользователь написал: "${request.text}". Ответь на его запрос.`,
+      'Analyze all phrases for thematic unity. Point out those that do not fit and explain why. If everything is good, say so.',
+    create_dialogue: `Create a short dialogue using as many phrases from the list as possible. Provide the ${lang.learning} version with translation in parentheses after each line and format it using Markdown.`,
+    user_text: `User wrote: "${request.text}". Answer their request.`,
   };
 
-  const romanizationRule = requiresRomanization(lang.learningCode)
-    ? `\n- **ТРАНСКРИПЦИЯ**: Для языка ${lang.learning} ОБЯЗАТЕЛЬНО предоставляй отдельное поле "romanization" с транскрипцией (Pinyin для китайского, Romaji для японского, транслитерацию для хинди/арабского). НИКОГДА не включай транскрипцию в скобках в само поле "${lang.learningCode}" - используй отдельное поле "romanization".`
+  const romanizationRule = needsTranscription(lang.learningCode)
+    ? `\n- **ROMANIZATION**: For ${lang.learning}, you MUST provide a separate "romanization" field with transcription (Pinyin for Chinese, Romaji for Japanese, transliteration for Hindi/Arabic). NEVER include transcription in brackets in the "${lang.learningCode}" field itself - use the separate "romanization" field.`
     : '';
 
-  // Построить контекст из истории
+  // Build context from history
   const conversationContext =
     history.length > 0
-      ? `\n\n**ИСТОРИЯ РАЗГОВОРА:**\n${history
-          .map((msg) => {
-            if (msg.role === 'user') {
-              return `Пользователь: ${msg.text || ''}`;
-            } else if (msg.assistantResponse) {
-              const summary =
-                msg.assistantResponse.responseParts
-                  ?.filter((p) => p.type === 'text')
-                  .map((p) => p.text.substring(0, 150))
-                  .join(' ') || '';
-              return `Ассистент: ${summary}${summary.length >= 150 ? '...' : ''}`;
-            }
-            return '';
-          })
-          .filter(Boolean)
-          .join('\n')}\n\n**ТЕКУЩИЙ ЗАПРОС** (учитывай весь предыдущий контекст):`
+      ? `\n\n**CONVERSATION HISTORY:**\n${history
+        .map((msg) => {
+          if (msg.role === 'user') {
+            return `User: ${msg.text || ''}`;
+          } else if (msg.assistantResponse) {
+            const summary =
+              msg.assistantResponse.responseParts
+                ?.filter((p) => p.type === 'text')
+                .map((p) => p.text.substring(0, 150))
+                .join(' ') || '';
+            return `Assistant: ${summary}${summary.length >= 150 ? '...' : ''}`;
+          }
+          return '';
+        })
+        .filter(Boolean)
+        .join('\n')}\n\n**CURRENT REQUEST** (consider all previous context):`
       : '';
 
-  const prompt = `Ты — AI-ассистент в приложении для изучения ${lang.learning}. Ты находишься внутри категории "${categoryName}".
-Существующие фразы в категории: ${existingPhrasesText || 'пока нет'}.${conversationContext}
+  const prompt = `You are an AI assistant in a ${lang.learning} learning app. You are inside the category "${categoryName}".
+Existing phrases in this category: ${existingPhrasesText || 'none yet'}.${conversationContext}
 
-Запрос пользователя: ${requestTextMap[request.type]}
+User request: ${requestTextMap[request.type]}
 
-Твоя задача — выполнить запрос и вернуть ответ СТРОГО в формате JSON.
+Your task is to fulfill the request and return the response STRICTLY in JSON format.
 
-**ПРАВИЛА:**
-- **responseType**: Тип ответа ('text', 'proposed_cards', 'phrases_to_review', 'phrases_to_delete').
-- **responseParts**: Твой основной текстовый ответ, разбитый на части. Используй 'type':'learning' для ${lang.learning} слов с переводом. Для диалогов используй Markdown-форматирование (например, \`**Собеседник А:** ...\`) внутри частей с 'type':'text'.
-- **promptSuggestions**: ВСЕГДА предлагай 3-4 релевантных вопроса для продолжения диалога.
-- **proposedCards / phrasesToReview**: Заполняй эти поля только если тип ответа соответствующий.${romanizationRule}
-- **УДАЛЕНИЕ ФРАЗ**: Если пользователь просит удалить, убрать, очистить фразы (например, "удали половину", "оставь только времена года"), выполни следующие действия:
-  1. Определи, какие именно фразы из списка существующих нужно удалить.
-  2. Установи \`responseType: 'phrases_to_delete'\`.
-  3. В поле \`phrasesForDeletion\` верни массив объектов с ключами \`${lang.learningCode}\` (точный текст фразы для удаления) и \`reason\` (краткое объяснение на ${lang.native}, почему эта фраза удаляется).
-  4. В \`responseParts\` напиши сопроводительное сообщение, например: "Хорошо, я предлагаю удалить следующие фразы, так как они не соответствуют вашему запросу:".`;
+**RULES:**
+- **responseType**: Response type ('text', 'proposed_cards', 'phrases_to_review', 'phrases_to_delete').
+- **responseParts**: Your main text response, broken into parts. Use 'type':'learning' for ${lang.learning} words with translation. For dialogues, use Markdown formatting (e.g., \`**Speaker A:** ...\`) inside parts with 'type':'text'.
+- **promptSuggestions**: ALWAYS offer 3-4 relevant questions to continue the dialogue.
+- **proposedCards / phrasesToReview**: Populate these fields only if the response type corresponds.${romanizationRule}
+- **PHRASE DELETION**: If the user asks to delete, remove, or clear phrases (e.g., "delete half", "keep only seasons"), perform the following actions:
+  1. Determine exactly which phrases from the existing list need to be deleted.
+  2. Set \`responseType: 'phrases_to_delete'\`.
+  3. In the \`phrasesForDeletion\` field, return an array of objects with keys \`${lang.learningCode}\` (exact text of the phrase to delete) and \`reason\` (brief explanation in ${lang.native} why this phrase is being deleted).
+  4. In \`responseParts\`, write an accompanying message, for example: "Okay, I suggest deleting the following phrases as they do not match your request:".`;
 
   try {
     const response = await api.models.generateContent({

@@ -1,37 +1,37 @@
-# Исправление проблемы с транскрипцией (Romanization)
+# Romanization Fix Summary
 
-## Проблема
+## Problem
 
-В приложении была проблема с несогласованным хранением транскрипции (romanization) для фраз:
+There was an issue in the application with inconsistent storage of romanization (transcription) for phrases:
 
-1. **Транскрипция в скобках**: Фразы содержали транскрипцию прямо в тексте, например:
-   - `"नमस्ते (namaste)"` вместо чистого текста `"नमस्ते"` с отдельным полем romanization
-   - `"你好 (nǐ hǎo)"` вместо `"你好"` + romanization: `"nǐ hǎo"`
+1.  **Romanization in parentheses**: Phrases contained romanization directly in the text, for example:
+    *   `"नमस्ते (namaste)"` instead of pure text `"नमस्ते"` with a separate romanization field
+    *   `"你好 (nǐ hǎo)"` instead of `"你好"` + romanization: `"nǐ hǎo"`
 
-2. **Транскрипция в квадратных скобках**: Некоторые фразы использовали `[romanization]`
+2.  **Romanization in square brackets**: Some phrases used `[romanization]`
 
-3. **Отсутствие транскрипции**: У некоторых фраз вообще не было транскрипции
+3.  **Missing Romanization**: Some phrases had no romanization at all
 
-## Решение
+## Solution
 
-### 1. Обновление структуры данных
+### 1. Data Structure Update
 
-**Файл: `types.ts`**
-- Добавлено поле `romanization?: string` в тип `ProposedCard`
+**File: `types.ts`**
+*   Added `romanization?: string` field to `ProposedCard` type
 
 ```typescript
 export type ProposedCard = {
   native: string;
   learning: string;
-  romanization?: string;  // ← Новое поле
+  romanization?: string;  // ← New field
 };
 ```
 
-### 2. Обновление AI сервиса
+### 2. AI Service Update
 
-**Файл: `services/geminiService.ts`**
+**File: `services/geminiService.ts`**
 
-Добавлена функция для определения языков, требующих транскрипцию:
+Added a function to determine languages requiring romanization:
 
 ```typescript
 const requiresRomanization = (languageCode: LanguageCode): boolean => {
@@ -39,18 +39,18 @@ const requiresRomanization = (languageCode: LanguageCode): boolean => {
 };
 ```
 
-Обновлены все схемы для генерации карточек:
-- `categoryAssistantResponseSchema()` - для Category Assistant
-- `cardsFromTranscriptSchema()` - для транскриптов
-- `imageCardsWithCategorySchema()` - для генерации из изображений
-- `phraseSchema()` - для генерации по темам
+Updated all schemas for card generation:
+*   `categoryAssistantResponseSchema()` - for Category Assistant
+*   `cardsFromTranscriptSchema()` - for transcripts
+*   `imageCardsWithCategorySchema()` - for generation from images
+*   `phraseSchema()` - for generation by topics
 
-Каждая схема теперь:
-1. **Добавляет поле `romanization`** для языков, которым это нужно (китайский, японский, хинди, арабский)
-2. **Явно указывает в описании**, что транскрипция НЕ должна быть в скобках в основном тексте
-3. **Делает поле обязательным** для языков с нелатинским письмом
+Each schema now:
+1.  **Adds `romanization` field** for languages that need it (Chinese, Japanese, Hindi, Arabic)
+2.  **Explicitly states in the description** that romanization should NOT be in parentheses in the main text
+3.  **Makes the field required** for languages with non-Latin scripts
 
-Пример изменений в схеме:
+Example schema changes:
 
 ```typescript
 properties: {
@@ -72,17 +72,17 @@ properties: {
 required: [lang.learningCode, lang.nativeCode, ...(requiresRomanization(lang.learningCode) ? ['romanization'] : [])]
 ```
 
-Обновлены все функции маппинга для извлечения `romanization` из ответа AI:
-- `getCategoryAssistantResponse()`
-- `generateCardsFromTranscript()`
-- `generateCardsFromImage()`
-- `generateTopicCards()`
+Updated all mapping functions to extract `romanization` from the AI response:
+*   `getCategoryAssistantResponse()`
+*   `generateCardsFromTranscript()`
+*   `generateCardsFromImage()`
+*   `generateTopicCards()`
 
-### 3. Обновление функции создания карточек
+### 3. Card Creation Function Update
 
-**Файл: `App.tsx`**
+**File: `App.tsx`**
 
-Функция `addCardsToCategory` теперь правильно передает транскрипцию:
+The `addCardsToCategory` function now correctly passes the romanization:
 
 ```typescript
 const phrasesToAdd = cards.map(p => ({
@@ -92,51 +92,51 @@ const phrasesToAdd = cards.map(p => ({
 }));
 ```
 
-### 4. Скрипт для очистки существующих данных
+### 4. Existing Data Cleanup Script
 
-**Файл: `scripts/cleanupPhraseRomanization.ts`**
+**File: `scripts/cleanupPhraseRomanization.ts`**
 
-Создан утилитарный скрипт, который:
-1. Извлекает транскрипцию из текста фраз (если она в скобках или квадратных скобках)
-2. Очищает текст фразы от транскрипции
-3. Сохраняет транскрипцию в правильное поле `romanization.learning`
+Created a utility script that:
+1.  Extracts romanization from phrase text (if it is in parentheses or square brackets)
+2.  Cleans the phrase text of romanization
+3.  Saves romanization to the correct `romanization.learning` field
 
-Функции:
-- `extractRomanization(text)` - извлекает транскрипцию из текста
-- `cleanupPhrase(phrase)` - обрабатывает одну фразу
-- `cleanupAllPhrases(phrases)` - обрабатывает все фразы с отчетом
-- `generateCleanupReport(result)` - генерирует отчет об изменениях
-- `runCleanup()` - helper для запуска из консоли браузера
+Functions:
+*   `extractRomanization(text)` - extracts romanization from text
+*   `cleanupPhrase(phrase)` - processes a single phrase
+*   `cleanupAllPhrases(phrases)` - processes all phrases with a report
+*   `generateCleanupReport(result)` - generates a change report
+*   `runCleanup()` - helper to run from browser console
 
-**Файл: `components/DataCleanupModal.tsx`**
+**File: `components/DataCleanupModal.tsx`**
 
-Создан React компонент для выполнения очистки через UI с:
-- Анализом существующих фраз
-- Предпросмотром изменений
-- Подтверждением перед применением
-- Отображением статистики и примеров
+Created a React component to perform cleanup via UI with:
+*   Analysis of existing phrases
+*   Preview of changes
+*   Confirmation before applying
+*   Display of statistics and examples
 
-## Как использовать
+## How to Use
 
-### Для новых фраз
+### For New Phrases
 
-Новые фразы, генерируемые AI, теперь автоматически будут иметь правильную структуру:
-- Текст фразы будет чистым (без транскрипции в скобках)
-- Транскрипция будет в отдельном поле `romanization.learning`
+New phrases generated by AI will now automatically have the correct structure:
+*   Phrase text will be clean (no romanization in parentheses)
+*   Romanization will be in a separate `romanization.learning` field
 
-### Для существующих фраз
+### For Existing Phrases
 
-#### Вариант 1: Через UI (рекомендуется)
+#### Option 1: Via UI (Recommended)
 
-1. Добавьте `DataCleanupModal` в `App.tsx`:
+1.  Add `DataCleanupModal` to `App.tsx`:
 
 ```typescript
 import DataCleanupModal from './components/DataCleanupModal';
 
-// В компоненте App
+// In App component
 const [isDataCleanupModalOpen, setIsDataCleanupModalOpen] = useState(false);
 
-// В JSX перед закрывающим тегом
+// In JSX before the closing tag
 <DataCleanupModal
     isOpen={isDataCleanupModalOpen}
     onClose={() => setIsDataCleanupModalOpen(false)}
@@ -145,7 +145,7 @@ const [isDataCleanupModalOpen, setIsDataCleanupModalOpen] = useState(false);
         for (const phrase of phrases) {
             await backendService.updatePhrase(phrase.id, phrase);
         }
-        // Обновить состояние
+        // Update state
         updateAndSavePhrases(prev => {
             const updated = new Map(phrases.map(p => [p.id, p]));
             return prev.map(p => updated.get(p.id) || p);
@@ -154,34 +154,34 @@ const [isDataCleanupModalOpen, setIsDataCleanupModalOpen] = useState(false);
 />
 ```
 
-2. Добавьте кнопку для открытия модального окна в настройках или меню
+2.  Add a button to open the modal in settings or menu
 
-3. Запустите очистку через UI
+3.  Run cleanup via UI
 
-#### Вариант 2: Через консоль браузера
+#### Option 2: Via Browser Console
 
 ```javascript
-// В консоли браузера
+// In browser console
 import { runCleanup } from './scripts/cleanupPhraseRomanization';
 await runCleanup();
 ```
 
-## Языки, требующие транскрипцию
+## Languages Requiring Romanization
 
-Функция `requiresRomanization()` определяет следующие языки:
-- **Арабский** (`ar`) - Arabic transliteration
-- **Хинди** (`hi`) - Devanagari transliteration
-- **Китайский** (`zh`) - Pinyin
-- **Японский** (`ja`) - Romaji
+The `requiresRomanization()` function determines the following languages:
+*   **Arabic** (`ar`) - Arabic transliteration
+*   **Hindi** (`hi`) - Devanagari transliteration
+*   **Chinese** (`zh`) - Pinyin
+*   **Japanese** (`ja`) - Romaji
 
-Для этих языков:
-- AI будет **обязательно** возвращать поле `romanization`
-- Транскрипция НЕ будет включаться в текст фразы
-- Схема данных требует наличие romanization
+For these languages:
+*   AI will **mandatorily** return the `romanization` field
+*   Romanization will NOT be included in the phrase text
+*   The data schema requires the presence of romanization
 
-## Примеры изменений
+## Examples of Changes
 
-### До очистки:
+### Before Cleanup:
 ```json
 {
   "text": {
@@ -190,7 +190,7 @@ await runCleanup();
 }
 ```
 
-### После очистки:
+### After Cleanup:
 ```json
 {
   "text": {
@@ -202,55 +202,55 @@ await runCleanup();
 }
 ```
 
-## Проверка результатов
+## Result Verification
 
-После применения изменений:
+After applying changes:
 
-1. **Новые фразы**: Создайте несколько новых фраз через Category Assistant или Smart Import и проверьте, что:
-   - Текст фразы не содержит транскрипцию в скобках
-   - Транскрипция находится в отдельном поле
+1.  **New Phrases**: Create several new phrases via Category Assistant or Smart Import and check that:
+    *   Phrase text does not contain romanization in parentheses
+    *   Romanization is in a separate field
 
-2. **Существующие фразы**: Запустите скрипт очистки и проверьте отчет
+2.  **Existing Phrases**: Run the cleanup script and check the report
 
-3. **UI отображение**: Убедитесь, что фразы правильно отображаются в карточках
+3.  **UI Display**: Ensure phrases are correctly displayed in cards
 
-## Отладка
+## Debugging
 
-Если что-то пошло не так:
+If something went wrong:
 
-1. **Проверьте логи AI**: В консоли браузера смотрите ответы от Gemini API
-2. **Проверьте схему**: Убедитесь, что `requiresRomanization()` возвращает `true` для вашего языка
-3. **Проверьте промпт**: В `getCategoryAssistantResponse()` и других функциях проверьте, что правило о транскрипции добавлено
+1.  **Check AI logs**: Look at responses from Gemini API in browser console
+2.  **Check schema**: Ensure `requiresRomanization()` returns `true` for your language
+3.  **Check prompt**: In `getCategoryAssistantResponse()` and other functions, check that the rule about romanization is added
 
-## Дополнительные улучшения (опционально)
+## Additional Improvements (Optional)
 
-1. **Валидация на бэкенде**: Добавить проверку, что для языков требующих транскрипцию, поле обязательно
-2. **Миграция базы данных**: Создать миграцию для автоматической очистки при обновлении приложения
-3. **Отображение в UI**: Обновить PhraseCard для всегда показа транскрипции под фразой (если есть)
-4. **Настройка языков**: Добавить возможность настройки списка языков, требующих транскрипцию
+1.  **Backend Validation**: Add check that for languages requiring romanization, the field is mandatory
+2.  **Database Migration**: Create a migration for automatic cleanup when updating the application
+3.  **UI Display**: Update PhraseCard to always show romanization under the phrase (if available)
+4.  **Language Configuration**: Add ability to configure the list of languages requiring romanization
 
-## Резюме файлов изменений
+## Summary of File Changes
 
-✅ **Изменено:**
-- `types.ts` - добавлено поле romanization в ProposedCard
-- `services/geminiService.ts` - обновлены все схемы и функции генерации
-- `App.tsx` - обновлена функция addCardsToCategory
+✅ **Changed:**
+*   `types.ts` - added romanization field to ProposedCard
+*   `services/geminiService.ts` - updated all schemas and generation functions
+*   `App.tsx` - updated addCardsToCategory function
 
-✨ **Создано:**
-- `scripts/cleanupPhraseRomanization.ts` - скрипт очистки данных
-- `components/DataCleanupModal.tsx` - UI для очистки данных
-- `ROMANIZATION_FIX_SUMMARY.md` - эта документация
+✨ **Created:**
+*   `scripts/cleanupPhraseRomanization.ts` - data cleanup script
+*   `components/DataCleanupModal.tsx` - UI for data cleanup
+*   `ROMANIZATION_FIX_SUMMARY.md` - this documentation
 
-## Тестирование
+## Testing
 
-Рекомендуется протестировать:
-1. ✅ Компиляция TypeScript - проверено
-2. ⏳ Генерация новых фраз через Category Assistant
-3. ⏳ Генерация фраз через Smart Import (транскрипты, изображения, темы)
-4. ⏳ Очистка существующих фраз через UI
-5. ⏳ Отображение фраз с транскрипцией в карточках
+Recommended to test:
+1. ✅ TypeScript Compilation - checked
+2. ⏳ Generation of new phrases via Category Assistant
+3. ⏳ Generation of phrases via Smart Import (transcripts, images, topics)
+4. ⏳ Cleanup of existing phrases via UI
+5. ⏳ Display of phrases with romanization in cards
 
 ---
 
-Автор: Claude Code
-Дата: 2025-10-13
+Author: Claude Code
+Date: 2025-10-13
