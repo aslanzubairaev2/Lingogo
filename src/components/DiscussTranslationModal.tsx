@@ -11,19 +11,39 @@ import MicrophoneIcon from './icons/MicrophoneIcon';
 import SendIcon from './icons/SendIcon';
 import SoundIcon from './icons/SoundIcon';
 
+/**
+ * Props for the DiscussTranslationModal component.
+ */
 interface DiscussTranslationModalProps {
+  /** Video/modal open state */
   isOpen: boolean;
+  /** Callback to close the modal */
   onClose: () => void;
+  /** The original native phrase/text being discussed */
   originalNative: string;
+  /** The current learning language translation of the phrase */
   currentLearning: string;
+  /**
+   * Async function to handle discussion/interaction with the AI service.
+   * Expects a request object and returns a Promise with the chat response.
+   */
   onDiscuss: (request: any) => Promise<TranslationChatResponse>;
+  /** Callback when the user accepts a suggested improvement */
   onAccept: (suggestion: { native: string; learning: string }) => void;
+  /** Callback to open analysis for a specific word */
   onOpenWordAnalysis: (phrase: Phrase, word: string) => void;
+  /** Optional initial message to start the conversation automatically */
   initialMessage?: string;
+  /** Optional initial history of the conversation */
   initialHistory?: ChatMessage[];
+  /** Optional callback to notify parent about history updates */
   onUpdateHistory?: (messages: ChatMessage[]) => void;
 }
 
+/**
+ * Internal component to render the content of a single chat message.
+ * Handles text-to-speech for learning language parts and word-level interactions.
+ */
 const ChatMessageContent: React.FC<{
   message: ChatMessage;
   onSpeak: (text: string, options: SpeechOptions) => void;
@@ -33,6 +53,13 @@ const ChatMessageContent: React.FC<{
   const { text, contentParts } = message;
   const { profile } = useLanguage();
 
+  /**
+   * Handles clicks on individual words within a learning language segment.
+   * Creates a proxy phrase object context for the analysis tool.
+   *
+   * @param contextText The full text context where the word appears
+   * @param word The specific word that was clicked
+   */
   const handleWordClick = (contextText: string, word: string) => {
     const proxyPhrase = {
       ...basePhrase,
@@ -42,6 +69,11 @@ const ChatMessageContent: React.FC<{
     onOpenWordAnalysis(proxyPhrase as Phrase, word);
   };
 
+  /**
+   * Renders a string of learning text as clickable words.
+   *
+   * @param text The text to render
+   */
   const renderClickableLearning = (text: string) => {
     if (!text) return null;
     return text.split(' ').map((word, i, arr) => (
@@ -89,6 +121,19 @@ const ChatMessageContent: React.FC<{
   return text ? <p>{text}</p> : null;
 };
 
+/**
+ * DiscussTranslationModal Component
+ *
+ * A modal dialog that facilitates a conversation between the user and an AI assistant
+ * to discuss, refine, and improve translations of phrases.
+ *
+ * Features:
+ * - Text-based chat interface.
+ * - Voice input integration via SpeechRecognition.
+ * - Display of structured AI responses (mixed text and learning language parts).
+ * - Ability to accept translation suggestions provided by the AI.
+ * - Word-level interaction for deep analysis.
+ */
 const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({
   isOpen,
   onClose,
@@ -109,10 +154,12 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({
   const [latestSuggestion, setLatestSuggestion] = useState<{ native: string; learning: string } | null>(null);
   const [isListening, setIsListening] = useState(false);
 
+  // References for speech recognition and auto-scrolling
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const isInitialMessageSent = useRef(false);
 
+  // Construct a base phrase object for context in sub-components
   const basePhrase = {
     text: { native: originalNative, learning: currentLearning },
     category: 'general' as const,
@@ -125,6 +172,12 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({
     lapses: 0,
   };
 
+  /**
+   * Handles sending a new message to the AI.
+   * Updates local state, calls the onDiscuss API, and handles the response.
+   *
+   * @param messageText The text of the message to send
+   */
   const handleSendMessage = async (messageText: string) => {
     if (!messageText.trim() || isLoading) return;
 
@@ -169,6 +222,7 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({
     }
   };
 
+  // Effect to handle initial message interaction when modal opens
   useEffect(() => {
     if (isOpen) {
       if (initialMessage && !isInitialMessageSent.current) {
@@ -226,6 +280,7 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({
     }
   }, [isOpen, initialMessage, originalNative, currentLearning, onDiscuss, initialHistory]);
 
+  // Effect to initialize Speech Recognition
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
@@ -249,6 +304,7 @@ const DiscussTranslationModal: React.FC<DiscussTranslationModalProps> = ({
     }
   }, [handleSendMessage]);
 
+  // Effect to scroll to bottom of chat when messages change
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
