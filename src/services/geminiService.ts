@@ -500,9 +500,7 @@ ${transcript}
 Instructions:
 1.  **Analyze Context:** First, understand the context: is it a monologue, a dialogue, or chaotic speech from multiple participants? The text might contain broken phrases, filler words ('umm', 'well'), repetitions, or interruptions. Your job is to extract coherent and logical phrases suitable for learning.
 2.  **Decomposition Rules:**
-    *   Break down long, complex sentences into shorter, self-sufficient semantic blocks. Each block should be a useful phrase to learn.
-    *   For example, if you see the sentence: "I'll go home because I have a very bad headache and I also need to make dinner", you should split it into cards like: "I'll go home", "because I have a very bad headache", "I need to make dinner".
-    *   Clean up filler words and repetitions to make the phrases natural and useful.
+    *   Break down long, complex text into phrases. Each phrase should be a useful phrase to learn.
 3.  **Translation and Formatting:**
     *   For each extracted phrase, generate an accurate and natural translation into ${targetLanguageName}.
     *   Return the result ONLY as a JSON array of objects. Each object must have two keys: '${lang.nativeCode}' and '${lang.learningCode}'.
