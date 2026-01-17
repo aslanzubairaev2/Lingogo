@@ -27,16 +27,7 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCo
 
   useEffect(() => {
     if (isOpen && src && imageRef.current) {
-      cropperRef.current = new Cropper(imageRef.current, {
-        viewMode: 1,
-        dragMode: 'move',
-        background: false,
-        responsive: true,
-        autoCropArea: 0.95,
-        zoomOnWheel: true,
-        guides: true,
-        aspectRatio: NaN, // Free crop
-      });
+      cropperRef.current = new Cropper(imageRef.current);
     }
 
     return () => {
@@ -47,18 +38,10 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCo
     };
   }, [isOpen, src]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (cropperRef.current) {
-      const dataUrl = cropperRef.current
-        .getCroppedCanvas({
-          minWidth: 256,
-          minHeight: 256,
-          maxWidth: 4096,
-          maxHeight: 4096,
-          imageSmoothingEnabled: true,
-          imageSmoothingQuality: 'high',
-        })
-        .toDataURL('image/jpeg', 0.9);
+      const canvas = await cropperRef.current.getCropperCanvas().$toCanvas();
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
       onConfirm(dataUrl);
     }
   };
@@ -68,7 +51,7 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({ isOpen, src, onCo
   return (
     <div className="fixed inset-0 bg-black/80 z-[100] flex flex-col items-center justify-center p-4 animate-fade-in">
       <div className="relative w-full h-full max-w-4xl max-h-[80vh]">
-        <img ref={imageRef} src={src} className="block max-w-full max-h-full" alt="Image to crop" />
+        <img ref={imageRef} src={src} className="block w-full h-full" alt="Image to crop" />
       </div>
       <div className="mt-4 flex items-center space-x-4">
         <button
