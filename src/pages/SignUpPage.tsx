@@ -3,18 +3,34 @@ import React, { FormEvent, useState } from 'react';
 import { useAuth } from '../contexts/authContext.tsx';
 import { useTranslation } from '../hooks/useTranslation.ts';
 
+/**
+ * Props for the SignUpPage component.
+ */
 interface SignUpPageProps {
+  /** Callback to switch to the login page */
   onSwitchToLogin: () => void;
 }
 
+/**
+ * SignUpPage Component
+ *
+ * Renders a registration form allowing new users to sign up.
+ * Handles form validation (required fields, password mismatch) and submission.
+ */
 const SignUpPage: React.FC<SignUpPageProps> = ({ onSwitchToLogin }) => {
   const { signUp, loading, error } = useAuth();
   const { t } = useTranslation();
+
+  // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
 
+  /**
+   * Handles the form submission.
+   * Validates inputs and attempts to sign up the user via the auth context.
+   */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);

@@ -12,25 +12,47 @@ import { useTranslation } from '../hooks/useTranslation';
 import { getLanguageLabel, getSpeechLocale } from '../i18n/languageMeta';
 import * as backendService from '../services/backendService';
 import type { Category, LanguageCode, Phrase, PhraseCategory } from '../types.ts';
+
+/** Estimated height of a section header in pixels for virtual scrolling */
 const HEADER_ESTIMATE = 48;
+/** Estimated height of a phrase list item in pixels for virtual scrolling */
 const PHRASE_ESTIMATE = 176;
 
+/**
+ * Props for the PhraseListPage component.
+ */
 interface PhraseListPageProps {
+  /** List of phrases to display */
   phrases: Phrase[];
+  /** Callback to edit a phrase */
   onEditPhrase: (phrase: Phrase) => void;
+  /** Callback to delete a phrase */
   onDeletePhrase: (phraseId: string) => void;
+  /** Function to find duplicates, returning a promise with groups of duplicate IDs */
   onFindDuplicates: () => Promise<{ duplicateGroups: string[][] }>;
+  /** Function to update phrases state and persist to storage */
   updateAndSavePhrases: (updater: (prevPhrases: Phrase[]) => Phrase[]) => void;
+  /** Callback to start practice for a single phrase */
   onStartPractice: (phrase: Phrase) => void;
+  /** ID of a phrase to highlight (e.g. after adding) */
   highlightedPhraseId: string | null;
+  /** Callback to clear the highlight */
   onClearHighlight: () => void;
+  /** Callback to open the Smart Import modal */
   onOpenSmartImport: () => void;
+  /** Available categories for filtering */
   categories: Category[];
+  /** Callback to update a phrase's category */
   onUpdatePhraseCategory: (phraseId: string, newCategoryId: string) => void;
+  /** Callback to start practice for a specific category */
   onStartPracticeWithCategory: (categoryId: PhraseCategory) => void;
+  /** Callback to edit a category */
   onEditCategory: (category: Category) => void;
+  /** Callback to open the Category Assistant */
   onOpenAssistant: (category: Category) => void;
+  /** Reference to the backend service */
   backendService: typeof backendService;
+  /** Optional callback to open word analysis */
   onOpenWordAnalysis?: (phrase: Phrase, word: string) => void;
 }
 
@@ -39,8 +61,26 @@ type ListItem = { type: 'header'; title: string } | { type: 'phrase'; phrase: Ph
 const DIACRITICS_REGEX = /[\u0300-\u036f]/g;
 const WORD_BOUNDARY_REGEX = /[\s.,!?;:'"()[\]{}\-]/;
 
+/**
+ * Normalizes a string for search by removing diacritics and converting to NFD form.
+ * @param value The string to normalize
+ */
 const normalizeForSearch = (value: string) => value.normalize('NFD').replace(DIACRITICS_REGEX, '');
 
+/**
+ * Computes a fuzzy match score for a search term against a text.
+ * Higher score means better match.
+ *
+ * Scoring rules:
+ * - Base match: 100
+ * - Starts with term: +50
+ * - Word boundary match (start/end): +20
+ * - Penalty for extra characters: -0.05 per char
+ *
+ * @param text The text to search within
+ * @param normalizedTerm The normalized search term
+ * @returns A score > 0 if matched, 0 otherwise
+ */
 const computeMatchScore = (text: string | undefined | null, normalizedTerm: string): number => {
   if (!text) {
     return 0;
@@ -78,7 +118,12 @@ const computeMatchScore = (text: string | undefined | null, normalizedTerm: stri
   return score;
 };
 
-// FIX: Changed to a named export to resolve "no default export" error in App.tsx.
+/**
+ * PhraseListPage Component
+ *
+ * Displays a list of phrases with filtering, searching, and virtual scrolling capabilities.
+ * Supports categorization, duplicate finding, and AI-powered features.
+ */
 export const PhraseListPage: React.FC<PhraseListPageProps> = ({
   phrases,
   onEditPhrase,
@@ -99,18 +144,23 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
 }) => {
   const { t } = useTranslation();
   const { profile } = useLanguage();
+  // State for search and filtering
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTerm, setFilterTerm] = useState('');
   const [, startTransition] = useTransition();
   const [categoryFilter, setCategoryFilter] = useState<'all' | PhraseCategory>('all');
+
+  // State for modals and UI
   const [previewPhrase, setPreviewPhrase] = useState<Phrase | null>(null);
   const [isFindDuplicatesModalOpen, setIsFindDuplicatesModalOpen] = useState(false);
 
+  // State for speech recognition
   const [isListening, setIsListening] = useState(false);
   const [recognitionLang, setRecognitionLang] = useState<LanguageCode>(profile.native);
   const nativeRecognitionRef = useRef<SpeechRecognition | null>(null);
   const learningRecognitionRef = useRef<SpeechRecognition | null>(null);
 
+  // Context menu state
   const [contextMenu, setContextMenu] = useState<{
     category: Category;
     x: number;
@@ -120,6 +170,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
   const longPressTimer = useRef<number | null>(null);
   const isLongPress = useRef(false);
 
+  // References for virtual scrolling and DOM elements
   const searchInputRef = useRef<HTMLInputElement>(null);
   const filterButtonsContainerRef = useRef<HTMLDivElement>(null);
   const listWrapperRef = useRef<HTMLDivElement>(null);
@@ -131,6 +182,13 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);
 
+  /**
+   * Updates the search term state.
+   * Uses startTransition for non-immediate updates to keep UI responsive.
+   *
+   * @param value The new search value
+   * @param options.immediate If true, updates are applied immediately without transition
+   */
   const updateSearchValue = (value: string, options?: { immediate?: boolean }) => {
     const immediate = options?.immediate ?? (isListening || value.length <= 2);
 
@@ -145,6 +203,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     }
   };
 
+  // Initialize Speech Recognition on mount and when languages change
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
@@ -195,6 +254,10 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     }
   }, [profile.native, profile.learning]);
 
+  /**
+   * Handles switching the speech recognition language.
+   * If listening, restarts recognition with the new language.
+   */
   const handleLangChange = (lang: LanguageCode) => {
     if (lang === recognitionLang) return; // No change
     setRecognitionLang(lang);
@@ -215,6 +278,9 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     }
   };
 
+  /**
+   * Toggles microphone recording state.
+   */
   const handleMicClick = () => {
     const recognizer =
       recognitionLang === profile.native ? nativeRecognitionRef.current : learningRecognitionRef.current;
@@ -236,6 +302,9 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     }
   };
 
+  /**
+   * Clears the current search term and stops listening.
+   */
   const handleClearSearch = () => {
     updateSearchValue('', { immediate: true });
     if (isListening) {
@@ -279,10 +348,19 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     }
   };
 
+  /**
+   * The actual search term to use for filtering.
+   * If listening (speech recognition active), uses the raw search term (transcript).
+   * Otherwise, uses the debounced filter term to avoid frequent re-renders/heavy computations.
+   */
   const effectiveSearchTerm = useMemo(() => {
     return isListening ? searchTerm : filterTerm;
   }, [searchTerm, filterTerm, isListening]);
 
+  /**
+   * Filters and sorts the phrases based on the effective search term and selected category.
+   * Implements fuzzy search scoring for better relevance.
+   */
   const filteredPhrases = useMemo(() => {
     let baseList = phrases;
 
@@ -304,11 +382,11 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
           text: string | undefined;
           weight: number;
         }> = [
-          { text: phrase.text.learning, weight: 1 },
-          { text: phrase.text.native, weight: 1 },
-          { text: phrase.romanization?.learning, weight: 0.7 },
-          { text: phrase.context?.native, weight: 0.5 },
-        ];
+            { text: phrase.text.learning, weight: 1 },
+            { text: phrase.text.native, weight: 1 },
+            { text: phrase.romanization?.learning, weight: 0.7 },
+            { text: phrase.context?.native, weight: 0.5 },
+          ];
 
         const bestScore = searchTargets.reduce((currentBest, target) => {
           const score = computeMatchScore(target.text, normalizedTerm);
@@ -327,6 +405,10 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     return scoredPhrases.map((item) => item.phrase);
   }, [phrases, categoryFilter, effectiveSearchTerm]);
 
+  /**
+   * Transforms the filtered phrases into a flat list of items (headers + phrases) for rendering.
+   * Categorizes phrases into 'New', 'In Progress', and 'Mastered' sections.
+   */
   const listItems = useMemo((): ListItem[] => {
     const sections = {
       new: [] as Phrase[],
@@ -352,10 +434,10 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
       key: keyof typeof sections;
       titleKey: string;
     }> = [
-      { key: 'new', titleKey: 'phraseList.sections.new' },
-      { key: 'inProgress', titleKey: 'phraseList.sections.inProgress' },
-      { key: 'mastered', titleKey: 'phraseList.sections.mastered' },
-    ];
+        { key: 'new', titleKey: 'phraseList.sections.new' },
+        { key: 'inProgress', titleKey: 'phraseList.sections.inProgress' },
+        { key: 'mastered', titleKey: 'phraseList.sections.mastered' },
+      ];
 
     sectionOrder.forEach(({ key, titleKey }) => {
       const phrases = sections[key];
@@ -371,12 +453,19 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     return items;
   }, [filteredPhrases, t]);
 
+  /**
+   * Map of categories for quick lookup.
+   */
   const categoryMap = useMemo(() => {
     const map = new Map<string, Category>();
     categories.forEach((cat) => map.set(cat.id, cat));
     return map;
   }, [categories]);
 
+  /**
+   * Initializes the estimated heights and offsets for the virtual list.
+   * This is called on component mount and potentially when the list items change significantly.
+   */
   const initializeVirtualMetrics = () => {
     const estimates = listItems.map((item) => (item.type === 'header' ? HEADER_ESTIMATE : PHRASE_ESTIMATE));
     heightsRef.current = estimates;
@@ -390,6 +479,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     forceVirtualUpdate((v) => v + 1);
   };
 
+  // Effect to reset scroll and metrics when mounting
   useEffect(() => {
     initializeVirtualMetrics();
     const container = listWrapperRef.current;
@@ -399,6 +489,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     setScrollTop(0);
   }, []);
 
+  // Layout effect to handle container resize and viewport height updates
   useLayoutEffect(() => {
     const container = listWrapperRef.current;
     if (!container) {
@@ -423,6 +514,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     };
   }, []);
 
+  // Cleanup scroll animation frame
   useEffect(() => {
     return () => {
       if (scrollRafRef.current !== null) {
@@ -431,6 +523,9 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     };
   }, []);
 
+  /**
+   * Updates the height of a specific item in the virtual list and adjusts offsets of subsequent items.
+   */
   const updateItemSize = (index: number, measuredSize: number) => {
     const heights = heightsRef.current;
     if (index < 0 || index >= heights.length) {
@@ -453,6 +548,9 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     forceVirtualUpdate((v) => v + 1);
   };
 
+  /**
+   * Ref callback to measure the height of rendered items for dynamic sizing.
+   */
   const handleItemMeasurement = (index: number, node: HTMLDivElement | null) => {
     if (!node) {
       return;
@@ -460,6 +558,9 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     updateItemSize(index, node.getBoundingClientRect().height);
   };
 
+  /**
+   * Binary search to find the index of the first item visible at the given offset.
+   */
   const findStartIndex = (offset: number) => {
     const offsets = offsetsRef.current;
     const heights = heightsRef.current;
@@ -483,6 +584,9 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     return answer;
   };
 
+  /**
+   * Binary search to find the index of the last item visible at the given offset.
+   */
   const findEndIndex = (offset: number) => {
     const offsets = offsetsRef.current;
     if (offsets.length === 0) {
@@ -504,6 +608,9 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     return answer;
   };
 
+  /**
+   * Scroll event handler to update the scrollTop state using requestAnimationFrame for performance.
+   */
   const handleScroll = () => {
     const container = listWrapperRef.current;
     if (!container) {
@@ -517,6 +624,10 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     });
   };
 
+  /**
+   * Smoothly scrolls the virtual list to the specified index.
+   * Centers the item in the viewport if possible.
+   */
   const scrollToIndex = (index: number) => {
     const container = listWrapperRef.current;
     if (!container) {
@@ -534,6 +645,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
     container.scrollTo({ top: target, behavior: 'smooth' });
   };
 
+  // Effect to handle scrolling to a highlighted phrase (e.g. after adding/editing)
   useEffect(() => {
     if (!highlightedPhraseId) {
       return;
@@ -550,6 +662,7 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
   }, [highlightedPhraseId, listItems]);
 
   // ????????????? ???????? ?????? ???????
+  // Effect to ensure the active filter button is visible in the scrollable container
   useEffect(() => {
     if (!filterButtonsContainerRef.current) return;
 
@@ -589,7 +702,10 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
 
   return (
     <div className="h-[calc(100dvh-50px)] w-full pt-[65px]">
-      {/* Search */}
+      {/* 
+        Search and Filter Section
+        Sticky header containing search bar, language toggle, microphone, and category filters.
+      */}
       <div className="flex-shrink-0 sticky top-15 z-20 pb-2">
         <div className="backdrop-blur-lg rounded-xlp-2">
           {/* ????? */}
@@ -611,30 +727,27 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
               <div className="flex items-center bg-slate-700/50 rounded-full p-0.5">
                 <button
                   onClick={() => handleLangChange(profile.native)}
-                  className={`px-2 py-0.5 text-xs font-bold rounded-full transition-colors ${
-                    recognitionLang === profile.native
-                      ? 'bg-purple-600 text-white'
-                      : 'text-slate-400 hover:bg-slate-600'
-                  }`}
+                  className={`px-2 py-0.5 text-xs font-bold rounded-full transition-colors ${recognitionLang === profile.native
+                    ? 'bg-purple-600 text-white'
+                    : 'text-slate-400 hover:bg-slate-600'
+                    }`}
                 >
                   {getLanguageLabel(profile.native)}
                 </button>
                 <button
                   onClick={() => handleLangChange(profile.learning)}
-                  className={`px-2 py-0.5 text-xs font-bold rounded-full transition-colors ${
-                    recognitionLang === profile.learning
-                      ? 'bg-purple-600 text-white'
-                      : 'text-slate-400 hover:bg-slate-600'
-                  }`}
+                  className={`px-2 py-0.5 text-xs font-bold rounded-full transition-colors ${recognitionLang === profile.learning
+                    ? 'bg-purple-600 text-white'
+                    : 'text-slate-400 hover:bg-slate-600'
+                    }`}
                 >
                   {getLanguageLabel(profile.learning)}
                 </button>
               </div>
               <button onClick={handleMicClick} className="p-2 transition-colors">
                 <MicrophoneIcon
-                  className={`w-6 h-6 ${
-                    isListening ? 'mic-color-shift-animation' : 'text-slate-400 group-hover:text-white'
-                  }`}
+                  className={`w-6 h-6 ${isListening ? 'mic-color-shift-animation' : 'text-slate-400 group-hover:text-white'
+                    }`}
                 />
               </button>
             </div>
@@ -645,11 +758,10 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
             <div ref={filterButtonsContainerRef} className="flex space-x-1 pb-2 hide-scrollbar overflow-x-auto px-2">
               <button
                 onClick={() => setCategoryFilter('all')}
-                className={`flex-shrink-0 px-2 py-0.5 rounded-full text-sm font-medium transition-colors ${
-                  categoryFilter === 'all'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                }`}
+                className={`flex-shrink-0 px-2 py-0.5 rounded-full text-sm font-medium transition-colors ${categoryFilter === 'all'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
               >
                 {t('phraseList.filters.all')}
               </button>
@@ -660,11 +772,10 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
                   onPointerUp={handleButtonPointerUp}
                   onPointerLeave={handleButtonPointerUp}
                   onClick={() => handleButtonClick(cat)}
-                  className={`flex-shrink-0 px-2 py-0.5 rounded-full text-sm font-medium transition-colors ${
-                    categoryFilter === cat.id
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                  }`}
+                  className={`flex-shrink-0 px-2 py-0.5 rounded-full text-sm font-medium transition-colors ${categoryFilter === cat.id
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    }`}
                 >
                   {cat.name}
                 </button>
@@ -700,7 +811,10 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
         </div>
       </div>
 
-      {/* List */}
+      {/* 
+        Virtual List Section
+        Renders the list of phrases and headers using absolute positioning for virtualization.
+      */}
       <div className="w-full max-w-2xl mx-auto flex flex-col h-full">
         <div ref={listWrapperRef} className="flex-grow pt-2 min-h-0 overflow-y-auto" onScroll={handleScroll}>
           {itemCount === 0 ? (

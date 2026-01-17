@@ -19,28 +19,54 @@ import SendIcon from './icons/SendIcon';
 import SmartToyIcon from './icons/SmartToyIcon';
 import Spinner from './Spinner';
 
+/** Represents the current active view within the modal. */
 type View = 'assistant' | 'speech' | 'file' | 'classifying' | 'suggestion' | 'processing' | 'preview';
+
+/** Represents the status of the speech recognition service. */
 type SpeechStatus = 'idle' | 'recording' | 'stopped';
 
+/**
+ * Props for the SmartImportModal component.
+ */
 interface SmartImportModalProps {
+  /** Whether the modal is currently open. */
   isOpen: boolean;
+  /** Callback to close the modal. */
   onClose: () => void;
+  /** Callback to generate cards from a text transcript. */
   onGenerateCards: (transcript: string, lang: LanguageCode) => Promise<ProposedCard[]>;
+  /** Callback to generate cards from an image. */
   onGenerateCardsFromImage: (
     imageData: { mimeType: string; data: string },
     refinement?: string
   ) => Promise<{ cards: ProposedCard[]; categoryName: string }>;
+  /** Callback to generate cards based on a specific topic. */
   onGenerateTopicCards: (topic: string, refinement?: string, existingPhrases?: string[]) => Promise<ProposedCard[]>;
+  /** Callback to save the created cards to the application state. */
   onCardsCreated: (
     cards: ProposedCard[],
     options?: { categoryId?: string; createCategoryName?: string }
   ) => Promise<void>;
+  /** Callback to classify a user input topic into a category. */
   onClassifyTopic: (topic: string) => Promise<{ isCategory: boolean; categoryName: string }>;
+  /** Optional initial topic to pre-fill the assistant input. */
   initialTopic?: string;
+  /** List of all existing phrases for context and duplicate checking. */
   allPhrases: Phrase[];
+  /** List of available categories. */
   categories: Category[];
 }
 
+/**
+ * SmartImportModal Component
+ *
+ * A versatile modal for importing new phrases using various methods:
+ * - AI Assistant (Topic generation)
+ * - Speech Recognition (Dictation)
+ * - File Upload (Image analysis)
+ *
+ * It handles the flow from input -> generation -> preview -> creation.
+ */
 const SmartImportModal: React.FC<SmartImportModalProps> = ({
   isOpen,
   onClose,
@@ -55,36 +81,48 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const { profile } = useLanguage();
+
+  // -- UI State --
   const [view, setView] = useState<View>('assistant');
   const [speechStatus, setSpeechStatus] = useState<SpeechStatus>('idle');
   const [lang, setLang] = useState<LanguageCode>(profile.learning);
 
+  // -- Input Data --
   const [transcript, setTranscript] = useState('');
   const [assistantInput, setAssistantInput] = useState('');
 
+  // -- Generation & Selection State --
   const [proposedCards, setProposedCards] = useState<ProposedCard[]>([]);
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [canPaste, setCanPaste] = useState(false);
+
+  // Suggestion for category placement
   const [categorySuggestion, setCategorySuggestion] = useState<{ name: string; existingCategory?: Category } | null>(
     null
   );
+  // Options for saving the generated cards
   const [generationOptions, setGenerationOptions] = useState<
     { categoryId?: string; createCategoryName?: string } | undefined
   >();
 
+  // -- Refinement State --
   const [currentTopic, setCurrentTopic] = useState('');
   const [showRefineInput, setShowRefineInput] = useState(false);
   const [refineText, setRefineText] = useState('');
   const [isRefining, setIsRefining] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isRefineListening, setIsRefineListening] = useState(false);
+
+  // -- Processing State --
   const [isAdding, setIsAdding] = useState(false);
   const [pendingCards, setPendingCards] = useState<ProposedCard[] | null>(null);
   const [editableCategoryName, setEditableCategoryName] = useState('');
 
+  // -- Source Data Preservation --
   const [originalFileData, setOriginalFileData] = useState<{ mimeType: string; data: string } | null>(null);
   const [generationSource, setGenerationSource] = useState<'topic' | 'image' | null>(null);
 
+  // -- Refs --
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const assistantRecognitionRef = useRef<SpeechRecognition | null>(null);
   const refineRecognitionRef = useRef<SpeechRecognition | null>(null);
@@ -92,6 +130,10 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
 
   const generalCategory = categories.find((c) => c.name.toLowerCase() === 'general');
 
+  /**
+   * Resets the modal state to its initial values.
+   * Cleans up any active speech recognition sessions.
+   */
   const reset = () => {
     setView('assistant');
     setSpeechStatus('idle');
@@ -122,6 +164,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   };
 
+  // Effect to reset state when modal opens or initial topic changes
   useEffect(() => {
     if (isOpen) {
       reset();
@@ -132,6 +175,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   }, [isOpen, initialTopic]);
 
+  // Effect to handle Escape key for closing the modal
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -145,6 +189,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     };
   }, [isOpen, onClose]);
 
+  // Effect to check clipboard permissions for the paste functionality
   useEffect(() => {
     if (isOpen) {
       if (navigator.clipboard && navigator.permissions) {
@@ -168,6 +213,10 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   }, [isOpen]);
 
+  /**
+   * Generates phrases based on a topic and shows the preview.
+   * Can create a new category or add to an existing one based on options.
+   */
   const generateAndPreview = async (options: {
     source: 'topic';
     categoryOptions?: { categoryId?: string; createCategoryName?: string };
@@ -198,6 +247,10 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   };
 
+  /**
+   * Handles image upload and analysis for phrase generation.
+   * Sets the state to 'suggestion' to confirm the category before finalizing.
+   */
   const handleImageUpload = async (fileData: { mimeType: string; data: string }, refinement?: string) => {
     setView('processing');
     setOriginalFileData(fileData);
@@ -219,6 +272,10 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   };
 
+  /**
+   * Generates cards from the current speech transcript.
+   * Transitions to the suggestion view for category confirmation.
+   */
   const handleSpeechTranscript = async () => {
     const finalTranscript = finalTranscriptRef.current.trim();
     if (!finalTranscript) return;
@@ -240,6 +297,10 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   };
 
+  /**
+   * Moves pending cards into the active proposed set for review.
+   * Can route them to a specific category or new category creation.
+   */
   const processPendingCards = (categoryOptions: { categoryId?: string; createCategoryName?: string }) => {
     if (!pendingCards) return;
     setGenerationOptions(categoryOptions);
@@ -250,6 +311,10 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     setPendingCards(null);
   };
 
+  /**
+   * Processes input from the AI Assistant view (topic input).
+   * Attempts to match the topic to an existing category or suggests a new one.
+   */
   const handleProcessAssistantRequest = async () => {
     if (!assistantInput.trim()) return;
     setView('classifying');
@@ -262,6 +327,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     setView('suggestion');
   };
 
+  // Effect to auto-submit assistant request if it matches the initial topic
   useEffect(() => {
     if (isOpen && initialTopic && assistantInput === initialTopic && view === 'assistant') {
       const timer = setTimeout(() => {
@@ -271,6 +337,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   }, [isOpen, initialTopic, assistantInput, view]);
 
+  // Effect to initialize Speech Recognition for main transcript (dictation mode)
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
@@ -310,6 +377,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   }, [lang]);
 
+  // Effect to initialize Speech Recognition for Assistant input
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) return;
@@ -335,6 +403,7 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     return () => recognition.abort();
   }, []);
 
+  // Effect to initialize Speech Recognition for Refinement input
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) return;
@@ -362,6 +431,9 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     return () => recognition.abort();
   }, []);
 
+  /**
+   * Reads text from the system clipboard and uses it as the transcript.
+   */
   const handlePasteFromClipboard = async () => {
     if (!navigator.clipboard) return;
     try {
@@ -377,6 +449,9 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   };
 
+  /**
+   * Starts the main speech recording session.
+   */
   const handleStartRecording = () => {
     if (recognitionRef.current && speechStatus !== 'recording') {
       try {
@@ -389,12 +464,18 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   };
 
+  /**
+   * Stops the main speech recording session.
+   */
   const handleStopRecording = () => {
     if (recognitionRef.current && speechStatus === 'recording') {
       recognitionRef.current.stop();
     }
   };
 
+  /**
+   * Toggles the assistant's speech recognition.
+   */
   const handleMicClickAssistant = () => {
     if (!assistantRecognitionRef.current) return;
     if (isListening) {
@@ -405,6 +486,9 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   };
 
+  /**
+   * Toggles the refinement input's speech recognition.
+   */
   const handleRefineMicClick = () => {
     if (!refineRecognitionRef.current) return;
     if (isRefineListening) {
@@ -414,6 +498,10 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   };
 
+  /**
+   * Refines the generated cards based on the current topic and refinement text.
+   * Re-generates cards and updates the proposed list.
+   */
   const handleRefineTopic = async () => {
     if (!refineText.trim() || !currentTopic || isRefining) return;
     setIsRefining(true);
@@ -433,6 +521,9 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   };
 
+  /**
+   * Refines the generated cards from an image source using refinement text.
+   */
   const handleRefineImage = async () => {
     if (!refineText.trim() || !originalFileData || isRefining) return;
     setIsRefining(true);
@@ -452,6 +543,9 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   };
 
+  /**
+   * Toggles the selection state of a specific card index.
+   */
   const toggleSelection = (index: number) => {
     const newSelection = new Set(selectedIndices);
     if (newSelection.has(index)) {
@@ -462,6 +556,9 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     setSelectedIndices(newSelection);
   };
 
+  /**
+   * Selects all or deselects all proposed cards.
+   */
   const toggleSelectAll = () => {
     if (selectedIndices.size === proposedCards.length) {
       setSelectedIndices(new Set());
@@ -470,6 +567,10 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     }
   };
 
+  /**
+   * Finalizes the import by creating the selected cards.
+   * Calls the `onCardsCreated` prop and closes the modal.
+   */
   const handleAddSelected = async () => {
     setIsAdding(true);
     const selected = proposedCards.filter((_, i) => selectedIndices.has(i));
@@ -477,6 +578,10 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     onClose();
   };
 
+  /**
+   * Renders the Speech Recognition View (Dictation).
+   * Displays transcripts and controls for recording/pasting.
+   */
   const renderSpeechContent = () => {
     const isRecording = speechStatus === 'recording';
     const isStopped = speechStatus === 'stopped';
@@ -540,6 +645,9 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     );
   };
 
+  /**
+   * Renders the AI Assistant View (Topic Generation).
+   */
   const renderAssistantContent = () => (
     <div className="flex flex-col items-center justify-center h-full text-center">
       <h3 className="text-xl font-bold text-slate-300">{t('modals.smartImport.assistant.title')}</h3>
@@ -578,6 +686,10 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     </div>
   );
 
+  /**
+   * Renders the Suggestion View (Category Confirmation).
+   * Allows adding to an existing category or creating a new one.
+   */
   const renderSuggestionContent = () => {
     if (!categorySuggestion) return null;
     const { name, existingCategory } = categorySuggestion;
@@ -666,6 +778,10 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     );
   };
 
+  /**
+   * Renders the Preview View.
+   * Shows the list of generated cards for final review, selection, and refinement.
+   */
   const renderPreviewContent = () => (
     <div className="flex flex-col h-full">
       <header className="flex-shrink-0 flex items-center justify-between pb-4">
@@ -779,6 +895,9 @@ const SmartImportModal: React.FC<SmartImportModalProps> = ({
     </div>
   );
 
+  /**
+   * Helper function to render content based on the current 'view' state.
+   */
   const renderCurrentView = () => {
     switch (view) {
       case 'assistant':
