@@ -175,9 +175,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="relative h-[480px] overflow-hidden">
           {/* Main Settings View */}
           <div
-            className={`absolute inset-0 p-2 space-y-2 transition-transform duration-300 ease-in-out ${
-              view === 'main' ? 'translate-x-0' : '-translate-x-full'
-            }`}
+            className={`absolute inset-0 p-2 space-y-2 transition-transform duration-300 ease-in-out ${view === 'main' ? 'translate-x-0' : '-translate-x-full'
+              }`}
           >
             <button
               onClick={() => setView('analytics')}
@@ -211,9 +210,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* General View */}
           <div
-            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out ${
-              view === 'general' ? 'translate-x-0' : 'translate-x-full'
-            }`}
+            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out ${view === 'general' ? 'translate-x-0' : 'translate-x-full'
+              }`}
           >
             <fieldset className="space-y-4">
               <legend className="sr-only">{t('settings.general.legend')}</legend>
@@ -227,14 +225,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     role="switch"
                     aria-checked={settings.autoSpeak}
                     onClick={() => handleSettingChange('autoSpeak', !settings.autoSpeak)}
-                    className={`${
-                      settings.autoSpeak ? 'bg-purple-600' : 'bg-slate-600'
-                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                    className={`${settings.autoSpeak ? 'bg-purple-600' : 'bg-slate-600'
+                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
                   >
                     <span
-                      className={`${
-                        settings.autoSpeak ? 'translate-x-6' : 'translate-x-1'
-                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                      className={`${settings.autoSpeak ? 'translate-x-6' : 'translate-x-1'
+                        } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                     />
                   </button>
                 </div>
@@ -248,14 +244,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   role="switch"
                   aria-checked={settings.soundEffects}
                   onClick={() => handleSettingChange('soundEffects', !settings.soundEffects)}
-                  className={`${
-                    settings.soundEffects ? 'bg-purple-600' : 'bg-slate-600'
-                  } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                  className={`${settings.soundEffects ? 'bg-purple-600' : 'bg-slate-600'
+                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
                 >
                   <span
-                    className={`${
-                      settings.soundEffects ? 'translate-x-6' : 'translate-x-1'
-                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                    className={`${settings.soundEffects ? 'translate-x-6' : 'translate-x-1'
+                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                   />
                 </button>
               </div>
@@ -264,9 +258,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Automation View */}
           <div
-            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out ${
-              view === 'automation' ? 'translate-x-0' : 'translate-x-full'
-            }`}
+            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out ${view === 'automation' ? 'translate-x-0' : 'translate-x-full'
+              }`}
           >
             <fieldset className="space-y-4">
               <legend className="sr-only">{t('settings.automation.legend')}</legend>
@@ -285,14 +278,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     onClick={() =>
                       handleAutomationChange('autoCheckShortPhrases', !settings.automation.autoCheckShortPhrases)
                     }
-                    className={`${
-                      settings.automation.autoCheckShortPhrases ? 'bg-purple-600' : 'bg-slate-600'
-                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                    className={`${settings.automation.autoCheckShortPhrases ? 'bg-purple-600' : 'bg-slate-600'
+                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
                   >
                     <span
-                      className={`${
-                        settings.automation.autoCheckShortPhrases ? 'translate-x-6' : 'translate-x-1'
-                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                      className={`${settings.automation.autoCheckShortPhrases ? 'translate-x-6' : 'translate-x-1'
+                        } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                     />
                   </button>
                 </div>
@@ -312,14 +303,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     onClick={() =>
                       handleAutomationChange('learnNextPhraseHabit', !settings.automation.learnNextPhraseHabit)
                     }
-                    className={`${
-                      settings.automation.learnNextPhraseHabit ? 'bg-purple-600' : 'bg-slate-600'
-                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                    className={`${settings.automation.learnNextPhraseHabit ? 'bg-purple-600' : 'bg-slate-600'
+                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
                   >
                     <span
-                      className={`${
-                        settings.automation.learnNextPhraseHabit ? 'translate-x-6' : 'translate-x-1'
-                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                      className={`${settings.automation.learnNextPhraseHabit ? 'translate-x-6' : 'translate-x-1'
+                        } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                     />
                   </button>
                 </div>
@@ -329,9 +318,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Categories View */}
           <div
-            className={`absolute inset-0 p-2 space-y-4 transition-transform duration-300 ease-in-out hide-scrollbar overflow-y-auto ${
-              view === 'categories' ? 'translate-x-0' : 'translate-x-full'
-            }`}
+            className={`absolute inset-0 p-2 space-y-4 transition-transform duration-300 ease-in-out hide-scrollbar overflow-y-auto ${view === 'categories' ? 'translate-x-0' : 'translate-x-full'
+              }`}
           >
             <div className="bg-slate-900/50 p-4 rounded-lg space-y-4 h-[85%] flex flex-col justify-between overflow-y-auto">
               {categories.map((category) => (
@@ -348,14 +336,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       onClick={() =>
                         handleCategoryChange(category.id, !(settings.enabledCategories[category.id] ?? true))
                       }
-                      className={`${
-                        (settings.enabledCategories[category.id] ?? true) ? 'bg-purple-600' : 'bg-slate-600'
-                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                      className={`${(settings.enabledCategories[category.id] ?? true) ? 'bg-purple-600' : 'bg-slate-600'
+                        } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
                     >
                       <span
-                        className={`${
-                          (settings.enabledCategories[category.id] ?? true) ? 'translate-x-6' : 'translate-x-1'
-                        } inline-block h-4 min-w-4 transform rounded-full bg-white transition-transform`}
+                        className={`${(settings.enabledCategories[category.id] ?? true) ? 'translate-x-6' : 'translate-x-1'
+                          } inline-block h-4 min-w-4 transform rounded-full bg-white transition-transform`}
                       />
                     </button>
                   </div>
@@ -372,9 +358,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Analytics View - SRS Practice Analytics */}
           <div
-            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out hide-scrollbar overflow-y-auto ${
-              view === 'analytics' ? 'translate-x-0' : 'translate-x-full'
-            }`}
+            className={`absolute inset-0 p-3 space-y-6 transition-transform duration-300 ease-in-out hide-scrollbar overflow-y-auto ${view === 'analytics' ? 'translate-x-0' : 'translate-x-full'
+              }`}
           >
             {practiceAnalyticsSummary.totals.totalCards > 0 ? (
               <>
@@ -391,21 +376,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     label={t('settings.analytics.srs.mastered')}
                     primary={numberFormatter.format(practiceAnalyticsSummary.totals.mastered)}
                     secondary={t('settings.analytics.srs.learning', {
-                      count: numberFormatter.format(practiceAnalyticsSummary.totals.learning),
+                      value: numberFormatter.format(practiceAnalyticsSummary.totals.learning),
                     })}
                   />
                   <AnalyticsCard
                     label={t('settings.analytics.srs.dueToday')}
                     primary={numberFormatter.format(practiceAnalyticsSummary.totals.dueToday)}
                     secondary={t('settings.analytics.srs.overdue', {
-                      count: numberFormatter.format(practiceAnalyticsSummary.totals.overdue),
+                      value: numberFormatter.format(practiceAnalyticsSummary.totals.overdue),
                     })}
                   />
                   <AnalyticsCard
                     label={t('settings.analytics.srs.accuracy')}
                     primary={formatPercentValue(practiceAnalyticsSummary.accuracy.overall)}
                     secondary={t('settings.analytics.srs.reviews', {
-                      count: numberFormatter.format(practiceAnalyticsSummary.accuracy.totalReviews),
+                      value: numberFormatter.format(practiceAnalyticsSummary.accuracy.totalReviews),
                     })}
                   />
                 </div>
