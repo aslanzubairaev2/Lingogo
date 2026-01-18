@@ -148,11 +148,11 @@ export interface CaseDeclension {
 
 export interface SentenceContinuation {
   learning: string;
-  native: string;
+  continuations: string[];
 }
 
 export interface PhraseBuilderOptions {
-  wordOptions: string[];
+  words: string[];
 }
 
 export interface CheatSheetOption {
@@ -367,48 +367,25 @@ export interface PhraseEvaluation {
   correctedPhrase?: string;
 }
 
+interface Chunk {
+  text: string;
+  type: string;
+  explanation: string;
+}
+
+interface KeyConcept {
+  concept: string;
+  explanation: string;
+}
+
+interface MnemonicImage {
+  description: string;
+  keywords: string[];
+}
+
 export interface DeepDiveAnalysis {
-  chunks: {
-    type: string[];
-    description: string;
-    items: {
-      type: object;
-      properties: {
-        text: string;
-        type: {
-          type: string;
-          description: string;
-        };
-        explanation: {
-          type: string;
-          description: string;
-        };
-      };
-    };
-  };
-  keyConcepts: {
-    type: string[];
-    description: string;
-    items: {
-      type: object;
-      properties: {
-        concept: { type: string; description: string };
-        explanation: { type: string; description: string };
-      };
-    };
-  };
-  personalizationQuestion: {
-    type: string;
-    description: string;
-  };
-  mnemonicImage: {
-    type: object;
-    description: string;
-    properties: {
-      description: {
-        type: string;
-        description: string;
-      };
-    };
-  };
+  chunks: Chunk[];
+  keyConcepts: KeyConcept[];
+  personalizationQuestion: string;
+  mnemonicImage: MnemonicImage;
 }
