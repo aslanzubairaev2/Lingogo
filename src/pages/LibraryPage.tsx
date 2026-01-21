@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import PlusIcon from '../components/icons/PlusIcon';
 import { useTranslation } from '../hooks/useTranslation.ts';
 import * as dbService from '../services/dbService.ts';
-import { Book, BookRecord } from '../types.ts';
+import { BookRecord } from '../types.ts';
 
 interface LibraryPageProps {
   onOpenBook: (bookId: number) => void;
@@ -33,7 +33,6 @@ const LibraryPage: React.FC<LibraryPageProps> = ({ onOpenBook }) => {
     const storedBooks = await dbService.getAllBooks();
     const bookRecords = storedBooks.map((book) => ({
       ...book,
-      id: book.id!,
       coverUrl: URL.createObjectURL(book.coverBlob),
     }));
     setBooks(bookRecords);
@@ -97,7 +96,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({ onOpenBook }) => {
         if (blob) coverBlob = blob;
       }
 
-      const newBook: Book = {
+      const newBook: BookRecord = {
         title: metadata.title,
         author: metadata.creator,
         coverBlob,

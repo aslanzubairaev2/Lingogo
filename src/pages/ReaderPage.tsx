@@ -91,14 +91,16 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ bookId, onClose }) => {
           if (cfi) {
             await dbService.updateBookLocation(bookId, cfi);
           }
-          if (bookInstance?.locations) {
-            const current = bookInstance.locations.locationFromCfi(cfi);
-            if (current !== null) {
-              const total = bookInstance.locations.total;
-              const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
-              setProgress(percentage);
+          /*
+            if (bookInstance?.locations) {
+              const current = bookInstance.locations.locationFromCfi(cfi);
+              if (current !== null) {
+                const total = bookInstance.locations.total;
+                const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
+                setProgress(percentage);
+              }
             }
-          }
+          */
         }, 500);
 
         renditionInstance.on('relocated', handleLocationChanged);
