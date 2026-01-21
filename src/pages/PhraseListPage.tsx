@@ -382,11 +382,11 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
           text: string | undefined;
           weight: number;
         }> = [
-            { text: phrase.text.learning, weight: 1 },
-            { text: phrase.text.native, weight: 1 },
-            { text: phrase.romanization?.learning, weight: 0.7 },
-            { text: phrase.context?.native, weight: 0.5 },
-          ];
+          { text: phrase.text.learning, weight: 1 },
+          { text: phrase.text.native, weight: 1 },
+          { text: phrase.romanization?.learning, weight: 0.7 },
+          { text: phrase.context?.native, weight: 0.5 },
+        ];
 
         const bestScore = searchTargets.reduce((currentBest, target) => {
           const score = computeMatchScore(target.text, normalizedTerm);
@@ -434,10 +434,10 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
       key: keyof typeof sections;
       titleKey: string;
     }> = [
-        { key: 'new', titleKey: 'phraseList.sections.new' },
-        { key: 'inProgress', titleKey: 'phraseList.sections.inProgress' },
-        { key: 'mastered', titleKey: 'phraseList.sections.mastered' },
-      ];
+      { key: 'new', titleKey: 'phraseList.sections.new' },
+      { key: 'inProgress', titleKey: 'phraseList.sections.inProgress' },
+      { key: 'mastered', titleKey: 'phraseList.sections.mastered' },
+    ];
 
     sectionOrder.forEach(({ key, titleKey }) => {
       const phrases = sections[key];
@@ -727,27 +727,30 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
               <div className="flex items-center bg-slate-700/50 rounded-full p-0.5">
                 <button
                   onClick={() => handleLangChange(profile.native)}
-                  className={`px-2 py-0.5 text-xs font-bold rounded-full transition-colors ${recognitionLang === profile.native
-                    ? 'bg-purple-600 text-white'
-                    : 'text-slate-400 hover:bg-slate-600'
-                    }`}
+                  className={`px-2 py-0.5 text-xs font-bold rounded-full transition-colors ${
+                    recognitionLang === profile.native
+                      ? 'bg-purple-600 text-white'
+                      : 'text-slate-400 hover:bg-slate-600'
+                  }`}
                 >
                   {getLanguageLabel(profile.native)}
                 </button>
                 <button
                   onClick={() => handleLangChange(profile.learning)}
-                  className={`px-2 py-0.5 text-xs font-bold rounded-full transition-colors ${recognitionLang === profile.learning
-                    ? 'bg-purple-600 text-white'
-                    : 'text-slate-400 hover:bg-slate-600'
-                    }`}
+                  className={`px-2 py-0.5 text-xs font-bold rounded-full transition-colors ${
+                    recognitionLang === profile.learning
+                      ? 'bg-purple-600 text-white'
+                      : 'text-slate-400 hover:bg-slate-600'
+                  }`}
                 >
                   {getLanguageLabel(profile.learning)}
                 </button>
               </div>
               <button onClick={handleMicClick} className="p-2 transition-colors">
                 <MicrophoneIcon
-                  className={`w-6 h-6 ${isListening ? 'mic-color-shift-animation' : 'text-slate-400 group-hover:text-white'
-                    }`}
+                  className={`w-6 h-6 ${
+                    isListening ? 'mic-color-shift-animation' : 'text-slate-400 group-hover:text-white'
+                  }`}
                 />
               </button>
             </div>
@@ -758,10 +761,11 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
             <div ref={filterButtonsContainerRef} className="flex space-x-1 pb-2 hide-scrollbar overflow-x-auto px-2">
               <button
                 onClick={() => setCategoryFilter('all')}
-                className={`flex-shrink-0 px-2 py-0.5 rounded-full text-sm font-medium transition-colors ${categoryFilter === 'all'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                  }`}
+                className={`flex-shrink-0 px-2 py-0.5 rounded-full text-sm font-medium transition-colors ${
+                  categoryFilter === 'all'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                }`}
               >
                 {t('phraseList.filters.all')}
               </button>
@@ -772,10 +776,11 @@ export const PhraseListPage: React.FC<PhraseListPageProps> = ({
                   onPointerUp={handleButtonPointerUp}
                   onPointerLeave={handleButtonPointerUp}
                   onClick={() => handleButtonClick(cat)}
-                  className={`flex-shrink-0 px-2 py-0.5 rounded-full text-sm font-medium transition-colors ${categoryFilter === cat.id
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                    }`}
+                  className={`flex-shrink-0 px-2 py-0.5 rounded-full text-sm font-medium transition-colors ${
+                    categoryFilter === cat.id
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
                 >
                   {cat.name}
                 </button>

@@ -32,7 +32,7 @@ let dbPromise: Promise<IDBPDatabase<AppDB>> | null = null;
 /**
  * Initializes the IndexedDB database.
  * Creates the database structure and object stores if they don't exist or need upgrading.
- * 
+ *
  * @returns {Promise<IDBPDatabase<AppDB>>} A promise that resolves to the database instance.
  */
 const initDB = () => {
@@ -55,7 +55,7 @@ const initDB = () => {
 
 /**
  * Adds a new book to the library.
- * 
+ *
  * @param {BookRecord} book The book record to add.
  * @returns {Promise<number>} A promise resolving to the ID of the new book.
  */
@@ -66,7 +66,7 @@ export const addBook = async (book: BookRecord): Promise<number> => {
 
 /**
  * Retrieves all books from the library.
- * 
+ *
  * @returns {Promise<BookRecord[]>} A promise resolving to an array of all book records.
  */
 export const getAllBooks = async (): Promise<BookRecord[]> => {
@@ -76,7 +76,7 @@ export const getAllBooks = async (): Promise<BookRecord[]> => {
 
 /**
  * Retrieves a specific book by its ID.
- * 
+ *
  * @param {number} id The ID of the book to retrieve.
  * @returns {Promise<BookRecord | undefined>} A promise resolving to the book record if found, or undefined.
  */
@@ -87,7 +87,7 @@ export const getBook = async (id: number): Promise<BookRecord | undefined> => {
 
 /**
  * Updates the last read location (CFI) for a specific book.
- * 
+ *
  * @param {number} id The ID of the book to update.
  * @param {string} lastLocation The new CFI location string.
  * @returns {Promise<void>} A promise that resolves when the update is complete.

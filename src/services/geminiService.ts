@@ -211,11 +211,11 @@ const phraseSchema = () => {
         },
         ...(needsTranscription(lang.learningCode)
           ? {
-            romanization: {
-              type: Type.STRING,
-              description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-            },
-          }
+              romanization: {
+                type: Type.STRING,
+                description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+              },
+            }
           : {}),
       },
       required: [
@@ -466,11 +466,11 @@ const cardsFromTranscriptSchema = () => {
         },
         ...(needsTranscription(lang.learningCode)
           ? {
-            romanization: {
-              type: Type.STRING,
-              description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-            },
-          }
+              romanization: {
+                type: Type.STRING,
+                description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+              },
+            }
           : {}),
       },
       required: [
@@ -553,11 +553,11 @@ const imageCardsWithCategorySchema = () => {
             [lang.nativeCode]: { type: Type.STRING, description: `The phrase in ${lang.native}.` },
             ...(needsTranscription(lang.learningCode)
               ? {
-                romanization: {
-                  type: Type.STRING,
-                  description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-                },
-              }
+                  romanization: {
+                    type: Type.STRING,
+                    description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+                  },
+                }
               : {}),
           },
           required: [
@@ -2421,11 +2421,11 @@ const categoryAssistantResponseSchema = () => {
             [lang.nativeCode]: { type: Type.STRING, description: `The ${lang.native} translation.` },
             ...(needsTranscription(lang.learningCode)
               ? {
-                romanization: {
-                  type: Type.STRING,
-                  description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
-                },
-              }
+                  romanization: {
+                    type: Type.STRING,
+                    description: `Romanization/transcription of the ${lang.learning} phrase (e.g., Pinyin for Chinese, Romaji for Japanese, Devanagari transliteration for Hindi, Arabic transliteration for Arabic). This field is REQUIRED.`,
+                  },
+                }
               : {}),
           },
           required: [
@@ -2493,21 +2493,21 @@ const getCategoryAssistantResponse: AiService['getCategoryAssistantResponse'] = 
   const conversationContext =
     history.length > 0
       ? `\n\n**CONVERSATION HISTORY:**\n${history
-        .map((msg) => {
-          if (msg.role === 'user') {
-            return `User: ${msg.text || ''}`;
-          } else if (msg.assistantResponse) {
-            const summary =
-              msg.assistantResponse.responseParts
-                ?.filter((p) => p.type === 'text')
-                .map((p) => p.text.substring(0, 150))
-                .join(' ') || '';
-            return `Assistant: ${summary}${summary.length >= 150 ? '...' : ''}`;
-          }
-          return '';
-        })
-        .filter(Boolean)
-        .join('\n')}\n\n**CURRENT REQUEST** (consider all previous context):`
+          .map((msg) => {
+            if (msg.role === 'user') {
+              return `User: ${msg.text || ''}`;
+            } else if (msg.assistantResponse) {
+              const summary =
+                msg.assistantResponse.responseParts
+                  ?.filter((p) => p.type === 'text')
+                  .map((p) => p.text.substring(0, 150))
+                  .join(' ') || '';
+              return `Assistant: ${summary}${summary.length >= 150 ? '...' : ''}`;
+            }
+            return '';
+          })
+          .filter(Boolean)
+          .join('\n')}\n\n**CURRENT REQUEST** (consider all previous context):`
       : '';
 
   const prompt = `You are an AI assistant in a ${lang.learning} learning app. You are inside the category "${categoryName}".

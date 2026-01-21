@@ -103,9 +103,7 @@ const ChatMessageContent: React.FC<{
             >
               <span className="font-medium text-purple-300">{renderClickableLearning(part.text)}</span>
               <button
-                onClick={() =>
-                  onSpeak(part.text, { lang: profile.learning })
-                }
+                onClick={() => onSpeak(part.text, { lang: profile.learning })}
                 className="p-0.5 rounded-full hover:bg-white/20 ml-1.5"
               >
                 <SoundIcon className="w-3.5 h-3.5 text-slate-300" />

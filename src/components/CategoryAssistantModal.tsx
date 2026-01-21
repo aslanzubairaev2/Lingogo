@@ -66,7 +66,17 @@ const AssistantChatMessageContent: React.FC<{
   onSpeak: (text: string, options: SpeechOptions) => void;
   onOpenWordAnalysis: (phrase: Phrase, word: string) => void;
   onOpenContextMenu: (target: { sentence: { learning: string; native: string }; word: string }) => void;
-}> = ({ msg, category, onAddCards, onGoToList, onClose, categoryPhrases, onSpeak, onOpenWordAnalysis, onOpenContextMenu }) => {
+}> = ({
+  msg,
+  category,
+  onAddCards,
+  onGoToList,
+  onClose,
+  categoryPhrases,
+  onSpeak,
+  onOpenWordAnalysis,
+  onOpenContextMenu,
+}) => {
   const { t } = useTranslation();
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [addedInfo, setAddedInfo] = useState<{ count: number } | null>(null);
