@@ -37,6 +37,7 @@ const ChatMessageContent: React.FC<{
   onOpenContextMenu: (target: { sentence: { learning: string; native: string }; word: string }) => void;
 }> = ({ message, onSpeak, onOpenWordAnalysis, onOpenContextMenu }) => {
   const { text, contentParts } = message;
+  const { profile } = useLanguage();
   const wordLongPressTimer = useRef<number | null>(null);
   const [revealedTranslations, setRevealedTranslations] = useState<Set<number>>(new Set());
 
@@ -120,7 +121,7 @@ const ChatMessageContent: React.FC<{
                 {renderClickableLearning(part.text, part.translation || '')}
               </span>
               <button
-                onClick={() => onSpeak(part.text, { lang: useLanguage().profile.learning })}
+                onClick={() => onSpeak(part.text, { lang: profile.learning })}
                 className="p-0.5 rounded-full hover:bg-white/20 flex-shrink-0 ml-1.5"
               >
                 <SoundIcon className="w-3.5 h-3.5 text-slate-300" />

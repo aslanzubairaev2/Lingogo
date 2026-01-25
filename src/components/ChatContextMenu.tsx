@@ -1,8 +1,8 @@
+import { t } from 'i18next';
 import React, { useEffect, useState } from 'react';
 
 import { useLanguage } from '@/src/contexts/languageContext';
 
-import { useTranslation } from '../hooks/useTranslation';
 import { SpeechOptions } from '../services/speechService';
 import type { Phrase, WordAnalysis } from '../types.ts';
 import CardPlusIcon from './icons/CardPlusIcon';
@@ -42,7 +42,7 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
   allPhrases,
   onTranslateLearningToNative,
 }) => {
-  const { t } = useTranslation();
+  const { profile } = useLanguage();
   const { sentence, word } = target;
   const [analysis, setAnalysis] = useState<WordAnalysis | null>(null);
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(true);
@@ -188,7 +188,7 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onSpeak(sentence.learning, { lang: useLanguage().profile.learning });
+                onSpeak(sentence.learning, { lang: profile.learning });
               }}
               className="p-1 rounded-full hover:bg-white/10 ml-2 flex-shrink-0"
             >
@@ -232,7 +232,7 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onSpeak(word, { lang: useLanguage().profile.learning });
+                onSpeak(word, { lang: profile.learning });
               }}
               className="p-1 rounded-full hover:bg-white/10 ml-2 flex-shrink-0"
             >

@@ -1,3 +1,4 @@
+import { t } from 'i18next';
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -77,7 +78,7 @@ const AssistantChatMessageContent: React.FC<{
   onOpenWordAnalysis,
   onOpenContextMenu,
 }) => {
-  const { t } = useTranslation();
+  const { profile } = useLanguage();
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [addedInfo, setAddedInfo] = useState<{ count: number } | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -202,7 +203,7 @@ const AssistantChatMessageContent: React.FC<{
               >
                 <span className="font-medium text-purple-300 not-prose">{renderClickableLearning(part)}</span>
                 <button
-                  onClick={() => onSpeak(part.text, { lang: useLanguage().profile.learning })}
+                  onClick={() => onSpeak(part.text, { lang: profile.learning })}
                   className="p-0.5 rounded-full hover:bg-white/20 flex-shrink-0 ml-1.5"
                   aria-label={`Speak: ${part.text}`}
                 >

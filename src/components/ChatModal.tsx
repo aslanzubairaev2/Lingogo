@@ -1,3 +1,4 @@
+import { t } from 'i18next';
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -40,10 +41,9 @@ const ChatMessageContent: React.FC<{
   onOpenWordAnalysis?: (phrase: Phrase, word: string) => void;
   onOpenContextMenu: (target: { sentence: { learning: string; native: string }; word: string }) => void;
 }> = ({ message, onSpeak, basePhrase, onOpenWordAnalysis, onOpenContextMenu }) => {
-  const { t } = useTranslation();
   const { text, examples, suggestions, contentParts } = message;
   const wordLongPressTimer = useRef<number | null>(null);
-
+  const { profile } = useLanguage();
   const handleWordPointerDown = (
     e: React.PointerEvent<HTMLSpanElement>,
     sentence: { learning: string; native: string },
@@ -118,7 +118,7 @@ const ChatMessageContent: React.FC<{
                 {renderClickableLearning({ learning: part.text, native: part.translation || '' })}
               </span>
               <button
-                onClick={() => onSpeak(part.text, { lang: useLanguage().profile.learning })}
+                onClick={() => onSpeak(part.text, { lang: profile.learning })}
                 className="p-0.5 rounded-full hover:bg-white/20 flex-shrink-0 ml-1.5"
                 aria-label={`Speak: ${part.text}`}
               >
@@ -151,7 +151,7 @@ const ChatMessageContent: React.FC<{
                       {renderClickableLearning({ learning: part.text, native: part.translation || '' })}
                     </span>
                     <button
-                      onClick={() => onSpeak(part.text, { lang: useLanguage().profile.learning })}
+                      onClick={() => onSpeak(part.text, { lang: profile.learning })}
                       className="p-0.5 rounded-full hover:bg-white/20 flex-shrink-0 ml-1.5"
                       aria-label={`Speak: ${part.text}`}
                     >
@@ -184,7 +184,7 @@ const ChatMessageContent: React.FC<{
                             {renderClickableLearning({ learning: part.text, native: part.translation || '' })}
                           </span>
                           <button
-                            onClick={() => speak(part.text, { lang: useLanguage().profile.learning })}
+                            onClick={() => speak(part.text, { lang: profile.learning })}
                             className="p-0.5 rounded-full hover:bg-white/20 flex-shrink-0 ml-1.5"
                             aria-label={`Speak: ${part.text}`}
                           >
@@ -208,7 +208,7 @@ const ChatMessageContent: React.FC<{
               <div key={`ex-${index}`}>
                 <div className="flex items-start">
                   <button
-                    onClick={() => onSpeak(example.learning, { lang: useLanguage().profile.learning })}
+                    onClick={() => onSpeak(example.learning, { lang: profile.learning })}
                     className="p-1 rounded-full hover:bg-white/20 flex-shrink-0 mt-0.5 mr-2"
                     aria-label={`Speak: ${example.learning}`}
                   >
@@ -263,7 +263,6 @@ const ChatModal: React.FC<ChatModalProps> = ({
   onOpenAdjectiveDeclension,
   onTranslateLearningToNative,
 }) => {
-  const { t } = useTranslation();
   const { profile } = useLanguage();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -366,7 +365,7 @@ const ChatModal: React.FC<ChatModalProps> = ({
         recognitionRef.current?.abort();
       }
     };
-  }, [isOpen, phrase, onGenerateInitialExamples]);
+  }, [isOpen, phrase]);
 
   useEffect(() => {
     scrollToBottom();

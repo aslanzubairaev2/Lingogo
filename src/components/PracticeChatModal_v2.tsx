@@ -11,10 +11,10 @@
  * - Matches app design style
  */
 
+import { t } from 'i18next';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { useLanguage } from '../contexts/languageContext';
-import { useTranslation } from '../hooks/useTranslation';
 import { getSpeechLocale } from '../i18n/languageMeta';
 import { createInitialGreeting, sendPracticeChatMessage } from '../services/practiceChatService';
 import { speak, SpeechOptions } from '../services/speechService';
@@ -71,7 +71,7 @@ const MessageBubble: React.FC<{
   revealedTranslations,
   onRevealTranslation,
 }) => {
-  const { t } = useTranslation();
+  const { profile } = useLanguage();
   const wordLongPressTimer = useRef<number | null>(null);
 
   const handleWordClick = (contextText: string, word: string, nativeText: string) => {
@@ -166,7 +166,7 @@ const MessageBubble: React.FC<{
             </p>
             {onSpeak && (
               <button
-                onClick={() => onSpeak(message.content.primary.text, { lang: useLanguage().profile.learning })}
+                onClick={() => onSpeak(message.content.primary.text, { lang: profile.learning })}
                 className="p-1.5 rounded-full hover:bg-white/10 flex-shrink-0 transition-colors"
                 title={t('practice.chat.actions.speak', { defaultValue: 'Speak' })}
               >
@@ -278,7 +278,6 @@ export const PracticeChatModal_v2: React.FC<Props> = ({
   onTranslateLearningToNative,
   onSessionComplete,
 }) => {
-  const { t } = useTranslation();
   const { profile } = useLanguage();
   const [messages, setMessages] = useState<PracticeChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
