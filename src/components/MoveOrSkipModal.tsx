@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 
-import { useTranslation } from '../hooks/useTranslation';
 import { Category, Phrase, ProposedCard } from '../types.ts';
 import FolderMoveIcon from './icons/FolderMoveIcon';
 import Spinner from './Spinner';
+import { t } from 'i18next';
 
 interface MoveOrSkipModalProps {
   isOpen: boolean;
@@ -26,7 +26,6 @@ const MoveOrSkipModal: React.FC<MoveOrSkipModalProps> = ({
   onMove,
   onAddOnlyNew,
 }) => {
-  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState<'move' | 'add' | false>(false);
 
   if (!isOpen || !reviewData) return null;
@@ -38,11 +37,13 @@ const MoveOrSkipModal: React.FC<MoveOrSkipModalProps> = ({
     setIsLoading('move');
     const idsToMove = duplicates.map((d) => d.existingPhrase.id);
     await onMove(idsToMove, newCards, targetCategory);
+    setIsLoading(false);
   };
 
   const handleAddOnlyNew = async () => {
     setIsLoading('add');
     await onAddOnlyNew(newCards, targetCategory);
+    setIsLoading(false);
   };
 
   return (
