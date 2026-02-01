@@ -252,8 +252,7 @@ export const useDataOperations = (
           if (isRetryableError && attempt < maxRetries) {
             const jitter = Math.random() * 500;
             console.warn(
-              `API call failed (${errorType}) on attempt ${attempt} with ${type}. Retrying in ${
-                (delay + jitter) / 1000
+              `API call failed (${errorType}) on attempt ${attempt} with ${type}. Retrying in ${(delay + jitter) / 1000
               }s...`
             );
             await sleep(delay + jitter);
@@ -280,8 +279,7 @@ export const useDataOperations = (
         } catch (fallbackError) {
           console.error(`Fallback API call with ${fallback.type} also failed:`, fallbackError);
           throw new Error(
-            `Primary API failed: ${
-              (primaryError as Error).message
+            `Primary API failed: ${(primaryError as Error).message
             }. Fallback API also failed: ${(fallbackError as Error).message}`
           );
         }
@@ -349,7 +347,7 @@ export const useDataOperations = (
 
       // Background sync with server
       backendService
-        .fetchInitialData()
+        .fetchInitialData(userId)
         .then((serverData) => {
           console.log('Syncing with server in background...');
           const { loadedCategories: serverCategories, loadedPhrases: serverPhrases } =
@@ -365,7 +363,7 @@ export const useDataOperations = (
     } else {
       console.log('No local data, fetching from server...');
       try {
-        const serverData = await backendService.fetchInitialData();
+        const serverData = await backendService.fetchInitialData(userId);
         const { loadedCategories, loadedPhrases } = processInitialServerData(serverData);
 
         localStorage.setItem(CATEGORIES_KEY(userId, languageProfile), JSON.stringify(loadedCategories));
@@ -552,7 +550,7 @@ export const useDataOperations = (
       const createdPhrases: Phrase[] = [];
       for (const p of phrasesToCreate) {
         try {
-          const newPhrase = await backendService.createPhrase(p);
+          const newPhrase = await backendService.createPhrase(userId, p);
           createdPhrases.push(newPhrase);
         } catch (err) {
           console.error('Failed to save new phrase to backend:', err);
@@ -729,7 +727,7 @@ export const useDataOperations = (
 
     try {
       // Background sync
-      await backendService.updatePhrase(updatedPhrase);
+      await backendService.updatePhrase(userId, updatedPhrase);
     } catch (err) {
       // On failure, just show a toast. Do NOT revert the UI state.
       showToast({

@@ -1,0 +1,774 @@
+{
+  "templateLanguage": "en",
+  "version": "1.0.0",
+  "description": "English template for generating initial phrase data for any language pair via AI translation",
+  "categories": [
+    {
+      "id": "general",
+      "name": "General Phrases",
+      "color": "#FF6B6B",
+      "isFoundational": true
+    },
+    {
+      "id": "pronouns",
+      "name": "Pronouns",
+      "color": "#4ECDC4",
+      "isFoundational": true
+    },
+    {
+      "id": "numbers",
+      "name": "Numbers",
+      "color": "#45B7D1",
+      "isFoundational": true
+    },
+    {
+      "id": "time",
+      "name": "Time & Calendar",
+      "color": "#96CEB4",
+      "isFoundational": true
+    },
+    {
+      "id": "colors",
+      "name": "Colors",
+      "color": "#FFEAA7",
+      "isFoundational": true
+    },
+    {
+      "id": "verbs",
+      "name": "Basic Verbs",
+      "color": "#DDA15E",
+      "isFoundational": true
+    },
+    {
+      "id": "nouns",
+      "name": "Common Nouns",
+      "color": "#BC6C25",
+      "isFoundational": true
+    },
+    {
+      "id": "prepositions",
+      "name": "Prepositions",
+      "color": "#A8DADC",
+      "isFoundational": true
+    },
+    {
+      "id": "conjunctions",
+      "name": "Conjunctions",
+      "color": "#E9C46A",
+      "isFoundational": true
+    },
+    {
+      "id": "questions",
+      "name": "Question Words",
+      "color": "#F4A261",
+      "isFoundational": true
+    }
+  ],
+  "phrases": [
+    {
+      "category": "general",
+      "english": "Hello",
+      "context": "Greeting"
+    },
+    {
+      "category": "general",
+      "english": "Goodbye",
+      "context": "Farewell"
+    },
+    {
+      "category": "general",
+      "english": "Please",
+      "context": "Polite request"
+    },
+    {
+      "category": "general",
+      "english": "Thank you",
+      "context": "Gratitude"
+    },
+    {
+      "category": "general",
+      "english": "You're welcome",
+      "context": "Response to thanks"
+    },
+    {
+      "category": "general",
+      "english": "Excuse me",
+      "context": "Getting attention"
+    },
+    {
+      "category": "general",
+      "english": "Sorry",
+      "context": "Apology"
+    },
+    {
+      "category": "general",
+      "english": "Yes",
+      "context": "Affirmation"
+    },
+    {
+      "category": "general",
+      "english": "No",
+      "context": "Negation"
+    },
+    {
+      "category": "general",
+      "english": "I don't understand",
+      "context": "Comprehension difficulty"
+    },
+    {
+      "category": "general",
+      "english": "Do you speak English?",
+      "context": "Language inquiry"
+    },
+    {
+      "category": "general",
+      "english": "Help!",
+      "context": "Emergency"
+    },
+    {
+      "category": "pronouns",
+      "english": "I",
+      "context": "First person singular"
+    },
+    {
+      "category": "pronouns",
+      "english": "You (singular)",
+      "context": "Second person singular"
+    },
+    {
+      "category": "pronouns",
+      "english": "He",
+      "context": "Third person masculine"
+    },
+    {
+      "category": "pronouns",
+      "english": "She",
+      "context": "Third person feminine"
+    },
+    {
+      "category": "pronouns",
+      "english": "It",
+      "context": "Third person neuter"
+    },
+    {
+      "category": "pronouns",
+      "english": "We",
+      "context": "First person plural"
+    },
+    {
+      "category": "pronouns",
+      "english": "You (plural)",
+      "context": "Second person plural"
+    },
+    {
+      "category": "pronouns",
+      "english": "They",
+      "context": "Third person plural"
+    },
+    {
+      "category": "pronouns",
+      "english": "This",
+      "context": "Demonstrative pronoun"
+    },
+    {
+      "category": "pronouns",
+      "english": "That",
+      "context": "Demonstrative pronoun"
+    },
+    {
+      "category": "numbers",
+      "english": "Zero",
+      "context": "Number 0"
+    },
+    {
+      "category": "numbers",
+      "english": "One",
+      "context": "Number 1"
+    },
+    {
+      "category": "numbers",
+      "english": "Two",
+      "context": "Number 2"
+    },
+    {
+      "category": "numbers",
+      "english": "Three",
+      "context": "Number 3"
+    },
+    {
+      "category": "numbers",
+      "english": "Four",
+      "context": "Number 4"
+    },
+    {
+      "category": "numbers",
+      "english": "Five",
+      "context": "Number 5"
+    },
+    {
+      "category": "numbers",
+      "english": "Six",
+      "context": "Number 6"
+    },
+    {
+      "category": "numbers",
+      "english": "Seven",
+      "context": "Number 7"
+    },
+    {
+      "category": "numbers",
+      "english": "Eight",
+      "context": "Number 8"
+    },
+    {
+      "category": "numbers",
+      "english": "Nine",
+      "context": "Number 9"
+    },
+    {
+      "category": "numbers",
+      "english": "Ten",
+      "context": "Number 10"
+    },
+    {
+      "category": "numbers",
+      "english": "Hundred",
+      "context": "Number 100"
+    },
+    {
+      "category": "numbers",
+      "english": "Thousand",
+      "context": "Number 1000"
+    },
+    {
+      "category": "time",
+      "english": "Monday",
+      "context": "Day of the week"
+    },
+    {
+      "category": "time",
+      "english": "Tuesday",
+      "context": "Day of the week"
+    },
+    {
+      "category": "time",
+      "english": "Wednesday",
+      "context": "Day of the week"
+    },
+    {
+      "category": "time",
+      "english": "Thursday",
+      "context": "Day of the week"
+    },
+    {
+      "category": "time",
+      "english": "Friday",
+      "context": "Day of the week"
+    },
+    {
+      "category": "time",
+      "english": "Saturday",
+      "context": "Day of the week"
+    },
+    {
+      "category": "time",
+      "english": "Sunday",
+      "context": "Day of the week"
+    },
+    {
+      "category": "time",
+      "english": "January",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "February",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "March",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "April",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "May",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "June",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "July",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "August",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "September",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "October",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "November",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "December",
+      "context": "Month"
+    },
+    {
+      "category": "time",
+      "english": "Today",
+      "context": "Current day"
+    },
+    {
+      "category": "time",
+      "english": "Yesterday",
+      "context": "Previous day"
+    },
+    {
+      "category": "time",
+      "english": "Tomorrow",
+      "context": "Next day"
+    },
+    {
+      "category": "colors",
+      "english": "Red",
+      "context": "Color"
+    },
+    {
+      "category": "colors",
+      "english": "Blue",
+      "context": "Color"
+    },
+    {
+      "category": "colors",
+      "english": "Green",
+      "context": "Color"
+    },
+    {
+      "category": "colors",
+      "english": "Yellow",
+      "context": "Color"
+    },
+    {
+      "category": "colors",
+      "english": "Black",
+      "context": "Color"
+    },
+    {
+      "category": "colors",
+      "english": "White",
+      "context": "Color"
+    },
+    {
+      "category": "colors",
+      "english": "Orange",
+      "context": "Color"
+    },
+    {
+      "category": "colors",
+      "english": "Purple",
+      "context": "Color"
+    },
+    {
+      "category": "colors",
+      "english": "Pink",
+      "context": "Color"
+    },
+    {
+      "category": "colors",
+      "english": "Brown",
+      "context": "Color"
+    },
+    {
+      "category": "verbs",
+      "english": "To be",
+      "context": "Existence/state verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To have",
+      "context": "Possession verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To do",
+      "context": "Action verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To go",
+      "context": "Movement verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To come",
+      "context": "Movement verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To see",
+      "context": "Perception verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To hear",
+      "context": "Perception verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To speak",
+      "context": "Communication verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To eat",
+      "context": "Action verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To drink",
+      "context": "Action verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To sleep",
+      "context": "Action verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To walk",
+      "context": "Movement verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To run",
+      "context": "Movement verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To want",
+      "context": "Desire verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To need",
+      "context": "Necessity verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To like",
+      "context": "Preference verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To love",
+      "context": "Emotion verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To know",
+      "context": "Knowledge verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To think",
+      "context": "Cognition verb"
+    },
+    {
+      "category": "verbs",
+      "english": "To understand",
+      "context": "Comprehension verb"
+    },
+    {
+      "category": "nouns",
+      "english": "Man",
+      "context": "Person"
+    },
+    {
+      "category": "nouns",
+      "english": "Woman",
+      "context": "Person"
+    },
+    {
+      "category": "nouns",
+      "english": "Child",
+      "context": "Person"
+    },
+    {
+      "category": "nouns",
+      "english": "Family",
+      "context": "Social group"
+    },
+    {
+      "category": "nouns",
+      "english": "Friend",
+      "context": "Relationship"
+    },
+    {
+      "category": "nouns",
+      "english": "House",
+      "context": "Building"
+    },
+    {
+      "category": "nouns",
+      "english": "Car",
+      "context": "Vehicle"
+    },
+    {
+      "category": "nouns",
+      "english": "Food",
+      "context": "Sustenance"
+    },
+    {
+      "category": "nouns",
+      "english": "Water",
+      "context": "Liquid"
+    },
+    {
+      "category": "nouns",
+      "english": "Book",
+      "context": "Object"
+    },
+    {
+      "category": "nouns",
+      "english": "Phone",
+      "context": "Device"
+    },
+    {
+      "category": "nouns",
+      "english": "Money",
+      "context": "Currency"
+    },
+    {
+      "category": "nouns",
+      "english": "Time",
+      "context": "Concept"
+    },
+    {
+      "category": "nouns",
+      "english": "Day",
+      "context": "Time period"
+    },
+    {
+      "category": "nouns",
+      "english": "Year",
+      "context": "Time period"
+    },
+    {
+      "category": "nouns",
+      "english": "Country",
+      "context": "Location"
+    },
+    {
+      "category": "nouns",
+      "english": "City",
+      "context": "Location"
+    },
+    {
+      "category": "nouns",
+      "english": "Street",
+      "context": "Location"
+    },
+    {
+      "category": "nouns",
+      "english": "School",
+      "context": "Institution"
+    },
+    {
+      "category": "nouns",
+      "english": "Work",
+      "context": "Activity/Place"
+    },
+    {
+      "category": "prepositions",
+      "english": "In",
+      "context": "Location/containment"
+    },
+    {
+      "category": "prepositions",
+      "english": "On",
+      "context": "Surface/contact"
+    },
+    {
+      "category": "prepositions",
+      "english": "At",
+      "context": "Location/point"
+    },
+    {
+      "category": "prepositions",
+      "english": "To",
+      "context": "Direction/destination"
+    },
+    {
+      "category": "prepositions",
+      "english": "From",
+      "context": "Origin/source"
+    },
+    {
+      "category": "prepositions",
+      "english": "With",
+      "context": "Accompaniment"
+    },
+    {
+      "category": "prepositions",
+      "english": "Without",
+      "context": "Absence"
+    },
+    {
+      "category": "prepositions",
+      "english": "For",
+      "context": "Purpose/duration"
+    },
+    {
+      "category": "prepositions",
+      "english": "About",
+      "context": "Topic/approximation"
+    },
+    {
+      "category": "prepositions",
+      "english": "Before",
+      "context": "Time/order"
+    },
+    {
+      "category": "prepositions",
+      "english": "After",
+      "context": "Time/order"
+    },
+    {
+      "category": "prepositions",
+      "english": "Between",
+      "context": "Position/choice"
+    },
+    {
+      "category": "prepositions",
+      "english": "Under",
+      "context": "Position"
+    },
+    {
+      "category": "prepositions",
+      "english": "Over",
+      "context": "Position"
+    },
+    {
+      "category": "conjunctions",
+      "english": "And",
+      "context": "Addition"
+    },
+    {
+      "category": "conjunctions",
+      "english": "Or",
+      "context": "Alternative"
+    },
+    {
+      "category": "conjunctions",
+      "english": "But",
+      "context": "Contrast"
+    },
+    {
+      "category": "conjunctions",
+      "english": "Because",
+      "context": "Reason"
+    },
+    {
+      "category": "conjunctions",
+      "english": "If",
+      "context": "Condition"
+    },
+    {
+      "category": "conjunctions",
+      "english": "When",
+      "context": "Time"
+    },
+    {
+      "category": "conjunctions",
+      "english": "While",
+      "context": "Duration"
+    },
+    {
+      "category": "conjunctions",
+      "english": "Although",
+      "context": "Concession"
+    },
+    {
+      "category": "conjunctions",
+      "english": "So",
+      "context": "Result"
+    },
+    {
+      "category": "conjunctions",
+      "english": "That",
+      "context": "Specification"
+    },
+    {
+      "category": "questions",
+      "english": "Who?",
+      "context": "Person inquiry"
+    },
+    {
+      "category": "questions",
+      "english": "What?",
+      "context": "Thing/action inquiry"
+    },
+    {
+      "category": "questions",
+      "english": "Where?",
+      "context": "Place inquiry"
+    },
+    {
+      "category": "questions",
+      "english": "When?",
+      "context": "Time inquiry"
+    },
+    {
+      "category": "questions",
+      "english": "Why?",
+      "context": "Reason inquiry"
+    },
+    {
+      "category": "questions",
+      "english": "How?",
+      "context": "Manner inquiry"
+    },
+    {
+      "category": "questions",
+      "english": "How much?",
+      "context": "Quantity inquiry (uncountable)"
+    },
+    {
+      "category": "questions",
+      "english": "How many?",
+      "context": "Quantity inquiry (countable)"
+    },
+    {
+      "category": "questions",
+      "english": "Which?",
+      "context": "Choice inquiry"
+    },
+    {
+      "category": "questions",
+      "english": "Whose?",
+      "context": "Possession inquiry"
+    }
+  ]
+}

@@ -57,5 +57,5 @@ export const getApiBaseUrl = (): string => {
   }
 
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  return isLocal ? 'http://localhost:3001/api' : 'https://german-phrase-practice-back.vercel.app/api';
+  return isLocal ? 'https://german-phrase-practice-back.vercel.app/api' : 'https://german-phrase-practice-back.vercel.app/api';
 };

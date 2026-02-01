@@ -1,6 +1,7 @@
 import { Category, Phrase } from '../types.ts';
 import { getAccessToken, notifyUnauthorized } from './authTokenStore.ts';
 import { getApiBaseUrl } from './env.ts';
+import * as supabaseService from './supabaseService.ts';
 
 /**
  * backendService.ts
@@ -180,34 +181,14 @@ const fetchWithRetry = async (
  *
  * @returns {Promise<{ categories: Category[]; phrases: Phrase[] }>} A promise resolving to the initial data.
  */
-export const fetchInitialData = async (): Promise<{ categories: Category[]; phrases: Phrase[] }> => {
-  // Логирование токена для диагностики
-  const token = getAccessToken();
-  console.log('Token:', token);
+export const fetchInitialData = async (userId: string): Promise<{ categories: Category[]; phrases: Phrase[] }> => {
 
-  // Декодирование токена для получения user_id
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      console.log('User ID from token:', payload.sub);
-    } catch (e) {
-      console.error('Failed to decode token:', e);
-    }
-  }
-
-  let response = await fetchWithRetry(`${API_BASE_URL}/initial-data`);
-
-  if (response.status === 404) {
-    await loadInitialData();
-    response = await fetchWithRetry(`${API_BASE_URL}/initial-data`);
-  }
-
-  const data = await handleResponse(response);
-  console.log('Response from /initial-data:', data);
+  let categories = await supabaseService.getAllCategories(userId);
+  let phrases = await supabaseService.getAllPhrases(userId);
 
   return {
-    categories: data.categories.map(feCategory),
-    phrases: data.phrases.map(fePhrase),
+    categories: categories.map(feCategory),
+    phrases: phrases.map(fePhrase),
   };
 };
 
@@ -218,25 +199,20 @@ export const fetchInitialData = async (): Promise<{ categories: Category[]; phra
  * @param {Omit<Phrase, 'id' | ...>} phraseData - The data for the new phrase.
  * @returns {Promise<Phrase>} The newly created phrase.
  */
-export const createPhrase = async (
+export const createPhrase = async (userId: string,
   phraseData: Omit<
     Phrase,
     'id' | 'masteryLevel' | 'lastReviewedAt' | 'nextReviewAt' | 'knowCount' | 'knowStreak' | 'isMastered' | 'lapses'
   >
 ): Promise<Phrase> => {
-  const response = await fetchWithRetry(`${API_BASE_URL}/phrases`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    // Map frontend's nested `text` object to backend's flat properties.
-    body: JSON.stringify({
-      native_text: phraseData.text.native,
-      learning_text: phraseData.text.learning,
-      category_id: parseInt(phraseData.category, 10),
-      transcription: phraseData.romanization?.learning,
-      context: phraseData.context?.native,
-    }),
-  });
-  const created = await handleResponse(response);
+  const phrase: DbPhrase = {
+    native_text: phraseData.text.native,
+    learning_text: phraseData.text.learning,
+    category_id: parseInt(phraseData.category, 10),
+    transcription: phraseData.romanization?.learning,
+    context: phraseData.context?.native,
+  }
+  const created = await supabaseService.createPhrase(userId, phrase);
   return fePhrase(created);
 };
 
@@ -248,10 +224,11 @@ export const createPhrase = async (
  * @returns {Promise<Phrase>} The updated phrase from the backend.
  * @throws {Error} If category ID is missing or invalid.
  */
-export const updatePhrase = async (phrase: Phrase): Promise<Phrase> => {
+export const updatePhrase = async (userId: string, phrase: Phrase): Promise<Phrase> => {
   // Map frontend's nested object structure to the flat properties expected by the backend.
   // Support legacy fields (native/learning) for backward compatibility
-  const beData = {
+  const beData: DbPhrase = {
+    id: parseInt(phrase.id, 10),
     native_text: phrase.text?.native || (phrase as any).native,
     learning_text: phrase.text?.learning || (phrase as any).learning,
     category_id: parseInt(phrase.category, 10),
@@ -266,18 +243,13 @@ export const updatePhrase = async (phrase: Phrase): Promise<Phrase> => {
     lapses: phrase.lapses,
   };
 
-  if (isNaN(beData.category_id)) {
+  if (beData.category_id <= 0) {
     throw new Error('Category ID is required and must be a number');
   }
 
-  const response = await fetchWithRetry(`${API_BASE_URL}/phrases/${phrase.id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(beData),
-  });
-  const updated = await handleResponse(response);
+  const updated = await supabaseService.updatePhrase(userId, beData.id, beData);
 
-  return fePhrase({ ...phrase, ...updated });
+  return fePhrase(updated);
 };
 
 /**
@@ -286,8 +258,8 @@ export const updatePhrase = async (phrase: Phrase): Promise<Phrase> => {
  * @param {string} phraseId - The ID of the phrase to delete.
  * @returns {Promise<void>}
  */
-export const deletePhrase = async (phraseId: string): Promise<void> => {
-  await handleResponse(await fetchWithRetry(`${API_BASE_URL}/phrases/${phraseId}`, { method: 'DELETE' }));
+export const deletePhrase = async (userId: string, phraseId: string): Promise<void> => {
+  await supabaseService.deletePhrase(userId, parseInt(phraseId, 10));
 };
 
 /**
@@ -297,7 +269,7 @@ export const deletePhrase = async (phraseId: string): Promise<void> => {
  * @param {Omit<Category, 'id'>} categoryData - The data for the new category.
  * @returns {Promise<Category>} The created category.
  */
-export const createCategory = async (categoryData: Omit<Category, 'id'>): Promise<Category> => {
+export const createCategory = async (userId: string, categoryData: Omit<Category, 'id'>): Promise<Category> => {
   const hexColor = tailwindToHexMap[categoryData.color] || '#64748b';
 
   const beData = {
@@ -306,12 +278,7 @@ export const createCategory = async (categoryData: Omit<Category, 'id'>): Promis
     is_foundational: categoryData.isFoundational,
   };
 
-  const response = await fetchWithRetry(`${API_BASE_URL}/categories`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(beData),
-  });
-  const created = await handleResponse(response);
+  const created = await supabaseService.createCategory(userId, beData);
   return feCategory(created);
 };
 
@@ -321,16 +288,16 @@ export const createCategory = async (categoryData: Omit<Category, 'id'>): Promis
  * @param {Category} category - The category with updated data.
  * @returns {Promise<Category>} The updated category.
  */
-export const updateCategory = async (category: Category): Promise<Category> => {
+export const updateCategory = async (userId: string, category: Category): Promise<Category> => {
   const hexColor = tailwindToHexMap[category.color] || '#64748b';
-  const beData = { name: category.name, color: hexColor };
+  const beData: DbCategory = {
+    id: parseInt(category.id, 10),
+    is_foundational: category.isFoundational,
+    name: category.name,
+    color: hexColor
+  };
 
-  const response = await fetchWithRetry(`${API_BASE_URL}/categories/${category.id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(beData),
-  });
-  const updated = await handleResponse(response);
+  const updated = await supabaseService.updateCategory(userId, beData.id, beData);
   return feCategory(updated);
 };
 
@@ -342,14 +309,8 @@ export const updateCategory = async (category: Category): Promise<Category> => {
  * @param {string | null} migrationTargetId - Optional ID of the category to move phrases to.
  * @returns {Promise<void>}
  */
-export const deleteCategory = async (categoryId: string, migrationTargetId: string | null): Promise<void> => {
-  const body = migrationTargetId ? { migrationTargetId: parseInt(migrationTargetId, 10) } : {};
-  const response = await fetchWithRetry(`${API_BASE_URL}/categories/${categoryId}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  await handleResponse(response);
+export const deleteCategory = async (userId: string, categoryId: string, migrationTargetId: string): Promise<void> => {
+  await supabaseService.deleteCategory(userId, parseInt(categoryId, 10), parseInt(migrationTargetId, 10));
 };
 
 /**
@@ -358,15 +319,25 @@ export const deleteCategory = async (categoryId: string, migrationTargetId: stri
  *
  * @returns {Promise<void>}
  */
-export const loadInitialData = async (): Promise<void> => {
+export const loadInitialData = async (userId: string): Promise<void> => {
   const response = await fetchWithRetry(`${API_BASE_URL}/initial-data`, {
     method: 'POST',
   });
+
+  let response1 = await supabaseService.getAllCategories(userId);
+  let response2 = await supabaseService.getAllPhrases(userId);
+
+  console.log('Response from /initial-data:', response);
+  console.log('Response from /categories:', response1);
+  console.log('Response from /phrases:', response2);
+
   await handleResponse(response);
 };
 
 // --- User Profile API ---
 import type { LanguageProfile } from '../types.ts';
+import { useAuth } from '../contexts/authContext.tsx';
+import { DbCategory, DbPhrase } from './supabaseService.ts';
 
 /**
  * Fetches the current user's language profile.

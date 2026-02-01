@@ -562,8 +562,8 @@ const App: React.FC = () => {
     const isDuplicate = allPhrases.some((p) => p.text.learning.trim().toLowerCase() === normalizedLearning);
     const isDuplicateInCategory = categoryToView
       ? allPhrases.some(
-          (p) => p.category === categoryToView.id && p.text.learning.trim().toLowerCase() === normalizedLearning
-        )
+        (p) => p.category === categoryToView.id && p.text.learning.trim().toLowerCase() === normalizedLearning
+      )
       : false;
 
     if (isDuplicateInCategory) {
@@ -590,7 +590,7 @@ const App: React.FC = () => {
         text: { learning: newPhraseData.learning, native: newPhraseData.native },
         category: categoryId,
       };
-      const newPhrase = await backendService.createPhrase(phraseToCreate);
+      const newPhrase = await backendService.createPhrase(userId, phraseToCreate);
 
       updateAndSavePhrases((prev) => [{ ...newPhrase, isNew: true }, ...prev]);
       setIsAddPhraseModalOpen(false);
@@ -655,7 +655,7 @@ const App: React.FC = () => {
         };
 
         try {
-          newCategory = await backendService.createCategory(newCategoryData);
+          newCategory = await backendService.createCategory(userId, newCategoryData);
           updateAndSaveCategories((prev) => [...prev, newCategory!]);
           updateSettings({
             enabledCategories: {
@@ -731,8 +731,8 @@ const App: React.FC = () => {
     const toastMessage =
       skippedCount > 0
         ? `${baseToastMessage} ${t('notifications.cards.bulkSkipped', {
-            count: skippedCount,
-          })}`
+          count: skippedCount,
+        })}`
         : baseToastMessage;
     showToast({ message: toastMessage });
 
@@ -767,7 +767,7 @@ const App: React.FC = () => {
         text: { learning: phraseData.learning, native: phraseData.native },
         category: categoryId,
       };
-      const newPhrase = await backendService.createPhrase(phraseToCreate);
+      const newPhrase = await backendService.createPhrase(userId, phraseToCreate);
 
       updateAndSavePhrases((prev) => [{ ...newPhrase, isNew: true }, ...prev]);
       showToast({
@@ -806,7 +806,7 @@ const App: React.FC = () => {
         text: { learning: learningText, native: native },
         category: categoryId,
       };
-      const newPhrase = await backendService.createPhrase(phraseToCreate);
+      const newPhrase = await backendService.createPhrase(userId, phraseToCreate);
 
       updateAndSavePhrases((prev) => [{ ...newPhrase, isNew: true }, ...prev]);
       showToast({
@@ -849,7 +849,7 @@ const App: React.FC = () => {
       },
     };
     try {
-      await backendService.updatePhrase(updatedPhrase);
+      await backendService.updatePhrase(userId, updatedPhrase);
       updateAndSavePhrases((prev) => prev.map((p) => (p.id === phraseId ? updatedPhrase : p)));
     } catch (err) {
       showToast({
@@ -865,7 +865,7 @@ const App: React.FC = () => {
     if (!originalPhrase) return;
     const updatedPhrase = { ...originalPhrase, ...updates };
     try {
-      await backendService.updatePhrase(updatedPhrase);
+      await backendService.updatePhrase(userId, updatedPhrase);
       updateAndSavePhrases((prev) => prev.map((p) => (p.id === phraseId ? updatedPhrase : p)));
     } catch (err) {
       showToast({
@@ -892,7 +892,7 @@ const App: React.FC = () => {
   const handleConfirmDelete = async () => {
     if (phraseToDelete) {
       try {
-        await backendService.deletePhrase(phraseToDelete.id);
+        await backendService.deletePhrase(userId, phraseToDelete.id);
         updateAndSavePhrases((prev) => prev.filter((p) => p.id !== phraseToDelete.id));
         if (currentPracticePhrase?.id === phraseToDelete.id) {
           setCurrentPracticePhrase(null); // Clear from practice view if it was active
@@ -964,7 +964,7 @@ const App: React.FC = () => {
     if (!originalPhrase) return;
     const updatedPhrase = { ...originalPhrase, category: newCategoryId };
     try {
-      await backendService.updatePhrase(updatedPhrase);
+      await backendService.updatePhrase(userId, updatedPhrase);
       updateAndSavePhrases((prev) => prev.map((p) => (p.id === phraseId ? updatedPhrase : p)));
     } catch (err) {
       showToast({
@@ -1011,10 +1011,7 @@ const App: React.FC = () => {
           return false;
         }
 
-        const updatedCategory = await backendService.updateCategory({
-          ...categoryToEdit,
-          ...finalCategoryData,
-        });
+        const updatedCategory = await backendService.updateCategory(userId, { ...categoryToEdit, ...finalCategoryData });
         updateAndSaveCategories((prev) => prev.map((c) => (c.id === updatedCategory.id ? updatedCategory : c)));
         setIsCategoryFormModalOpen(false);
         setCategoryToEdit(null);
@@ -1030,7 +1027,7 @@ const App: React.FC = () => {
           ...finalCategoryData,
           isFoundational: false,
         };
-        const newCategory = await backendService.createCategory(newCategoryData);
+        const newCategory = await backendService.createCategory(userId, newCategoryData);
 
         updateAndSaveCategories((prev) => [...prev, newCategory]);
         updateSettings({
@@ -1081,7 +1078,7 @@ const App: React.FC = () => {
           });
           for (let i = 0; i < phrasesToProcess.length; i++) {
             const phrase = phrasesToProcess[i];
-            await backendService.updatePhrase({
+            await backendService.updatePhrase(userId, {
               ...phrase,
               category: migrationTargetId,
             });
@@ -1100,7 +1097,7 @@ const App: React.FC = () => {
           });
           for (let i = 0; i < phrasesToProcess.length; i++) {
             const phrase = phrasesToProcess[i];
-            await backendService.deletePhrase(phrase.id);
+            await backendService.deletePhrase(userId, phrase.id);
             if (i < phrasesToProcess.length - 1) await sleep(delay);
           }
           updateAndSavePhrases((prev) => prev.filter((p) => p.category !== categoryIdToDelete));
@@ -1109,7 +1106,7 @@ const App: React.FC = () => {
       }
 
       // After processing all phrases, delete the now-empty category.
-      await backendService.deleteCategory(categoryIdToDelete, null);
+      await backendService.deleteCategory(userId, categoryIdToDelete, null);
 
       // Update local state for categories and settings
       updateAndSaveCategories((prev) => prev.filter((c) => c.id !== categoryIdToDelete));
@@ -1197,7 +1194,7 @@ const App: React.FC = () => {
       try {
         // Add a small delay to avoid hitting API rate limits.
         await sleep(300);
-        const newPhrase = await backendService.createPhrase(phrase);
+        const newPhrase = await backendService.createPhrase(userId, phrase);
         createdPhrases.push({ ...newPhrase, isNew: true });
         addedCount++;
       } catch (err) {
@@ -1336,7 +1333,7 @@ const App: React.FC = () => {
 
     for (const phraseId of phraseIds) {
       try {
-        await backendService.deletePhrase(phraseId);
+        await backendService.deletePhrase(userId, phraseId);
         deletedCount++;
       } catch (err) {
         console.error(`Failed to delete phrase ${phraseId}:`, err);
@@ -1623,7 +1620,7 @@ const App: React.FC = () => {
       // Batch update all fixed phrases
       for (const phrase of fixedPhrases) {
         try {
-          await backendService.updatePhrase(phrase);
+          await backendService.updatePhrase(userId, phrase);
         } catch (error) {
           console.error('[AutoFix] Failed to update phrase:', phrase.id, error);
         }
@@ -1737,9 +1734,8 @@ const App: React.FC = () => {
         onOpenAccountDrawer={handleOpenAccountDrawer}
       />
       <main
-        className={`overflow-hidden w-full flex-grow flex flex-col items-center  ${
-          view === 'practice' ? 'justify-center' : ''
-        }`}
+        className={`overflow-hidden w-full flex-grow flex flex-col items-center  ${view === 'practice' ? 'justify-center' : ''
+          }`}
       >
         {renderCurrentView()}
       </main>

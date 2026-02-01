@@ -70,7 +70,7 @@ export const useLanguageOnboarding = (userId: string | null): UseLanguageOnboard
 
         // Check if user has any data
         console.log('📡 [useLanguageOnboarding] Fetching initial data...');
-        const initialData = await backendService.fetchInitialData();
+        const initialData = await backendService.fetchInitialData(userId);
         console.log('✅ [useLanguageOnboarding] Initial data fetched:', {
           categoriesCount: initialData.categories.length,
           phrasesCount: initialData.phrases.length,
@@ -147,7 +147,7 @@ export const useLanguageOnboarding = (userId: string | null): UseLanguageOnboard
 
       // Load initial data for this language pair - this may take a while
       console.log('Starting initial data generation...');
-      await backendService.loadInitialData();
+      await backendService.loadInitialData(userId);
       console.log('Initial data generation completed!');
 
       setNeedsOnboarding(false);

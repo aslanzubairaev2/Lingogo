@@ -5,6 +5,8 @@ import * as backendService from '../services/backendService';
 import type { Phrase } from '../types.ts';
 import CloseIcon from './icons/CloseIcon';
 import Spinner from './Spinner';
+import { useAuth } from '../contexts/authContext.tsx';
+import { t } from 'i18next';
 
 interface FindDuplicatesModalProps {
   onClose: () => void;
@@ -21,7 +23,8 @@ const FindDuplicatesModal: React.FC<FindDuplicatesModalProps> = ({
   phrases,
   backendService,
 }) => {
-  const { t } = useTranslation();
+  const { user } = useAuth();
+  const userId = user?.id;
   const [isProcessing, setIsProcessing] = useState(true);
   const [duplicateGroups, setDuplicateGroups] = useState<string[][]>([]);
   const [searchCompleted, setSearchCompleted] = useState(false);
@@ -73,7 +76,7 @@ const FindDuplicatesModal: React.FC<FindDuplicatesModalProps> = ({
     const deletionPromises = [];
     for (const id of idsToDelete) {
       deletionPromises.push(
-        backendService.deletePhrase(id).catch((err) => {
+        backendService.deletePhrase(userId, id).catch((err) => {
           console.error(`Failed to delete phrase ${id}:`, err);
           // Optionally, show a toast for failed deletions
         })
