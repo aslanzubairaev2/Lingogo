@@ -43,6 +43,7 @@ const detectBrowserLanguage = (): LanguageCode => {
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const isDev = import.meta.env.DEV;
   const { user } = useAuth();
+  const userId = user?.id;
   const isAuthenticated = !!user;
 
   // Add test function to window for debugging AI generation
@@ -236,10 +237,10 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
           signal: controller.signal,
           onPhase: overlayNeeded
             ? (phase) => {
-                if (!controller.signal.aborted) {
-                  setLocalizationPhase(phase);
-                }
+              if (!controller.signal.aborted) {
+                setLocalizationPhase(phase);
               }
+            }
             : undefined,
         });
 
@@ -313,7 +314,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     const syncProfileWithDatabase = async () => {
       try {
         // Try to load profile from database
-        const dbProfile = await backendService.getUserProfile();
+        const dbProfile = await backendService.getUserProfile(userId);
 
         // Null means no profile yet (new user)
         if (!dbProfile) {
@@ -350,7 +351,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
         console.warn('[LanguageContext] Could not load profile from database, using local:', error);
         // If database profile doesn't exist, create it with current profile
         try {
-          await backendService.upsertUserProfile(profile);
+          await backendService.upsertUserProfile(userId, profile);
           console.log('[LanguageContext] Created profile in database');
         } catch (upsertError) {
           console.error('[LanguageContext] Failed to create profile in database:', upsertError);
@@ -376,7 +377,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       // Sync with database if authenticated
       if (isAuthenticated) {
         backendService
-          .upsertUserProfile(next)
+          .upsertUserProfile(userId, next)
           .then(() => {
             console.log('[LanguageContext] Profile synced to database');
           })

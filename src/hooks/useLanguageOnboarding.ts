@@ -57,7 +57,7 @@ export const useLanguageOnboarding = (userId: string | null): UseLanguageOnboard
 
         // Try to get existing profile from backend
         console.log('📡 [useLanguageOnboarding] Fetching user profile...');
-        const profile = await backendService.getUserProfile();
+        const profile = await backendService.getUserProfile(userId);
         console.log('✅ [useLanguageOnboarding] Profile fetched:', profile);
 
         // If profile is null, user is brand new - needs onboarding
@@ -135,7 +135,7 @@ export const useLanguageOnboarding = (userId: string | null): UseLanguageOnboard
       const newProfile = { ui: native, native, learning };
 
       // Save profile to backend
-      await backendService.updateUserProfile(newProfile);
+      await backendService.updateUserProfile(userId, newProfile);
 
       // IMPORTANT: Also save to localStorage with uiLocked=true
       // This ensures the UI language persists after page reload

@@ -16,7 +16,7 @@ export const getSupabaseAnonKey = (): string | null => {
 };
 
 export const getGeminiApiKey = (): string | null => {
-  const key = import.meta.env.VITE_API_KEY as string | undefined;
+  const key = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
   if (isPlaceholder(key)) {
     return null;
   }
@@ -29,33 +29,4 @@ export const getDeepseekApiKey = (): string | null => {
     return null;
   }
   return key!.trim();
-};
-
-const resolveApiBaseUrl = (): string | null => {
-  const explicit = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
-  if (explicit) {
-    return explicit;
-  }
-
-  const devUrl = (import.meta.env.VITE_API_BASE_URL_DEV as string | undefined)?.trim();
-  const prodUrl = (import.meta.env.VITE_API_BASE_URL_PROD as string | undefined)?.trim();
-
-  if (import.meta.env.DEV && devUrl) {
-    return devUrl;
-  }
-  if (!import.meta.env.DEV && prodUrl) {
-    return prodUrl;
-  }
-
-  return null;
-};
-
-export const getApiBaseUrl = (): string => {
-  const resolved = resolveApiBaseUrl();
-  if (resolved) {
-    return resolved;
-  }
-
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  return isLocal ? 'https://german-phrase-practice-back.vercel.app/api' : 'https://german-phrase-practice-back.vercel.app/api';
 };

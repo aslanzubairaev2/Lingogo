@@ -1,7 +1,6 @@
 import { Category, Phrase } from '../types.ts';
-import { getAccessToken, notifyUnauthorized } from './authTokenStore.ts';
-import { getApiBaseUrl } from './env.ts';
 import * as supabaseService from './supabaseService.ts';
+import { DbCategory, DbPhrase } from './supabaseService.ts';
 
 /**
  * backendService.ts
@@ -14,8 +13,6 @@ import * as supabaseService from './supabaseService.ts';
  * - Implementing global retry logic for network robustness.
  * - Providing typed functions for all CRUD operations on Phrases, Categories, and User Profiles.
  */
-
-const API_BASE_URL = getApiBaseUrl();
 
 // --- Color Conversion Maps ---
 // Maps Tailwind CSS color classes to Hex codes for backend storage.
@@ -53,7 +50,7 @@ const hexToTailwindMap: Record<string, string> = Object.fromEntries(
  * Converts a raw backend category object to the frontend Category type.
  * Handles color mapping (Hex -> Tailwind).
  */
-const feCategory = (beCategory: any): Category => ({
+const feCategory = (beCategory: DbCategory): Category => ({
   id: beCategory.id.toString(),
   name: beCategory.name,
   color: hexToTailwindMap[beCategory.color.toLowerCase()] || 'bg-slate-500',
@@ -64,14 +61,14 @@ const feCategory = (beCategory: any): Category => ({
  * Converts a raw backend phrase object to the frontend Phrase type.
  * Maps flat backend fields to nested objects (text, romanization, context).
  */
-const fePhrase = (bePhrase: any): Phrase => {
-  const categoryId = bePhrase.category_id ?? bePhrase.category;
+const fePhrase = (bePhrase: supabaseService.DbPhrase): Phrase => {
+  const categoryId = bePhrase.category_id;
   // Map backend's flat structure to the frontend's nested `text` object.
   return {
     id: bePhrase.id.toString(),
     text: {
-      native: bePhrase.native || bePhrase.native_text,
-      learning: bePhrase.learning || bePhrase.learning_text,
+      native: bePhrase.native_text,
+      learning: bePhrase.learning_text,
     },
     category: categoryId.toString(),
     romanization: bePhrase.transcription ? { learning: bePhrase.transcription } : undefined,
@@ -87,95 +84,6 @@ const fePhrase = (bePhrase: any): Phrase => {
 };
 
 /**
- * Standardized response handler.
- * - checks for 401/403 to trigger unauthorized flow.
- * - parses JSON response or throws detailed errors.
- * - handles 204 No Content.
- */
-const handleResponse = async (response: Response) => {
-  if (response.status === 401 || response.status === 403) {
-    notifyUnauthorized();
-  }
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    let errorData: any;
-    try {
-      errorData = JSON.parse(errorText);
-    } catch (e) {
-      const statusText = response.statusText || 'Error';
-      errorData = { error: `${response.status} ${statusText}`, details: errorText };
-    }
-    const message = errorData?.error || `Request failed with status ${response.status}`;
-    throw new Error(message);
-  }
-
-  if (response.status === 204) {
-    return null;
-  }
-
-  return response.json();
-};
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Wrapper around `fetch` that adds:
- * - Authorization headers with the current token.
- * - Automatic retry logic for 429 (Rate Limit) errors with exponential backoff.
- * - Default headers (Accept, Content-Type).
- */
-const fetchWithRetry = async (
-  url: RequestInfo,
-  options: RequestInit = {},
-  retries = 3,
-  initialDelay = 500
-): Promise<Response> => {
-  let delay = initialDelay;
-  for (let i = 0; i < retries; i++) {
-    try {
-      const token = getAccessToken();
-      const headers = new Headers(options.headers || {});
-      if (!headers.has('Accept')) {
-        headers.set('Accept', 'application/json');
-      }
-      if (options.body && !headers.has('Content-Type')) {
-        headers.set('Content-Type', 'application/json');
-      }
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-
-      const response = await fetch(url, { ...options, headers });
-
-      if (response.ok || response.status === 401 || response.status === 403) {
-        return response;
-      }
-
-      if (response.status === 429) {
-        console.warn(`Rate limit exceeded. Attempt ${i + 1}/${retries}. Retrying in ${delay}ms...`);
-        if (i < retries - 1) {
-          await sleep(delay + Math.random() * 200);
-          delay *= 2;
-          continue;
-        }
-      }
-
-      return response;
-    } catch (error) {
-      console.error(`Fetch failed on attempt ${i + 1}/${retries}:`, error);
-      if (i < retries - 1) {
-        await sleep(delay + Math.random() * 200);
-        delay *= 2;
-      } else {
-        throw error;
-      }
-    }
-  }
-  throw new Error('Request failed after all retries.');
-};
-
-/**
  * Fetches the initial data set (categories and phrases) for the application.
  * If a 404 is encountered, it triggers a data load and retries.
  *
@@ -183,8 +91,14 @@ const fetchWithRetry = async (
  */
 export const fetchInitialData = async (userId: string): Promise<{ categories: Category[]; phrases: Phrase[] }> => {
 
-  let categories = await supabaseService.getAllCategories(userId);
-  let phrases = await supabaseService.getAllPhrases(userId);
+  const categories: DbCategory[] = await supabaseService.getAllCategories(userId).catch((error) => {
+    console.error('Error fetching categories:', error);
+    return [];
+  });
+  const phrases: DbPhrase[] = await supabaseService.getAllPhrases(userId).catch((error) => {
+    console.error('Error fetching phrases:', error);
+    return [];
+  });
 
   return {
     categories: categories.map(feCategory),
@@ -200,19 +114,22 @@ export const fetchInitialData = async (userId: string): Promise<{ categories: Ca
  * @returns {Promise<Phrase>} The newly created phrase.
  */
 export const createPhrase = async (userId: string,
-  phraseData: Omit<
+  phrase: Omit<
     Phrase,
     'id' | 'masteryLevel' | 'lastReviewedAt' | 'nextReviewAt' | 'knowCount' | 'knowStreak' | 'isMastered' | 'lapses'
   >
 ): Promise<Phrase> => {
-  const phrase: DbPhrase = {
-    native_text: phraseData.text.native,
-    learning_text: phraseData.text.learning,
-    category_id: parseInt(phraseData.category, 10),
-    transcription: phraseData.romanization?.learning,
-    context: phraseData.context?.native,
+  const dbPhrase: DbPhrase = {
+    native_text: phrase.text.native,
+    learning_text: phrase.text.learning,
+    category_id: parseInt(phrase.category, 10),
+    transcription: phrase.romanization?.learning,
+    context: phrase.context?.native,
   }
-  const created = await supabaseService.createPhrase(userId, phrase);
+  const created: DbPhrase = await supabaseService.createPhrase(userId, dbPhrase).catch((error) => {
+    console.error('Error creating phrase:', error);
+    return dbPhrase;
+  });
   return fePhrase(created);
 };
 
@@ -227,7 +144,7 @@ export const createPhrase = async (userId: string,
 export const updatePhrase = async (userId: string, phrase: Phrase): Promise<Phrase> => {
   // Map frontend's nested object structure to the flat properties expected by the backend.
   // Support legacy fields (native/learning) for backward compatibility
-  const beData: DbPhrase = {
+  const dBphrase: DbPhrase = {
     id: parseInt(phrase.id, 10),
     native_text: phrase.text?.native || (phrase as any).native,
     learning_text: phrase.text?.learning || (phrase as any).learning,
@@ -243,11 +160,14 @@ export const updatePhrase = async (userId: string, phrase: Phrase): Promise<Phra
     lapses: phrase.lapses,
   };
 
-  if (beData.category_id <= 0) {
+  if (dBphrase.category_id <= 0) {
     throw new Error('Category ID is required and must be a number');
   }
 
-  const updated = await supabaseService.updatePhrase(userId, beData.id, beData);
+  const updated: DbPhrase = await supabaseService.updatePhrase(userId, dBphrase.id, dBphrase).catch((error) => {
+    console.error('Error updating phrase:', error);
+    return dBphrase;
+  });
 
   return fePhrase(updated);
 };
@@ -259,7 +179,9 @@ export const updatePhrase = async (userId: string, phrase: Phrase): Promise<Phra
  * @returns {Promise<void>}
  */
 export const deletePhrase = async (userId: string, phraseId: string): Promise<void> => {
-  await supabaseService.deletePhrase(userId, parseInt(phraseId, 10));
+  await supabaseService.deletePhrase(userId, parseInt(phraseId, 10)).catch((error) => {
+    console.error('Error deleting phrase:', error);
+  });
 };
 
 /**
@@ -272,13 +194,16 @@ export const deletePhrase = async (userId: string, phraseId: string): Promise<vo
 export const createCategory = async (userId: string, categoryData: Omit<Category, 'id'>): Promise<Category> => {
   const hexColor = tailwindToHexMap[categoryData.color] || '#64748b';
 
-  const beData = {
+  const dbCategory: DbCategory = {
     name: categoryData.name,
     color: hexColor,
     is_foundational: categoryData.isFoundational,
   };
 
-  const created = await supabaseService.createCategory(userId, beData);
+  const created: DbCategory = await supabaseService.createCategory(userId, dbCategory).catch((error) => {
+    console.error('Error creating category:', error);
+    return dbCategory;
+  });
   return feCategory(created);
 };
 
@@ -290,14 +215,17 @@ export const createCategory = async (userId: string, categoryData: Omit<Category
  */
 export const updateCategory = async (userId: string, category: Category): Promise<Category> => {
   const hexColor = tailwindToHexMap[category.color] || '#64748b';
-  const beData: DbCategory = {
+  const dbCategory: DbCategory = {
     id: parseInt(category.id, 10),
     is_foundational: category.isFoundational,
     name: category.name,
     color: hexColor
   };
 
-  const updated = await supabaseService.updateCategory(userId, beData.id, beData);
+  const updated: DbCategory = await supabaseService.updateCategory(userId, dbCategory.id, dbCategory).catch((error) => {
+    console.error('Error updating category:', error);
+    return dbCategory;
+  });
   return feCategory(updated);
 };
 
@@ -310,7 +238,9 @@ export const updateCategory = async (userId: string, category: Category): Promis
  * @returns {Promise<void>}
  */
 export const deleteCategory = async (userId: string, categoryId: string, migrationTargetId: string): Promise<void> => {
-  await supabaseService.deleteCategory(userId, parseInt(categoryId, 10), parseInt(migrationTargetId, 10));
+  await supabaseService.deleteCategory(userId, parseInt(categoryId, 10), parseInt(migrationTargetId, 10)).catch((error) => {
+    console.error('Error deleting category:', error);
+  });
 };
 
 /**
@@ -320,24 +250,13 @@ export const deleteCategory = async (userId: string, categoryId: string, migrati
  * @returns {Promise<void>}
  */
 export const loadInitialData = async (userId: string): Promise<void> => {
-  const response = await fetchWithRetry(`${API_BASE_URL}/initial-data`, {
-    method: 'POST',
+  await supabaseService.loadInitialData(userId).catch((error) => {
+    console.error('Error loading initial data:', error);
   });
-
-  let response1 = await supabaseService.getAllCategories(userId);
-  let response2 = await supabaseService.getAllPhrases(userId);
-
-  console.log('Response from /initial-data:', response);
-  console.log('Response from /categories:', response1);
-  console.log('Response from /phrases:', response2);
-
-  await handleResponse(response);
 };
 
 // --- User Profile API ---
 import type { LanguageProfile } from '../types.ts';
-import { useAuth } from '../contexts/authContext.tsx';
-import { DbCategory, DbPhrase } from './supabaseService.ts';
 
 /**
  * Fetches the current user's language profile.
@@ -345,15 +264,9 @@ import { DbCategory, DbPhrase } from './supabaseService.ts';
  *
  * @returns {Promise<LanguageProfile | null>} The user profile or null.
  */
-export const getUserProfile = async (): Promise<LanguageProfile | null> => {
-  const response = await fetchWithRetry(`${API_BASE_URL}/user-profile`);
+export const getUserProfile = async (userId: string): Promise<LanguageProfile | null> => {
 
-  // A 404 means the user has no profile yet (brand new account)
-  if (response.status === 404) {
-    return null;
-  }
-
-  const data = await handleResponse(response);
+  const data = await supabaseService.getUserProfile(userId);
 
   if (!data) {
     return null;
@@ -372,17 +285,12 @@ export const getUserProfile = async (): Promise<LanguageProfile | null> => {
  * @param {LanguageProfile} profile - The updated profile data.
  * @returns {Promise<void>}
  */
-export const updateUserProfile = async (profile: LanguageProfile): Promise<void> => {
-  const response = await fetchWithRetry(`${API_BASE_URL}/user-profile`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ui_language: profile.ui,
-      native_language: profile.native,
-      learning_language: profile.learning,
-    }),
+export const updateUserProfile = async (userId: string, profile: LanguageProfile): Promise<void> => {
+  await supabaseService.updateUserProfile(userId, {
+    ui_language: profile.ui,
+    native_language: profile.native,
+    learning_language: profile.learning,
   });
-  await handleResponse(response);
 };
 
 /**
@@ -392,15 +300,10 @@ export const updateUserProfile = async (profile: LanguageProfile): Promise<void>
  * @param {LanguageProfile} profile - The profile data to save.
  * @returns {Promise<void>}
  */
-export const upsertUserProfile = async (profile: LanguageProfile): Promise<void> => {
-  const response = await fetchWithRetry(`${API_BASE_URL}/user-profile`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ui_language: profile.ui,
-      native_language: profile.native,
-      learning_language: profile.learning,
-    }),
+export const upsertUserProfile = async (userId: string, profile: LanguageProfile): Promise<void> => {
+  await supabaseService.upsertUserProfile(userId, {
+    ui_language: profile.ui,
+    native_language: profile.native,
+    learning_language: profile.learning,
   });
-  await handleResponse(response);
 };

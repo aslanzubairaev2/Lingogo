@@ -90,12 +90,13 @@ import {
   View,
   WordAnalysis,
 } from './types.ts';
+import { t } from 'i18next';
 
 // Helper function for retrying API calls with a delay
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const App: React.FC = () => {
-  const { t } = useTranslation();
+  if (!import.meta.env.DEV) console.log = () => { };
   const { user } = useAuth();
   const userId = user?.id;
   const { profile: languageProfile } = useLanguage();

@@ -191,8 +191,8 @@ function convertAIResponseToMessage(aiResponse: PracticeChatAIResponse): Practic
       secondary:
         aiResponse.secondaryText !== undefined && aiResponse.secondaryText !== null && aiResponse.secondaryText !== ''
           ? {
-              text: aiResponse.secondaryText,
-            }
+            text: aiResponse.secondaryText,
+          }
           : undefined,
     },
     actions: {
@@ -240,7 +240,7 @@ export async function sendPracticeChatMessage(
   userVocabulary: Phrase[],
   languageProfile: LanguageProfile
 ): Promise<PracticeChatMessage> {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error('Gemini API key not configured');
   }
