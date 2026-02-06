@@ -1,11 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
-import { useLanguage } from "../contexts/languageContext";
-import { generateInitialData } from "./generateInitialDataService";
+import { createClient } from '@supabase/supabase-js';
+
+import { useLanguage } from '../contexts/languageContext';
+import { generateInitialData } from './generateInitialDataService';
 
 /**
  * Supabase Service
- * 
- * Provides a set of utility functions to interact with Supabase database (PostgreSQL) 
+ *
+ * Provides a set of utility functions to interact with Supabase database (PostgreSQL)
  * and Authentication. This service handles user profiles, categories, and phrases.
  */
 
@@ -46,7 +47,7 @@ export type DbPhrase = {
 
 // Check if environment variables are properly set
 if (!supabaseUrl || !supabaseKey) {
-  console.error("Supabase URL or Service Key is missing. Make sure to set them in your .env file.");
+  console.error('Supabase URL or Service Key is missing. Make sure to set them in your .env file.');
 }
 
 // Initialize and export the Supabase client
@@ -54,7 +55,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
  * Retrieves a user's authentication profile from Supabase Auth.
- * 
+ *
  * @param userId - The unique identifier of the user.
  * @returns The user object from Supabase Auth.
  * @throws Error if retrieval fails.
@@ -72,14 +73,17 @@ export async function getAuthUserProfile(userId: string) {
 
 /**
  * Verifies an authentication token and returns the associated user.
- * 
+ *
  * @param token - The Supabase access token.
  * @returns The user object if the token is valid.
  * @throws Error if the token is invalid or verification fails.
  */
 export async function verifyAuthUserToken(token: string) {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(token);
     if (error) throw error;
     return user;
   } catch (error) {
@@ -90,17 +94,13 @@ export async function verifyAuthUserToken(token: string) {
 
 /**
  * Fetches the application-specific user profile from the 'user_profiles' table.
- * 
+ *
  * @param userId - The unique identifier of the user.
  * @returns The profile data or null if not found.
  * @throws Error if the database query fails (excluding 'not found').
  */
 export async function getUserProfile(userId: string) {
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('*')
-    .eq('user_id', userId)
-    .single();
+  const { data, error } = await supabase.from('user_profiles').select('*').eq('user_id', userId).single();
 
   if (error && error.code === 'PGRST116') {
     // No profile found - return null instead of creating default
@@ -114,7 +114,7 @@ export async function getUserProfile(userId: string) {
 
 /**
  * Creates a default user profile for a new user.
- * 
+ *
  * @param userId - The unique identifier of the user.
  * @returns The newly created profile data.
  * @throws Error if the insertion fails.
@@ -123,13 +123,15 @@ export async function createDefaultProfile(userId: string) {
   // Default to English for new users
   const { data, error } = await supabase
     .from('user_profiles')
-    .insert([{
-      user_id: userId,
-      ui_language: 'en',
-      native_language: 'en',
-      learning_language: 'de',
-      schema_version: 1
-    }])
+    .insert([
+      {
+        user_id: userId,
+        ui_language: 'en',
+        native_language: 'en',
+        learning_language: 'de',
+        schema_version: 1,
+      },
+    ])
     .select()
     .single();
 
@@ -139,7 +141,7 @@ export async function createDefaultProfile(userId: string) {
 
 /**
  * Updates an existing user profile or creates it if it doesn't exist.
- * 
+ *
  * @param userId - The unique identifier of the user.
  * @param profileData - The new language preferences for the user.
  * @returns The updated profile data.
@@ -149,7 +151,7 @@ export async function updateUserProfile(userId: string, { ui_language, native_la
     ui_language,
     native_language,
     learning_language,
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   };
 
   const { data, error } = await supabase
@@ -176,7 +178,7 @@ export async function updateUserProfile(userId: string, { ui_language, native_la
 
 /**
  * Performs an upsert operation on the user profile.
- * 
+ *
  * @param userId - The unique identifier of the user.
  * @param profileData - The profile data to upsert.
  * @returns The upserted profile data.
@@ -185,16 +187,19 @@ export async function updateUserProfile(userId: string, { ui_language, native_la
 export async function upsertUserProfile(userId: string, { ui_language, native_language, learning_language }) {
   const { data, error } = await supabase
     .from('user_profiles')
-    .upsert({
-      user_id: userId,
-      ui_language,
-      native_language,
-      learning_language,
-      schema_version: 1,
-      updated_at: new Date().toISOString()
-    }, {
-      onConflict: 'user_id'
-    })
+    .upsert(
+      {
+        user_id: userId,
+        ui_language,
+        native_language,
+        learning_language,
+        schema_version: 1,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'user_id',
+      }
+    )
     .select()
     .single();
 
@@ -204,7 +209,7 @@ export async function upsertUserProfile(userId: string, { ui_language, native_la
 
 /**
  * Retrieves all categories associated with a specific user.
- * 
+ *
  * @param userId - The unique identifier of the user.
  * @returns A promise that resolves to an array of categories.
  * @throws Error if retrieval fails.
@@ -221,7 +226,7 @@ export async function getAllCategories(userId: string): Promise<DbCategory[]> {
 
 /**
  * Creates a new category for a user, ensuring the name is unique for that user.
- * 
+ *
  * @param userId - The unique identifier of the user.
  * @param category - The category data to insert.
  * @returns The newly created category.
@@ -236,7 +241,8 @@ export async function createCategory(userId: string, category: DbCategory): Prom
     .eq('name', category.name)
     .single();
 
-  if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found"
+  if (checkError && checkError.code !== 'PGRST116') {
+    // PGRST116 is "not found"
     throw checkError;
   }
 
@@ -247,18 +253,14 @@ export async function createCategory(userId: string, category: DbCategory): Prom
   }
 
   category.user_id = userId;
-  const { data, error } = await supabase
-    .from('categories')
-    .insert([category])
-    .select()
-    .single();
+  const { data, error } = await supabase.from('categories').insert([category]).select().single();
   if (error) throw error;
   return data;
 }
 
 /**
  * Updates an existing category's information.
- * 
+ *
  * @param userId - The owner of the category.
  * @param id - The numeric ID of the category.
  * @param category - The updated category data.
@@ -283,7 +285,7 @@ export async function updateCategory(userId: string, id: number, category: DbCat
 
 /**
  * Deletes a category and either migrates its phrases to another category or deletes them.
- * 
+ *
  * @param userId - The owner of the category.
  * @param id - The ID of the category to delete.
  * @param migrationTargetId - The ID of the category to move phrases to. If null/0, phrases are deleted.
@@ -323,7 +325,7 @@ export async function deleteCategory(userId: string, id: number, migrationTarget
 
 /**
  * Retrieves all phrases belonging to a user.
- * 
+ *
  * @param userId - The unique identifier of the user.
  * @returns A promise resolving to an array of phrases.
  * @throws Error if retrieval fails.
@@ -340,7 +342,7 @@ export async function getAllPhrases(userId: string): Promise<DbPhrase[]> {
 
 /**
  * Creates a new phrase in the database.
- * 
+ *
  * @param userId - The owner of the phrase.
  * @param phrase - The phrase data.
  * @returns The newly created phrase.
@@ -348,18 +350,14 @@ export async function getAllPhrases(userId: string): Promise<DbPhrase[]> {
  */
 export async function createPhrase(userId: string, phrase: DbPhrase): Promise<DbPhrase> {
   phrase.user_id = userId;
-  const { data, error } = await supabase
-    .from('phrases')
-    .insert([phrase])
-    .select()
-    .single();
+  const { data, error } = await supabase.from('phrases').insert([phrase]).select().single();
   if (error) throw error;
   return data;
 }
 
 /**
  * Updates an existing phrase.
- * 
+ *
  * @param userId - The owner of the phrase.
  * @param id - The numeric ID of the phrase.
  * @param phrase - The updated phrase data.
@@ -368,12 +366,7 @@ export async function createPhrase(userId: string, phrase: DbPhrase): Promise<Db
  */
 export async function updatePhrase(userId: string, id: number, phrase: DbPhrase): Promise<DbPhrase> {
   console.log('Updating phrase:', phrase);
-  const { data, error } = await supabase
-    .from('phrases')
-    .update(phrase)
-    .eq('id', id)
-    .eq('user_id', userId)
-    .select();
+  const { data, error } = await supabase.from('phrases').update(phrase).eq('id', id).eq('user_id', userId).select();
   if (error) throw error;
   if (data.length === 0) {
     const notFoundError = new Error('Phrase not found');
@@ -385,24 +378,20 @@ export async function updatePhrase(userId: string, id: number, phrase: DbPhrase)
 
 /**
  * Deletes a phrase from the database.
- * 
+ *
  * @param userId - The owner of the phrase.
  * @param id - The numeric ID of the phrase.
  * @returns A promise that resolves when the phrase is deleted.
  * @throws Error if deletion fails.
  */
 export async function deletePhrase(userId: string, id: number): Promise<void> {
-  const { error } = await supabase
-    .from('phrases')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', userId);
+  const { error } = await supabase.from('phrases').delete().eq('id', id).eq('user_id', userId);
   if (error) throw error;
 }
 
 /**
  * Internal helper to fetch all categories and phrases for a user.
- * 
+ *
  * @param userId - The user ID.
  * @returns An object containing categories and mapped phrases.
  */
@@ -414,7 +403,7 @@ async function getInitialData(userId: string) {
     const phrasesData = await getAllPhrases(userId);
     console.log(`Fetched ${phrasesData.length} phrases`);
 
-    const phrases = phrasesData.map(p => ({
+    const phrases = phrasesData.map((p) => ({
       id: p.id,
       native: p.native_text,
       learning: p.learning_text,
@@ -438,9 +427,9 @@ async function getInitialData(userId: string) {
 }
 
 /**
- * Triggers the generation of initial data (categories and phrases) for a user 
+ * Triggers the generation of initial data (categories and phrases) for a user
  * using an AI service and saves it to Supabase.
- * 
+ *
  * @param userId - The unique identifier of the user.
  * @returns A result summary object.
  * @throws Error if generation or saving fails.
@@ -459,10 +448,7 @@ export async function loadInitialData(userId: string) {
     console.log(`Generating initial data for ${profile.native} → ${profile.learning}`);
 
     // Generate translated data templates using AI
-    const { categories, phrases } = await generateInitialData(
-      profile.native,
-      profile.learning
-    );
+    const { categories, phrases } = await generateInitialData(profile.native, profile.learning);
 
     // Map template category IDs to newly created DB IDs
     const categoryMapping = {};
@@ -485,7 +471,7 @@ export async function loadInitialData(userId: string) {
         const newCategory = await createCategory(userId, {
           name: category.name,
           color: category.color,
-          is_foundational: category.isFoundational !== undefined ? category.isFoundational : false
+          is_foundational: category.isFoundational !== undefined ? category.isFoundational : false,
         });
         categoryId = newCategory.id;
         console.log(`Created category "${category.name}" with id ${categoryId}`);
@@ -505,7 +491,7 @@ export async function loadInitialData(userId: string) {
             learning_text: phrase.learning,
             category_id: categoryId,
             transcription: phrase.transcription,
-            context: phrase.context
+            context: phrase.context,
           });
           createdCount++;
         } catch (phraseError) {
@@ -523,11 +509,10 @@ export async function loadInitialData(userId: string) {
     return {
       message: 'Initial data loaded successfully',
       categoriesCreated: categories.length,
-      phrasesCreated: createdCount
+      phrasesCreated: createdCount,
     };
   } catch (error) {
     console.error('Error in loadInitialData:', error);
     throw error;
   }
 }
-

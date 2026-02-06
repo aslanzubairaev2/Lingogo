@@ -1,12 +1,12 @@
+import { t } from 'i18next';
 import React, { useEffect, useState } from 'react';
 
+import { useAuth } from '../contexts/authContext.tsx';
 import { useTranslation } from '../hooks/useTranslation';
 import * as backendService from '../services/backendService';
 import type { Phrase } from '../types.ts';
 import CloseIcon from './icons/CloseIcon';
 import Spinner from './Spinner';
-import { useAuth } from '../contexts/authContext.tsx';
-import { t } from 'i18next';
 
 interface FindDuplicatesModalProps {
   onClose: () => void;

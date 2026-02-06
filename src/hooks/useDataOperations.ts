@@ -252,7 +252,8 @@ export const useDataOperations = (
           if (isRetryableError && attempt < maxRetries) {
             const jitter = Math.random() * 500;
             console.warn(
-              `API call failed (${errorType}) on attempt ${attempt} with ${type}. Retrying in ${(delay + jitter) / 1000
+              `API call failed (${errorType}) on attempt ${attempt} with ${type}. Retrying in ${
+                (delay + jitter) / 1000
               }s...`
             );
             await sleep(delay + jitter);
@@ -279,7 +280,8 @@ export const useDataOperations = (
         } catch (fallbackError) {
           console.error(`Fallback API call with ${fallback.type} also failed:`, fallbackError);
           throw new Error(
-            `Primary API failed: ${(primaryError as Error).message
+            `Primary API failed: ${
+              (primaryError as Error).message
             }. Fallback API also failed: ${(fallbackError as Error).message}`
           );
         }

@@ -237,10 +237,10 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
           signal: controller.signal,
           onPhase: overlayNeeded
             ? (phase) => {
-              if (!controller.signal.aborted) {
-                setLocalizationPhase(phase);
+                if (!controller.signal.aborted) {
+                  setLocalizationPhase(phase);
+                }
               }
-            }
             : undefined,
         });
 

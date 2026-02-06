@@ -191,8 +191,8 @@ function convertAIResponseToMessage(aiResponse: PracticeChatAIResponse): Practic
       secondary:
         aiResponse.secondaryText !== undefined && aiResponse.secondaryText !== null && aiResponse.secondaryText !== ''
           ? {
-            text: aiResponse.secondaryText,
-          }
+              text: aiResponse.secondaryText,
+            }
           : undefined,
     },
     actions: {

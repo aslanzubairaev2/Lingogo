@@ -1,9 +1,9 @@
+import { t } from 'i18next';
 import React, { useState } from 'react';
 
 import { Category, Phrase, ProposedCard } from '../types.ts';
 import FolderMoveIcon from './icons/FolderMoveIcon';
 import Spinner from './Spinner';
-import { t } from 'i18next';
 
 interface MoveOrSkipModalProps {
   isOpen: boolean;

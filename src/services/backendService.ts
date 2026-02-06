@@ -90,7 +90,6 @@ const fePhrase = (bePhrase: supabaseService.DbPhrase): Phrase => {
  * @returns {Promise<{ categories: Category[]; phrases: Phrase[] }>} A promise resolving to the initial data.
  */
 export const fetchInitialData = async (userId: string): Promise<{ categories: Category[]; phrases: Phrase[] }> => {
-
   const categories: DbCategory[] = await supabaseService.getAllCategories(userId).catch((error) => {
     console.error('Error fetching categories:', error);
     return [];
@@ -113,7 +112,8 @@ export const fetchInitialData = async (userId: string): Promise<{ categories: Ca
  * @param {Omit<Phrase, 'id' | ...>} phraseData - The data for the new phrase.
  * @returns {Promise<Phrase>} The newly created phrase.
  */
-export const createPhrase = async (userId: string,
+export const createPhrase = async (
+  userId: string,
   phrase: Omit<
     Phrase,
     'id' | 'masteryLevel' | 'lastReviewedAt' | 'nextReviewAt' | 'knowCount' | 'knowStreak' | 'isMastered' | 'lapses'
@@ -125,7 +125,7 @@ export const createPhrase = async (userId: string,
     category_id: parseInt(phrase.category, 10),
     transcription: phrase.romanization?.learning,
     context: phrase.context?.native,
-  }
+  };
   const created: DbPhrase = await supabaseService.createPhrase(userId, dbPhrase).catch((error) => {
     console.error('Error creating phrase:', error);
     return dbPhrase;
@@ -219,7 +219,7 @@ export const updateCategory = async (userId: string, category: Category): Promis
     id: parseInt(category.id, 10),
     is_foundational: category.isFoundational,
     name: category.name,
-    color: hexColor
+    color: hexColor,
   };
 
   const updated: DbCategory = await supabaseService.updateCategory(userId, dbCategory.id, dbCategory).catch((error) => {
@@ -238,9 +238,11 @@ export const updateCategory = async (userId: string, category: Category): Promis
  * @returns {Promise<void>}
  */
 export const deleteCategory = async (userId: string, categoryId: string, migrationTargetId: string): Promise<void> => {
-  await supabaseService.deleteCategory(userId, parseInt(categoryId, 10), parseInt(migrationTargetId, 10)).catch((error) => {
-    console.error('Error deleting category:', error);
-  });
+  await supabaseService
+    .deleteCategory(userId, parseInt(categoryId, 10), parseInt(migrationTargetId, 10))
+    .catch((error) => {
+      console.error('Error deleting category:', error);
+    });
 };
 
 /**
@@ -265,7 +267,6 @@ import type { LanguageProfile } from '../types.ts';
  * @returns {Promise<LanguageProfile | null>} The user profile or null.
  */
 export const getUserProfile = async (userId: string): Promise<LanguageProfile | null> => {
-
   const data = await supabaseService.getUserProfile(userId);
 
   if (!data) {

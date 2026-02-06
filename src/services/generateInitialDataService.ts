@@ -1,9 +1,9 @@
-import { GoogleGenAI } from "@google/genai";
-import fs from "fs";
-import path from "path";
+import { GoogleGenAI } from '@google/genai';
+import fs from 'fs';
+import path from 'path';
 
 // Initialize Gemini AI
-const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || "" });
+const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' });
 
 const model = 'gemini-3-flash-preview';
 // const model = 'gemini-2.5-flash-lite-preview-09-2025';
@@ -11,23 +11,23 @@ const model = 'gemini-3-flash-preview';
 
 // Language code to full name mapping
 const LANGUAGE_NAMES = {
-  en: "English",
-  de: "German",
-  ru: "Russian",
-  fr: "French",
-  es: "Spanish",
-  it: "Italian",
-  pt: "Portuguese",
-  pl: "Polish",
-  zh: "Chinese",
-  ja: "Japanese",
-  ar: "Arabic",
-  hi: "Hindi",
-  mr: "Marathi",
+  en: 'English',
+  de: 'German',
+  ru: 'Russian',
+  fr: 'French',
+  es: 'Spanish',
+  it: 'Italian',
+  pt: 'Portuguese',
+  pl: 'Polish',
+  zh: 'Chinese',
+  ja: 'Japanese',
+  ar: 'Arabic',
+  hi: 'Hindi',
+  mr: 'Marathi',
 };
 
 // Non-European languages that need transcription
-const NEEDS_TRANSCRIPTION = ["zh", "ja", "ar", "ru", "hi", "mr"];
+const NEEDS_TRANSCRIPTION = ['zh', 'ja', 'ar', 'ru', 'hi', 'mr'];
 
 /**
  * Validate transcription field
@@ -35,7 +35,7 @@ const NEEDS_TRANSCRIPTION = ["zh", "ja", "ar", "ru", "hi", "mr"];
  * @returns {boolean} - True if valid, false otherwise
  */
 function isValidTranscription(transcription: string): boolean {
-  if (!transcription || typeof transcription !== "string") {
+  if (!transcription || typeof transcription !== 'string') {
     return false;
   }
 
@@ -59,9 +59,9 @@ function isValidTranscription(transcription: string): boolean {
  * @returns {boolean} - True if text is primarily Latin alphabet
  */
 function isLatinScript(text: string): boolean {
-  if (!text || typeof text !== "string") return false;
+  if (!text || typeof text !== 'string') return false;
   // Remove spaces, punctuation, and numbers
-  const cleanText = text.replace(/[\s\d\p{P}]/gu, "");
+  const cleanText = text.replace(/[\s\d\p{P}]/gu, '');
   if (cleanText.length === 0) return false; // Empty or only punctuation = indeterminate
 
   // Count Latin characters (including accented letters)
@@ -80,7 +80,7 @@ function isLatinScript(text: string): boolean {
  * @returns {boolean} - True if learning field appears valid
  */
 function isValidLearningField(learningText: string, transcription: string, learningLanguageCode: string): boolean {
-  if (!learningText || typeof learningText !== "string") return false;
+  if (!learningText || typeof learningText !== 'string') return false;
 
   // For languages that need transcription (non-Latin scripts)
   if (NEEDS_TRANSCRIPTION.includes(learningLanguageCode)) {
@@ -108,7 +108,12 @@ function isValidLearningField(learningText: string, transcription: string, learn
  * @param {string} learningLanguageCode - Learning language code (e.g., 'hi', 'ar')
  * @returns {Object} - Object with isValid boolean and error message if invalid
  */
-function validateTranslation(translation: any, needsTranscription: boolean, learningLanguage: string, learningLanguageCode: string): { isValid: boolean, error?: string } {
+function validateTranslation(
+  translation: any,
+  needsTranscription: boolean,
+  learningLanguage: string,
+  learningLanguageCode: string
+): { isValid: boolean; error?: string } {
   // Check required fields exist
   if (!translation.native || !translation.learning) {
     return {
@@ -153,26 +158,17 @@ function validateTranslation(translation: any, needsTranscription: boolean, lear
  */
 export async function generateInitialData(nativeLanguage: string, learningLanguage: string) {
   try {
-    console.log(
-      `Generating initial data for ${nativeLanguage} → ${learningLanguage}`
-    );
+    console.log(`Generating initial data for ${nativeLanguage} → ${learningLanguage}`);
 
     // Load English template
-    const templatePath = path.join(
-      __dirname,
-      "../../data/initial-data-template.json"
-    );
-    const templateData = JSON.parse(fs.readFileSync(templatePath, "utf8"));
+    const templatePath = path.join(__dirname, '../../data/initial-data-template.json');
+    const templateData = JSON.parse(fs.readFileSync(templatePath, 'utf8'));
 
     const nativeLangName = LANGUAGE_NAMES[nativeLanguage] || nativeLanguage;
-    const learningLangName =
-      LANGUAGE_NAMES[learningLanguage] || learningLanguage;
+    const learningLangName = LANGUAGE_NAMES[learningLanguage] || learningLanguage;
 
     // Translate categories
-    const translatedCategories = await translateCategories(
-      templateData.categories,
-      nativeLangName
-    );
+    const translatedCategories = await translateCategories(templateData.categories, nativeLangName);
 
     // Translate phrases in batches
     const translatedPhrases = await translatePhrases(
@@ -193,7 +189,7 @@ export async function generateInitialData(nativeLanguage: string, learningLangua
       phrases: translatedPhrases,
     };
   } catch (error) {
-    console.error("Error generating initial data:", error);
+    console.error('Error generating initial data:', error);
     throw error;
   }
 }
@@ -205,7 +201,7 @@ export async function generateInitialData(nativeLanguage: string, learningLangua
  * @returns {Promise<Array>}
  */
 async function translateCategories(categories, targetLanguage) {
-  const categoryNames = categories.map((c) => c.name).join("\n");
+  const categoryNames = categories.map((c) => c.name).join('\n');
 
   const prompt = `Translate the following category names to ${targetLanguage}.
 Return ONLY a JSON array of translated names in the exact same order, without any additional text or formatting.
@@ -221,8 +217,8 @@ Example output format: ["Translated Name 1", "Translated Name 2", ...]`;
   // Parse JSON response
   const translatedNames = JSON.parse(
     response
-      .replace(/```json\n?/g, "")
-      .replace(/```\n?/g, "")
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
       .trim()
   );
 
@@ -255,21 +251,15 @@ async function translatePhrases(
   // Use smaller batch size if EITHER language uses non-Latin script
   const nativeNeedsSmallBatch = NEEDS_TRANSCRIPTION.includes(nativeLanguageCode);
   const learningNeedsSmallBatch = NEEDS_TRANSCRIPTION.includes(learningLanguageCode);
-  const batchSize = (nativeNeedsSmallBatch || learningNeedsSmallBatch) ? 10 : 20;
+  const batchSize = nativeNeedsSmallBatch || learningNeedsSmallBatch ? 10 : 20;
   console.log(`Using batch size: ${batchSize} (native: ${nativeLanguageCode}, learning: ${learningLanguageCode})`);
   const translatedPhrases = [];
 
   for (let i = 0; i < phrases.length; i += batchSize) {
     const batch = phrases.slice(i, i + batchSize);
-    console.log(
-      `Translating phrases batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(
-        phrases.length / batchSize
-      )}`
-    );
+    console.log(`Translating phrases batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(phrases.length / batchSize)}`);
 
-    const phrasesText = batch
-      .map((p, idx) => `${idx + 1}. ${p.english}`)
-      .join("\n");
+    const phrasesText = batch.map((p, idx) => `${idx + 1}. ${p.english}`).join('\n');
 
     const prompt = `You are a professional translator. Translate the following English phrases to both ${nativeLanguage} and ${learningLanguage}.
 
@@ -278,7 +268,9 @@ CRITICAL: You must provide THREE separate pieces of information for EACH phrase:
 2. "learning": The translation in ${learningLanguage} (in ${learningLanguage} script)
 3. ${needsTranscription ? `"transcription": Latin alphabet romanization of the ${learningLanguage} word ONLY` : 'No transcription needed'}
 
-${needsTranscription ? `
+${
+  needsTranscription
+    ? `
 IMPORTANT EXAMPLES for ${learningLanguage} (${nativeLanguage}):
 If English word is "Hello":
 - "native": "${nativeLanguage} word in ${nativeLanguage} script" (e.g., "नमस्ते" for Hindi)
@@ -290,16 +282,19 @@ KEY RULES:
 - "transcription" field = ONLY Latin alphabet romanization of "learning" field
 - If ${learningLanguage} uses Latin alphabet (like Spanish, French, English), transcription might be same as learning
 - If ${learningLanguage} uses non-Latin script (like Hindi, Arabic, Chinese), transcription must be romanized version
-` : ''}
+`
+    : ''
+}
 
 Return ONLY a JSON array of objects with this exact structure:
 [
   {
     "native": "${nativeLanguage} translation in ${nativeLanguage} script",
-    "learning": "${learningLanguage} translation in ${learningLanguage} script"${needsTranscription
+    "learning": "${learningLanguage} translation in ${learningLanguage} script"${
+      needsTranscription
         ? ',\n    "transcription": "romanized version of learning field using ONLY Latin alphabet"'
-        : ""
-      }
+        : ''
+    }
   }
 ]
 
@@ -310,12 +305,12 @@ MANDATORY REQUIREMENTS:
 - Return ONLY valid JSON, no additional text or explanations
 - Maintain the exact same order as the input phrases
 - Ensure translations are accurate and natural in both languages
-- Each object MUST have these fields: "native", "learning"${needsTranscription ? ', and "transcription"' : ""
-      }
+- Each object MUST have these fields: "native", "learning"${needsTranscription ? ', and "transcription"' : ''}
 - "native" must be in ${nativeLanguage} using ${nativeLanguage} script
 - "learning" must be in ${learningLanguage} using ${learningLanguage} script
-${needsTranscription
-        ? `
+${
+  needsTranscription
+    ? `
 TRANSCRIPTION RULES (MANDATORY - STRICT):
 - Transcription is REQUIRED for every phrase - never omit it
 - Transcription must use ONLY Latin alphabet characters (a-z, A-Z, spaces)
@@ -341,8 +336,8 @@ TRANSCRIPTION RULES (MANDATORY - STRICT):
 IMPORTANT: If you add brackets or explanations in transcription, the translation will be REJECTED.
 Just provide the simple romanization, nothing more.
 `
-        : ""
-      }`;
+    : ''
+}`;
 
     // Retry logic for AI generation with JSON parsing
     const MAX_RETRIES = 3;
@@ -356,8 +351,8 @@ Just provide the simple romanization, nothing more.
 
         // Clean up the response
         let cleanedResponse = response
-          .replace(/```json\n?/g, "")
-          .replace(/```\n?/g, "")
+          .replace(/```json\n?/g, '')
+          .replace(/```\n?/g, '')
           .trim();
 
         // Try to parse as-is first
@@ -412,24 +407,15 @@ Just provide the simple romanization, nothing more.
     }
 
     if (!translations) {
-      throw new Error(
-        `Failed to parse AI response after ${MAX_RETRIES} attempts: ${lastError?.message}`
-      );
+      throw new Error(`Failed to parse AI response after ${MAX_RETRIES} attempts: ${lastError?.message}`);
     }
 
     // Validate all translations in the batch (log warnings, don't throw)
     translations.forEach((translation, idx) => {
       if (!translation || idx >= batch.length) return;
-      const validation = validateTranslation(
-        translation,
-        needsTranscription,
-        learningLanguage,
-        learningLanguageCode
-      );
+      const validation = validateTranslation(translation, needsTranscription, learningLanguage, learningLanguageCode);
       if (!validation.isValid) {
-        console.warn(
-          `Validation warning for phrase #${idx + 1} ("${batch[idx].english}"): ${validation.error}`
-        );
+        console.warn(`Validation warning for phrase #${idx + 1} ("${batch[idx].english}"): ${validation.error}`);
       }
     });
 
@@ -472,11 +458,7 @@ Just provide the simple romanization, nothing more.
  * @param {string} outputPath - Path to save the generated data
  * @returns {Promise<void>}
  */
-async function generateAndSaveInitialData(
-  nativeLanguage,
-  learningLanguage,
-  outputPath
-) {
+async function generateAndSaveInitialData(nativeLanguage, learningLanguage, outputPath) {
   const data = await generateInitialData(nativeLanguage, learningLanguage);
 
   const output = {
@@ -484,7 +466,7 @@ async function generateAndSaveInitialData(
       nativeLanguage,
       learningLanguage,
       generatedAt: new Date().toISOString(),
-      version: "1.0.0",
+      version: '1.0.0',
     },
     data: {
       categories: data.categories,
@@ -492,6 +474,6 @@ async function generateAndSaveInitialData(
     },
   };
 
-  fs.writeFileSync(outputPath, JSON.stringify(output, null, 2), "utf8");
+  fs.writeFileSync(outputPath, JSON.stringify(output, null, 2), 'utf8');
   console.log(`Initial data saved to ${outputPath}`);
 }

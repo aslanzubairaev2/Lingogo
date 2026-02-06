@@ -1,3 +1,4 @@
+import { t } from 'i18next';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 /**
@@ -90,13 +91,12 @@ import {
   View,
   WordAnalysis,
 } from './types.ts';
-import { t } from 'i18next';
 
 // Helper function for retrying API calls with a delay
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const App: React.FC = () => {
-  if (!import.meta.env.DEV) console.log = () => { };
+  if (!import.meta.env.DEV) console.log = () => {};
   const { user } = useAuth();
   const userId = user?.id;
   const { profile: languageProfile } = useLanguage();
@@ -563,8 +563,8 @@ const App: React.FC = () => {
     const isDuplicate = allPhrases.some((p) => p.text.learning.trim().toLowerCase() === normalizedLearning);
     const isDuplicateInCategory = categoryToView
       ? allPhrases.some(
-        (p) => p.category === categoryToView.id && p.text.learning.trim().toLowerCase() === normalizedLearning
-      )
+          (p) => p.category === categoryToView.id && p.text.learning.trim().toLowerCase() === normalizedLearning
+        )
       : false;
 
     if (isDuplicateInCategory) {
@@ -732,8 +732,8 @@ const App: React.FC = () => {
     const toastMessage =
       skippedCount > 0
         ? `${baseToastMessage} ${t('notifications.cards.bulkSkipped', {
-          count: skippedCount,
-        })}`
+            count: skippedCount,
+          })}`
         : baseToastMessage;
     showToast({ message: toastMessage });
 
@@ -1012,7 +1012,10 @@ const App: React.FC = () => {
           return false;
         }
 
-        const updatedCategory = await backendService.updateCategory(userId, { ...categoryToEdit, ...finalCategoryData });
+        const updatedCategory = await backendService.updateCategory(userId, {
+          ...categoryToEdit,
+          ...finalCategoryData,
+        });
         updateAndSaveCategories((prev) => prev.map((c) => (c.id === updatedCategory.id ? updatedCategory : c)));
         setIsCategoryFormModalOpen(false);
         setCategoryToEdit(null);
@@ -1735,8 +1738,9 @@ const App: React.FC = () => {
         onOpenAccountDrawer={handleOpenAccountDrawer}
       />
       <main
-        className={`overflow-hidden w-full flex-grow flex flex-col items-center  ${view === 'practice' ? 'justify-center' : ''
-          }`}
+        className={`overflow-hidden w-full flex-grow flex flex-col items-center  ${
+          view === 'practice' ? 'justify-center' : ''
+        }`}
       >
         {renderCurrentView()}
       </main>
