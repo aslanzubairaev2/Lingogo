@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { AiErrorBoundary } from '../components/AiErrorBoundary';
+import { AiErrorBoundary } from '../src/components/AiErrorBoundary';
 import React from 'react';
 
 // Component that throws an error
