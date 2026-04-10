@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { useTranslation } from 'react-i18next';
-import i18n from '../i18n/config';
+import i18n from '../src/i18n/config';
 
 describe('Learning Assistant Localization', () => {
   it('should have dontKnow translation in English', () => {
